@@ -21,7 +21,7 @@ import { executeSetPiece_Router } from './setpieces/execution';
 import { switchSummaryTab } from './ui/uiComponents';
 import { switchSimulationMode, addMatchToBatch } from './ui/uiScreens';
 import { CustomFixtureSimulator } from './batch-simulator';
-import { startMatch, resetMatch } from './main';
+import { startMatch, resetMatch, handleFileUpload } from './main';
 // ============================================================================
 // GAME STATE INITIALIZATION
 // ============================================================================
@@ -200,6 +200,7 @@ export function exportToWindow() {
     window.CustomFixtureSimulator = CustomFixtureSimulator;
     window.startMatch = startMatch;
     window.resetMatch = resetMatch;
+    window.handleFileUpload = handleFileUpload;
     // Initialize game state if it doesn't exist
     if (typeof window.gameState === 'undefined') {
         window.gameState = initializeGameState();

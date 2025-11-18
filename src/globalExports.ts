@@ -85,7 +85,8 @@ import {
 } from './batch-simulator';
 import {
   startMatch,
-  resetMatch
+  resetMatch,
+  handleFileUpload
 } from './main';
 
 // ============================================================================
@@ -148,6 +149,7 @@ declare global {
     CustomFixtureSimulator: typeof CustomFixtureSimulator;
     startMatch: typeof startMatch;
     resetMatch: typeof resetMatch;
+    handleFileUpload: typeof handleFileUpload;
     gameState: GameState;
   }
 }
@@ -340,6 +342,7 @@ export function exportToWindow(): void {
   window.CustomFixtureSimulator = CustomFixtureSimulator;
   window.startMatch = startMatch;
   window.resetMatch = resetMatch;
+  window.handleFileUpload = handleFileUpload;
 
   // Initialize game state if it doesn't exist
   if (typeof window.gameState === 'undefined') {
