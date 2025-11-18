@@ -5,10 +5,15 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testMatch: [
-    "**/test/**/*.ts"
+    "**/test/**/*.test.ts",
+    "**/test/**/*-test.ts"
   ],
   testPathIgnorePatterns: [
     "/node_modules/",
-    "/dist/"
+    "/dist/",
+    "/src/"
+  ],
+  roots: [
+    "<rootDir>/test"
   ]
 };
