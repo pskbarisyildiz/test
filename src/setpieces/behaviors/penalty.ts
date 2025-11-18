@@ -1,0 +1,61 @@
+/**
+ * Penalty Kick Behaviors - TypeScript Migration
+ *
+ * Handles player positioning for penalty kicks:
+ * - Kicker positioning at penalty spot
+ * - Penalty arc waiting positions
+ * - Goalkeeper positioning
+ *
+ * @module setpieces/behaviors/penalty
+ * @migrated-from js/setpieces/behaviors/penalty.js
+ */
+
+import type { Player, GameState, Vector2D } from '../../types';
+import { sanitizePosition } from '../utils';
+
+// ============================================================================
+// PENALTY KICK BEHAVIORS
+// ============================================================================
+
+export const PenaltyKickBehaviors = {
+  /**
+   * Get kicker position at penalty spot
+   */
+  getKickerPosition(penaltyPos: Vector2D) {
+    return sanitizePosition(
+      { x: penaltyPos.x, y: penaltyPos.y, movement: 'penalty_kicker', role: 'PENALTY_KICKER' },
+      {}
+    );
+  },
+
+  /**
+   * Get penalty arc position for waiting players
+   */
+  getPenaltyArcPosition(player: Player, penaltyPos: Vector2D, isAttacking: boolean, gameState: GameState) {
+    if (!player) {
+      return sanitizePosition({ x: 400, y: 300, movement: 'penalty_arc' }, {});
+    }
+
+    if (player.role === 'GK') {
+      const goalX = isAttacking ?
+        (window as any).getAttackingGoalX(!player.isHome, gameState.currentHalf) :
+        (window as any).getAttackingGoalX(player.isHome, gameState.currentHalf);
+      return sanitizePosition({ x: goalX, y: 300, movement: 'gk_penalty', role: 'GK' }, { player });
+    }
+
+    const arcRadius = 110;
+    const angle = Math.random() * Math.PI - Math.PI / 2;
+    const x = penaltyPos.x + Math.cos(angle) * arcRadius;
+    const y = penaltyPos.y + Math.sin(angle) * arcRadius;
+
+    return sanitizePosition({ x, y, movement: 'penalty_arc_wait' }, { player });
+  }
+};
+
+// ============================================================================
+// BROWSER EXPORTS
+// ============================================================================
+
+if (typeof window !== 'undefined') {
+  (window as any).PenaltyKickBehaviors = PenaltyKickBehaviors;
+}
