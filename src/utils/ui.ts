@@ -1,5 +1,6 @@
 import type { GameState, Player } from '../types';
 import { GAME_CONFIG } from '../config';
+import { gameState } from '../globalExports';
 
 export function ensureStatsShape(gs: GameState): void {
   gs.stats = gs.stats || {};
@@ -149,8 +150,8 @@ export function resolveSide(value: any): 'home' | 'away' | null {
         if (value === false || value === 'away') return 'away';
 
         if (typeof value === 'string') {
-            if (value === ((window as any).gameState?.homeTeam || '').trim()) return 'home';
-            if (value === ((window as any).gameState?.awayTeam || '').trim()) return 'away';
+            if (value === (gameState?.homeTeam || '').trim()) return 'home';
+            if (value === (gameState?.awayTeam || '').trim()) return 'away';
         }
 
         if (value && typeof value === 'object') {

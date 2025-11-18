@@ -5,6 +5,7 @@
 
 import type { Player, GameState, PlayerRole, MutableVector2D } from './types';
 import { FORMATIONS, GAME_CONFIG } from './config';
+import { gameState } from './globalExports';
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -341,7 +342,6 @@ function getPositionFitness(player: Player, targetRole: string): number {
 }
 
 export function selectBestTeam(teamName: string): { players: Player[]; formation: string } {
-  const gameState = (window as any).gameState as GameState;
   const teamPlayers = gameState.players.filter(p => p.team === teamName) as unknown as Player[];
   const formation = selectBestFormation(teamPlayers);
 

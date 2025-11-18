@@ -1,6 +1,6 @@
 import type { Player, BallTrajectory } from '../types';
 import { distance } from '../utils/math';
-import { isSetPieceStatus } from '../utils/ui';
+import { isSetPieceStatus, getAttackingGoalX } from '../utils/ui';
 import { gameState } from '../globalExports';
 import { assignBallChasers } from '../physics';
 import { applyFirstTouch, handleFailedFirstTouch, handlePoorFirstTouch, handleSuccessfulFirstTouch } from '../ai/playerFirstTouch';
@@ -273,7 +273,7 @@ function handleInterception(player: Player): void {
 }
 
 function handleWonHeader(player: Player): void {
-    const opponentGoalX = (window as any).getAttackingGoalX(player.isHome, gameState.currentHalf);
+    const opponentGoalX = getAttackingGoalX(player.isHome, gameState.currentHalf);
     const directionToGoal = Math.sign(opponentGoalX - player.x);
 
     gameState.ballTrajectory = null;

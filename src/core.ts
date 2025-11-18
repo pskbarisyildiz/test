@@ -38,6 +38,9 @@ import { getVisibleTeammates } from './ai/playerVision';
 import { selectBestAttackingMovement } from './ai/MovementPatterns';
 import { canPlayerActOnBall } from './ai/playerFirstTouch';
 
+// Debug flag (replaces window.DEBUG_AI)
+const DEBUG_AI = false;
+
 // ============================================================================
 // SPATIAL AWARENESS SYSTEM
 // ============================================================================
@@ -134,7 +137,7 @@ class ActionDecisionSystem {
 
         // PRIORITY 1: SHOOT
         if (this.shouldShootNow(player, opponents, gameState)) {
-            if ((window as any).DEBUG_AI) {
+            if (DEBUG_AI) {
                 console.log(`[AI] ${player.name}: SHOOT decision (goalX=${goalX})`);
             }
             return { action: 'SHOOT', target: { x: goalX, y: 300 } };
@@ -143,7 +146,7 @@ class ActionDecisionSystem {
         // PRIORITY 2: PASS
         const bestPass = this.findBestPassTarget(player, teammates, opponents, goalX);
         if (bestPass && bestPass.score > 60) {
-            if ((window as any).DEBUG_AI) {
+            if (DEBUG_AI) {
                 console.log(`[AI] ${player.name}: PASS decision (score=${bestPass.score}, target=${bestPass.teammate.name})`);
             }
             return { action: 'PASS', target: bestPass.teammate };
@@ -151,7 +154,7 @@ class ActionDecisionSystem {
 
         // PRIORITY 3: DRIBBLE
         if (this.hasSpaceToDribble(player, opponents, goalX)) {
-            if ((window as any).DEBUG_AI) {
+            if (DEBUG_AI) {
                 console.log(`[AI] ${player.name}: DRIBBLE decision (to goalX=${goalX})`);
             }
             return { action: 'DRIBBLE', target: { x: goalX, y: player.y } };
@@ -159,13 +162,13 @@ class ActionDecisionSystem {
 
         // DEFAULT:
         if (bestPass) {
-            if ((window as any).DEBUG_AI) {
+            if (DEBUG_AI) {
                 console.log(`[AI] ${player.name}: PASS decision (fallback, score=${bestPass.score})`);
             }
             return { action: 'PASS', target: bestPass.teammate };
         }
 
-        if ((window as any).DEBUG_AI) {
+        if (DEBUG_AI) {
             console.log(`[AI] ${player.name}: HOLD decision (no viable options)`);
         }
         return { action: 'HOLD', target: null };

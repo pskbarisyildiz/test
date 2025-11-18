@@ -168,7 +168,4 @@ export function initializeCanvasLayers(): boolean {
 // ============================================================================
 // BROWSER EXPORTS
 // ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).initializeCanvasLayers = initializeCanvasLayers;
-}
+// Function is now exported via ES6 modules - no window exports needed

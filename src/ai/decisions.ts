@@ -555,7 +555,7 @@ export function handlePlayerWithBall_WithFirstTouch(
   }
 
   if (underPressure || decision < (GAME_CONFIG as any).PASSING_CHANCE) {
-    const passTarget = (window as any).findBestPassOption?.(player, teammates, opponents);
+    const passTarget = findBestPassOption_WithVision(player, teammates, opponents);
     if (passTarget) {
       initiatePass(player, passTarget);
     } else {

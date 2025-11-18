@@ -4,6 +4,7 @@ import { gameState } from '../globalExports';
 import { eventBus } from '../eventBus';
 import { EVENT_TYPES } from '../types';
 import { assignBallChasers } from '../physics';
+import { getPlayerFacingDirection } from './playerVision';
 
 export const FIRST_TOUCH_CONFIG = {
     // Control quality thresholds
@@ -61,7 +62,7 @@ function calculateFirstTouchQuality(player: Player, ballSpeed: number, nearbyOpp
         gameState.ballPosition.y - player.y,
         gameState.ballPosition.x - player.x
     );
-    const facingAngle = (player as any).facingAngle || (window as any).getPlayerFacingDirection(player);
+    const facingAngle = (player as any).facingAngle || getPlayerFacingDirection(player);
     let angleDiff = Math.abs(ballAngle - facingAngle);
     if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
 
@@ -167,7 +168,7 @@ export function handleFailedFirstTouch(player: Player, allPlayers: Player[]): vo
 export function handlePoorFirstTouch(player: Player, touchResult: { outcome: string; quality: number; settleTime: number; speedMultiplier: number; }): void {
     console.log(` ${player.name} heavy touch`);
 
-    const movementAngle = (player as any).facingAngle || (window as any).getPlayerFacingDirection(player);
+    const movementAngle = (player as any).facingAngle || getPlayerFacingDirection(player);
     const pushDistance = 40 + Math.random() * 30;
 
     gameState.ballPosition.x = player.x + Math.cos(movementAngle) * pushDistance;
@@ -234,7 +235,7 @@ export function handleSuccessfulFirstTouch(player: Player, touchResult: { outcom
     if (wasPerfect) {
         player.speedBoost = 1.0; // No penalty
         // Bonus: Slightly ahead of original position (takes ball in stride)
-        const moveAngle = (player as any).facingAngle || (window as any).getPlayerFacingDirection(player);
+        const moveAngle = (player as any).facingAngle || getPlayerFacingDirection(player);
         gameState.ballPosition.x = player.x + Math.cos(moveAngle) * 15;
         gameState.ballPosition.y = player.y + Math.sin(moveAngle) * 15;
     } else {
