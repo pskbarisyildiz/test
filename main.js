@@ -492,32 +492,44 @@ function setupKickOff(teamWithBall) {
             return; // Skip to next player
         }
 
-        // === CORE FIX: Use role-based positioning (same logic as KickoffBehaviors) ===
-        // Don't use formation positions - they cause stuttering when forwards' positions are in opponent's half
-
-        // Calculate base X position - safe distance from center line in own half
-        const baseDistanceFromCenter = 60;
-        const roleAdjustment = player.role.includes('ST') || player.role.includes('FW') || player.role.includes('CF')
-            ? 20  // Strikers closer to center (ready to attack)
-            : player.role.includes('MID') || player.role.includes('CM') || player.role.includes('CAM')
-            ? 40  // Midfielders moderate distance
-            : 80; // Defenders deeper
+        // === IMPROVED: Use formation positions but constrain to own half ===
+        // This respects the team's formation (4-3-3, etc.) while ensuring kickoff rules
 
         let targetX, targetY;
 
+        // Start with formation X position
+        let formationX = activePos.x;
+
+        // Constrain to own half with safety margin from center line
+        const safetyMargin = 40; // Minimum distance from center line
+
         if (ownHalfIsLeft) {
-            // Own goal is on left, position in left half
-            targetX = centerX - baseDistanceFromCenter - roleAdjustment;
+            // Own goal is on left, ensure X is in left half
+            if (formationX >= centerX) {
+                // Formation position is in wrong half, mirror it to own half
+                const distFromCenter = Math.abs(formationX - centerX);
+                formationX = centerX - Math.max(distFromCenter, safetyMargin);
+            } else {
+                // Already in correct half, but ensure not too close to center
+                formationX = Math.min(formationX, centerX - safetyMargin);
+            }
             // Ensure not too close to own goal
-            targetX = Math.max(targetX, ownGoalX + 80);
+            targetX = Math.max(formationX, ownGoalX + 80);
         } else {
-            // Own goal is on right, position in right half
-            targetX = centerX + baseDistanceFromCenter + roleAdjustment;
+            // Own goal is on right, ensure X is in right half
+            if (formationX <= centerX) {
+                // Formation position is in wrong half, mirror it to own half
+                const distFromCenter = Math.abs(formationX - centerX);
+                formationX = centerX + Math.max(distFromCenter, safetyMargin);
+            } else {
+                // Already in correct half, but ensure not too close to center
+                formationX = Math.max(formationX, centerX + safetyMargin);
+            }
             // Ensure not too close to own goal
-            targetX = Math.min(targetX, ownGoalX - 80);
+            targetX = Math.min(formationX, ownGoalX - 80);
         }
 
-        // Use formation Y position (vertical positioning is safe)
+        // Use formation Y position
         targetY = Math.max(80, Math.min(520, activePos.y));
 
         // === DEFENDING TEAM: Additional check for center circle rule ===

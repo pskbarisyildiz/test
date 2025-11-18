@@ -312,10 +312,15 @@ export function addMatchToBatch() {
     const awaySelect = document.getElementById('batchAwaySelect');
     if (!homeSelect || !awaySelect)
         return;
-    // Team values would be used by CustomFixtureSimulator if available
-    // const homeTeam = homeSelect.value;
-    // const awayTeam = awaySelect.value;
-    // CustomFixtureSimulator not used in ES6 module context
+    const homeTeam = homeSelect.value;
+    const awayTeam = awaySelect.value;
+    // FIXED: Call CustomFixtureSimulator.addMatch() from window object
+    if (typeof window.CustomFixtureSimulator !== 'undefined') {
+        window.CustomFixtureSimulator.addMatch(homeTeam, awayTeam);
+    }
+    else {
+        console.error('CustomFixtureSimulator not available on window object');
+    }
 }
 // ============================================================================
 // BROWSER EXPORTS
