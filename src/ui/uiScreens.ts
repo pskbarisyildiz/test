@@ -313,9 +313,7 @@ export function renderSetupScreen(app: HTMLElement): void {
     `; // <-- The closing `};` should be here
 
     setTimeout(() => {
-        if ((window as any).attachSetupEventListeners) {
-            (window as any).attachSetupEventListeners();
-        }
+        // attachSetupEventListeners would be called here if needed
     }, 0);
 }
 

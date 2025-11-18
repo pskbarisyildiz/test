@@ -990,7 +990,7 @@ export function renderStatisticsSummary(): string {
 // TAB SWITCHING FUNCTION
 // ============================================================================
 
-function switchSummaryTab(tab: 'events' | 'stats'): void {
+export function switchSummaryTab(tab: 'events' | 'stats'): void {
     const eventsContent = document.getElementById('summary-events-content');
     const statsContent = document.getElementById('summary-stats-content');
     const eventsTab = document.getElementById('events-tab') as HTMLButtonElement | null;
@@ -1033,13 +1033,4 @@ function switchSummaryTab(tab: 'events' | 'stats'): void {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-    (window as any).renderScoreboard = renderScoreboard;
-    (window as any).getStatusIndicator = getStatusIndicator;
-    (window as any).renderCommentary = renderCommentary;
-    (window as any).renderStats = renderStats;
-    (window as any).renderMatchSummary = renderMatchSummary;
-    (window as any).renderStatisticsSummary = renderStatisticsSummary;
-    (window as any).switchSummaryTab = switchSummaryTab;
-    (window as any).lightenColor = lightenColor;
-}
+// Functions are now exported via ES6 modules - no window exports needed
