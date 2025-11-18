@@ -505,7 +505,7 @@ export function handlePlayerWithBall_WithFirstTouch(
 
   if (holdTime > maxHoldTime) {
     if (underHeavyPressure && Math.random() < 0.6) {
-      const passTarget = (window as any).findBestPassOption?.(player, teammates, opponents);
+      const passTarget = findBestPassOption_WithVision(player, teammates, opponents);
       if (passTarget) {
         initiatePass(player, passTarget);
         return;
@@ -534,7 +534,7 @@ export function handlePlayerWithBall_WithFirstTouch(
 
   if (underHeavyPressure) {
     if (decision < 0.7) {
-      const passTarget = (window as any).findBestPassOption?.(player, teammates, opponents);
+      const passTarget = findBestPassOption_WithVision(player, teammates, opponents);
       if (passTarget) {
         initiatePass(player, passTarget);
       } else {
@@ -683,19 +683,3 @@ export function handlePlayerWithBall_WithVision(
   initiateDribble(player, goalX);
 }
 
-// ============================================================================
-// GLOBAL EXPORTS (Browser Compatibility)
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).calculateAvgDribbling = calculateAvgDribbling;
-  (window as any).passBall = passBall;
-  (window as any).calculateDribbleSuccess = calculateDribbleSuccess;
-  (window as any).calculatePassSuccess = calculatePassSuccess;
-  (window as any).checkForThroughBall = checkForThroughBall;
-  (window as any).initiatePass = initiatePass;
-  (window as any).initiateThroughBall = initiateThroughBall;
-  (window as any).initiateDribble = initiateDribble;
-  (window as any).handlePlayerWithBall_WithFirstTouch = handlePlayerWithBall_WithFirstTouch;
-  (window as any).handlePlayerWithBall_WithVision = handlePlayerWithBall_WithVision;
-}

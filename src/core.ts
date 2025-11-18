@@ -949,22 +949,3 @@ export function gameLoop_V2(timestamp: number): void {
     }
 }
 
-// ============================================================================
-// BROWSER EXPORTS
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-    (window as any).spatialSystem = spatialSystem;
-    (window as any).actionDecision = actionDecision;
-    (window as any).tackleSystem = tackleSystem;
-    (window as any).penaltySystem = penaltySystem;
-    (window as any).updatePlayerAI_V2 = updatePlayerAI_V2;
-    (window as any).handleFoul_V2 = handleFoul_V2;
-    (window as any).gameLoop_V2 = gameLoop_V2;
-    (window as any).cleanupShotState = cleanupShotState;
-    (window as any).updateDefensiveLines = updateDefensiveLines;
-    (window as any).getScaledTimestep = getScaledTimestep;
-    (window as any).updateParticlesWithCleanup = updateParticlesWithCleanup;
-
-    console.log('✅ V2 UNIFIED CORE LOADED (TypeScript)');
-}

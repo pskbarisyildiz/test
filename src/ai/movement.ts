@@ -13,7 +13,11 @@
  */
 
 import type { Player, GameState, Vector2D } from '../types';
-import { distance } from '../utils/math';
+import { distance, pointToLineDistance } from '../utils/math';
+import { getAttackingGoalX } from '../utils/ui';
+import { shouldAvoidOffside } from '../rules/offside';
+import { updateGoalkeeperAI_Advanced } from '../ai/goalkeeper';
+import { BehaviorSystem } from '../behavior/BehaviorSystem';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -67,43 +71,7 @@ function getDistance(p1: Vector2D | Player, p2: Vector2D | Player): number {
   return distance(p1, p2);
 }
 
-/**
- * Get attacking goal X coordinate
- */
-function getAttackingGoalX(isHome: boolean, currentHalf: number): number {
-  if (typeof (window as any).getAttackingGoalX === 'function') {
-    return (window as any).getAttackingGoalX(isHome, currentHalf);
-  }
-  return isHome ? (currentHalf === 1 ? 750 : 50) : (currentHalf === 1 ? 50 : 750);
-}
-
-/**
- * Check if player should avoid offside
- */
-function shouldAvoidOffside(player: Player, ball: Vector2D, opponents: Player[]): boolean {
-  if (typeof (window as any).shouldAvoidOffside === 'function') {
-    return (window as any).shouldAvoidOffside(player, ball, opponents);
-  }
-  return false;
-}
-
-/**
- * Calculate point to line distance
- */
-function pointToLineDistance(point: Vector2D, lineStart: Vector2D, lineEnd: Vector2D): number {
-  if (typeof (window as any).pointToLineDistance === 'function') {
-    return (window as any).pointToLineDistance(point, lineStart, lineEnd);
-  }
-  // Fallback calculation
-  const dx = lineEnd.x - lineStart.x;
-  const dy = lineEnd.y - lineStart.y;
-  const mag = Math.sqrt(dx * dx + dy * dy);
-  if (mag === 0) return getDistance(point, lineStart);
-  const u = ((point.x - lineStart.x) * dx + (point.y - lineStart.y) * dy) / (mag * mag);
-  const closestX = lineStart.x + u * dx;
-  const closestY = lineStart.y + u * dy;
-  return getDistance(point, { x: closestX, y: closestY });
-}
+// Wrapper functions removed - now using direct ES6 imports
 
 // ============================================================================
 // POSITION CONFIGURATION
@@ -532,7 +500,7 @@ export function calculateOptimalMarkingPosition(
 export function updateTacticalPosition(
   player: Player,
   ball: Vector2D,
-  teammates: Player[],
+  _teammates: Player[],
   opponents: Player[]
 ): void {
   const gameState = window.gameState as GameState;
@@ -559,7 +527,7 @@ export function updateTacticalPosition(
 
   // Goalkeeper uses advanced AI
   if (player.role === 'GK') {
-    (window as any).updateGoalkeeperAI_Advanced?.(player, ball, opponents);
+    updateGoalkeeperAI_Advanced(player, ball, opponents);
     return;
   }
 
@@ -610,8 +578,6 @@ export function updateTacticalPosition(
     // ATTACKING LOGIC - NEW INTEGRATION
   } else if (teamHasBall && gameState.ballHolder) {
     // Use BehaviorSystem for advanced attacking behaviors
-    const BehaviorSystem = (window as any).BehaviorSystem;
-
     if (BehaviorSystem) {
       const phase = BehaviorSystem.detectGamePhase?.(gameState) || 'attacking';
       const tacticName = player.isHome ? gameState.homeTactic : gameState.awayTactic;
@@ -653,9 +619,7 @@ export function updateTacticalPosition(
   }
 
   // Apply soft anti-clustering if not locked
-  if (!shouldLockTarget && typeof (window as any).applySoftAntiClustering === 'function') {
-    ({ x: targetX, y: targetY } = (window as any).applySoftAntiClustering(player, teammates, targetX, targetY));
-  }
+  // Note: applySoftAntiClustering is not implemented - removed dead code
 
   // CB OVERFLOW LOGIC (preserve formation discipline)
   if (player.role === 'CB' || player.role === 'LCB' || player.role === 'RCB') {
@@ -974,19 +938,3 @@ export function applyAttackingMovement(
   return finalMove;
 }
 
-// ============================================================================
-// GLOBAL EXPORTS (Browser Compatibility)
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).getPositionConfig = getPositionConfig;
-  (window as any).getPlayerActivePosition = getPlayerActivePosition;
-  (window as any).getZoneForPlayer = getZoneForPlayer;
-  (window as any).assessDefensiveThreats = assessDefensiveThreats;
-  (window as any).findMostDangerousAttacker = findMostDangerousAttacker;
-  (window as any).calculateOptimalMarkingPosition = calculateOptimalMarkingPosition;
-  (window as any).updateTacticalPosition = updateTacticalPosition;
-  (window as any).applyMarkingAndPressing = applyMarkingAndPressing;
-  (window as any).applyDefensivePositioning = applyDefensivePositioning;
-  (window as any).applyAttackingMovement = applyAttackingMovement;
-}

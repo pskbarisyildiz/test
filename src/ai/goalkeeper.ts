@@ -17,6 +17,9 @@ import { distance } from '../utils/math';
 import { getAttackingGoalX } from '../utils/ui';
 import { eventBus } from '../eventBus';
 import { EVENT_TYPES } from '../types/events';
+import { Particle, createGoalExplosion } from '../rendering/particles';
+import { showGoalAnimation } from '../ui/goalAnimation';
+import { resetAfterGoal } from '../main';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -742,14 +745,13 @@ export function triggerGoalkeeperSave(
   const numParticles = Math.floor(8 + Math.random() * 4);
   const particleColor = saveProbability > 0.6 ? '#60a5fa' : '#1e40af';
 
-  if (typeof (window as any).Particle !== 'undefined' && gameState?.particles) {
+  if (gameState?.particles) {
     for (let i = 0; i < numParticles; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 80 + Math.random() * 120;
       const velocityX = Math.cos(angle) * speed;
       const velocityY = Math.sin(angle) * speed;
 
-      const Particle = (window as any).Particle;
       const particle = new Particle(
         goalkeeper.x,
         goalkeeper.y,
@@ -845,7 +847,7 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
       ? [(gameState as any).homeJerseyColor, '#ffffff']
       : [(gameState as any).awayJerseyColor, '#ffffff'];
 
-    (window as any).showGoalAnimation?.(scorerName, teamColors);
+    showGoalAnimation(scorerName, teamColors);
 
     // FIXED: isHome instead of team
     gameState.goalEvents.push({
@@ -854,7 +856,7 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
       isHome: holder.isHome
     } as any);
 
-    (window as any).createGoalExplosion?.(goalX, shotTargetY,
+    createGoalExplosion(goalX, shotTargetY,
       holder.isHome ? (gameState as any).homeJerseyColor : (gameState as any).awayJerseyColor);
 
     const xGDisplay = (xG * 100).toFixed(0);
@@ -872,7 +874,7 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
     }
 
     gameState.lastGoalScorer = holder.isHome ? 'home' : 'away';
-    (window as any).resetAfterGoal?.();
+    resetAfterGoal();
   } else {
     // --- SAVED ---
     triggerGoalkeeperSave(goalkeeper, goalX, shotTargetY, saveProbability);
@@ -903,20 +905,3 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
   gameState.currentShotXG = null;
 }
 
-// ============================================================================
-// GLOBAL EXPORTS (Browser Compatibility)
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).GOALKEEPER_CONFIG = GOALKEEPER_CONFIG;
-  (window as any).assessGoalkeeperThreats = assessGoalkeeperThreats;
-  (window as any).determineGoalkeeperStance = determineGoalkeeperStance;
-  (window as any).calculateOptimalGoalkeeperPosition = calculateOptimalGoalkeeperPosition;
-  (window as any).shouldGoalkeeperSweep = shouldGoalkeeperSweep;
-  (window as any).handleCrossSituation = handleCrossSituation;
-  (window as any).updateGoalkeeperAI_Advanced = updateGoalkeeperAI_Advanced;
-  (window as any).calculateSaveProbability_Advanced = calculateSaveProbability_Advanced;
-  (window as any).triggerGoalkeeperSave = triggerGoalkeeperSave;
-  (window as any).drawGoalkeeperStanceIndicator = drawGoalkeeperStanceIndicator;
-  (window as any).resolveShot_WithAdvancedGK = resolveShot_WithAdvancedGK;
-}

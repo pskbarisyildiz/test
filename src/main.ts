@@ -1315,46 +1315,15 @@ export function resetMatch(): void {
 }
 
 // ============================================================================
-// BROWSER EXPORTS
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-    (window as any).handleFileUpload = handleFileUpload;
-    (window as any).attachSetupEventListeners = attachSetupEventListeners;
-    (window as any).handleFreeKick = handleFreeKick;
-    (window as any).handleThrowIn = handleThrowIn;
-    (window as any).handleBallOutOfBounds = handleBallOutOfBounds;
-    (window as any).processPendingEvents = processPendingEvents;
-    (window as any).restoreFormationAfterSetPiece = restoreFormationAfterSetPiece;
-    (window as any).selectJerseys = selectJerseys;
-    (window as any).setupKickOff = setupKickOff;
-    (window as any).removePlayerFromMatch = removePlayerFromMatch;
-    (window as any).handleShotAttempt = handleShotAttempt;
-    (window as any).updateMatchStats = updateMatchStats;
-    (window as any).MomentumSystem = MomentumSystem;
-    (window as any).updateTeamStates = updateTeamStates;
-    (window as any).determineTeamState = determineTeamState;
-    (window as any).handlePassAttempt = handlePassAttempt;
-    (window as any).resetAfterGoal = resetAfterGoal;
-    (window as any).switchSides = switchSides;
-    (window as any).startMatch = startMatch;
-    (window as any).debugBallState = debugBallState;
-    (window as any).introRenderLoop = introRenderLoop;
-    (window as any).handleHalfTime = handleHalfTime;
-    (window as any).handleFullTime = handleFullTime;
-    (window as any).resetMatch = resetMatch;
-
-    console.log('✅ Main game initialization module loaded (TypeScript)');
-}
-
-// ============================================================================
 // DOM READY INITIALIZATION
 // ============================================================================
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            render();
+        });
+    } else {
         render();
-    });
-} else {
-    render();
+    }
 }
