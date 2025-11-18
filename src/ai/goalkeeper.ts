@@ -849,8 +849,6 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
       ? [(gameState as any).homeJerseyColor, '#ffffff']
       : [(gameState as any).awayJerseyColor, '#ffffff'];
 
-    showGoalAnimation(scorerName, teamColors);
-
     // FIXED: isHome instead of team
     gameState.goalEvents.push({
       scorer: holder.name,
@@ -876,6 +874,14 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
     }
 
     gameState.lastGoalScorer = holder.isHome ? 'home' : 'away';
+
+    // FIXED: Delay goal animation until ball has visually crossed the line
+    // Calculate delay based on ball trajectory duration (typically 300-600ms)
+    const animationDelay = gameState.ballTrajectory ? 400 : 200;
+    setTimeout(() => {
+      showGoalAnimation(scorerName, teamColors);
+    }, animationDelay);
+
     resetAfterGoal();
   } else {
     // --- SAVED ---

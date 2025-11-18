@@ -5605,6 +5605,13 @@ var FootballSim = (() => {
     const awaySelect = document.getElementById("batchAwaySelect");
     if (!homeSelect || !awaySelect)
       return;
+    const homeTeam = homeSelect.value;
+    const awayTeam = awaySelect.value;
+    if (typeof window.CustomFixtureSimulator !== "undefined") {
+      window.CustomFixtureSimulator.addMatch(homeTeam, awayTeam);
+    } else {
+      console.error("CustomFixtureSimulator not available on window object");
+    }
   }
 
   // src/ui/uiComponents.ts
@@ -8143,7 +8150,6 @@ var FootballSim = (() => {
         gameState.awayScore++;
       const scorerName = holder.name;
       const teamColors = holder.isHome ? [gameState.homeJerseyColor, "#ffffff"] : [gameState.awayJerseyColor, "#ffffff"];
-      showGoalAnimation(scorerName, teamColors);
       gameState.goalEvents.push({
         scorer: holder.name,
         time: Math.floor(gameState.timeElapsed),
@@ -8167,6 +8173,10 @@ var FootballSim = (() => {
         });
       }
       gameState.lastGoalScorer = holder.isHome ? "home" : "away";
+      const animationDelay = gameState.ballTrajectory ? 400 : 200;
+      setTimeout(() => {
+        showGoalAnimation(scorerName, teamColors);
+      }, animationDelay);
       resetAfterGoal();
     } else {
       triggerGoalkeeperSave(goalkeeper, goalX, shotTargetY, saveProbability);
@@ -13840,6 +13850,8 @@ var FootballSim = (() => {
       configureSetPieceRoutines,
       executeSetPiece_Router
     };
+    window.resolveBallControl = resolveBallControl;
+    window.handleBallInterception = handleBallInterception;
     window.switchSummaryTab = switchSummaryTab;
     window.switchSimulationMode = switchSimulationMode;
     window.addMatchToBatch = addMatchToBatch;
