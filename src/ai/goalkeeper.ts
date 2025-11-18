@@ -14,6 +14,9 @@
 
 import type { Player, GameState, Vector2D } from '../types';
 import { distance } from '../utils/math';
+import { getAttackingGoalX } from '../utils/ui';
+import { eventBus } from '../eventBus';
+import { EVENT_TYPES } from '../types/events';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -143,15 +146,7 @@ function getDistance(p1: Vector2D | Player, p2: Vector2D | Player): number {
   return distance(p1, p2);
 }
 
-/**
- * Get attacking goal X coordinate
- */
-function getAttackingGoalX(isHome: boolean, currentHalf: number): number {
-  if (typeof (window as any).getAttackingGoalX === 'function') {
-    return (window as any).getAttackingGoalX(isHome, currentHalf);
-  }
-  return isHome ? (currentHalf === 1 ? 750 : 50) : (currentHalf === 1 ? 50 : 750);
-}
+// getAttackingGoalX is now imported from '../utils/ui'
 
 // ============================================================================
 // THREAT ASSESSMENT
@@ -868,8 +863,6 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
       type: 'goal'
     });
 
-    const eventBus = (window as any).eventBus;
-    const EVENT_TYPES = (window as any).EVENT_TYPES;
     if (eventBus && EVENT_TYPES) {
       eventBus.publish(EVENT_TYPES.GOAL_SCORED, {
         scorer: holder,
@@ -891,8 +884,6 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
       type: 'save'
     });
 
-    const eventBus = (window as any).eventBus;
-    const EVENT_TYPES = (window as any).EVENT_TYPES;
     if (eventBus && EVENT_TYPES) {
       eventBus.publish(EVENT_TYPES.SHOT_SAVED, {
         goalkeeper: goalkeeper,

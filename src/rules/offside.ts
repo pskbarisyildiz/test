@@ -3,6 +3,7 @@ import { getDistance, getAttackingGoalX } from '../utils/ui';
 import { gameState } from '../globalExports';
 import { eventBus } from '../eventBus';
 import { EVENT_TYPES } from '../types/events';
+import { executeSetPiece_PostExecution } from '../setpieces/integration';
 
 export const offsideTracker = {
     lastPassTime: 0,
@@ -130,10 +131,7 @@ export function awardOffsideFreeKick(offsidePlayer: Player): void {
 
         // Ensure proper cleanup if transitioning from set piece
         if (gameState.setPiece) {
-            const executeSetPiece_PostExecution = (window as any).executeSetPiece_PostExecution;
-            if (typeof executeSetPiece_PostExecution === 'function') {
-                executeSetPiece_PostExecution();
-            }
+            executeSetPiece_PostExecution();
         }
 
         gameState.status = 'playing';
@@ -154,10 +152,7 @@ export function awardOffsideFreeKick(offsidePlayer: Player): void {
 
         // Ensure proper cleanup if transitioning from set piece
         if (gameState.setPiece) {
-            const executeSetPiece_PostExecution = (window as any).executeSetPiece_PostExecution;
-            if (typeof executeSetPiece_PostExecution === 'function') {
-                executeSetPiece_PostExecution();
-            }
+            executeSetPiece_PostExecution();
         }
 
         gameState.status = 'playing';

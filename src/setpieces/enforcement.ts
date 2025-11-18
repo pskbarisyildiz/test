@@ -16,6 +16,9 @@
  */
 
 import type { GameState, Player } from '../types';
+import { distance as getDistance } from '../utils/math';
+import { getAttackingGoalX } from '../utils/ui';
+import { GAME_CONFIG } from '../config';
 
 // ============================================================================
 // CONFIGURATION
@@ -112,7 +115,7 @@ function freezeOpponentsUntilKick(player: Player, gameState: GameState, _allPlay
     if (!isOpponent) return false;
 
     // Calculate distance to ball
-    const distToBall = (window as any).getDistance(player, gameState.ballPosition);
+    const distToBall = getDistance(player, gameState.ballPosition);
 
     // [setpiece-fix] ENFORCE 100px MINIMUM DISTANCE
     if (distToBall < SET_PIECE_ENFORCEMENT.OPPONENT_MIN_DISTANCE) {
@@ -151,14 +154,10 @@ function enforceKickOffHalfRule(player: Player, gameState: GameState): boolean {
         return false; // Kick-off already taken, players can cross
     }
 
-    const centerX = (typeof (window as any).GAME_CONFIG !== 'undefined' && (window as any).GAME_CONFIG.PITCH_WIDTH)
-        ? (window as any).GAME_CONFIG.PITCH_WIDTH / 2
-        : 400;
+    const centerX = GAME_CONFIG.PITCH_WIDTH / 2;
 
     // Determine own goal position
-    const ownGoalX = (window as any).getAttackingGoalX
-        ? (window as any).getAttackingGoalX(!player.isHome, gameState.currentHalf)
-        : (player.isHome ? 50 : 750);
+    const ownGoalX = getAttackingGoalX(!player.isHome, gameState.currentHalf);
 
     const ownHalfIsLeft = ownGoalX < centerX;
 
@@ -248,7 +247,7 @@ function assignDefensiveMarking(marker: Player, target: Player, gameState: GameS
     // Find closest teammate to mark
     const nearestTeammate = teammates
         .filter(p => !isGoalkeeper(p))
-        .sort((a, b) => (window as any).getDistance(marker, a) - (window as any).getDistance(marker, b))[0];
+        .sort((a, b) => getDistance(marker, a) - getDistance(marker, b))[0];
 
     if (nearestTeammate) {
         // Mark the nearest passing option
@@ -258,7 +257,7 @@ function assignDefensiveMarking(marker: Player, target: Player, gameState: GameS
         console.log(`  → ${marker.name} marking ${nearestTeammate.name} instead`);
     } else {
         // Cover space near goal
-        const ownGoalX = (window as any).getAttackingGoalX(!marker.isHome, gameState?.currentHalf || 1);
+        const ownGoalX = getAttackingGoalX(!marker.isHome, gameState?.currentHalf || 1);
         const direction = Math.sign(ownGoalX - 400);
         marker.targetX = ownGoalX + direction * 60;
         marker.targetY = 300;
