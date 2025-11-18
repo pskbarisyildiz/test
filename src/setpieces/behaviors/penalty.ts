@@ -12,6 +12,7 @@
 
 import type { Player, GameState, Vector2D } from '../../types';
 import { sanitizePosition } from '../utils';
+import { getAttackingGoalX } from '../../utils/ui';
 
 // ============================================================================
 // PENALTY KICK BEHAVIORS
@@ -38,8 +39,8 @@ export const PenaltyKickBehaviors = {
 
     if (player.role === 'GK') {
       const goalX = isAttacking ?
-        (window as any).getAttackingGoalX(!player.isHome, gameState.currentHalf) :
-        (window as any).getAttackingGoalX(player.isHome, gameState.currentHalf);
+        getAttackingGoalX(!player.isHome, gameState.currentHalf) :
+        getAttackingGoalX(player.isHome, gameState.currentHalf);
       return sanitizePosition({ x: goalX, y: 300, movement: 'gk_penalty', role: 'GK' }, { player });
     }
 
@@ -56,6 +57,4 @@ export const PenaltyKickBehaviors = {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-  (window as any).PenaltyKickBehaviors = PenaltyKickBehaviors;
-}
+

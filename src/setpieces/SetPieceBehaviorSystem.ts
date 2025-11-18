@@ -1,6 +1,7 @@
 import type { Player, GameState } from '../types';
 import { getDistance, getAttackingGoalX } from '../utils/ui';
 import { sanitizePosition, getValidPlayers, isPlayerAttacking, getFormationAwarePosition } from './utils';
+import { getPlayerActivePosition } from '../ai/movement';
 import { KickoffBehaviors } from './behaviors/kickoff';
 import { PenaltyKickBehaviors as PenaltyBehaviors } from './behaviors/penalty';
 import { ThrowInBehaviors } from './behaviors/throwIn';
@@ -73,7 +74,7 @@ function handleGoalkeeperSetPiecePosition(player: Player, gameState: GameState, 
 }
 
 function getSafeFallbackPosition(player: Player, reason: string, gameState: GameState) {
-    const activePos = (window as any).getPlayerActivePosition(player, gameState?.currentHalf ?? 1);
+    const activePos = getPlayerActivePosition(player, gameState?.currentHalf ?? 1);
     return sanitizePosition(
         { x: activePos?.x ?? PITCH_WIDTH / 2, y: activePos?.y ?? PITCH_HEIGHT / 2, movement: `fallback_${reason}` },
         { player, behavior: 'Fallback' }

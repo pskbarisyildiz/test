@@ -1,15 +1,14 @@
 import { gameState } from './globalExports';
-import { GAME_CONFIG } from './config';
+import { GAME_CONFIG, GAME_LOOP } from './config';
 import { updatePlayerAI_V2 } from './core';
 import { updatePhysics, assignBallChasers } from './physics';
 import * as SetPieceIntegration from './setpieces/integration';
-import { processPendingEvents, switchSides } from './main';
-import { updateMatchStats } from './main';
+import { processPendingEvents, switchSides, updateMatchStats } from './main';
+import { selectBestTeam, selectBestTactic, initializePlayers } from './gameSetup';
+import { isSetPieceStatus } from './utils/ui';
 
 declare const spatialSystem: any;
-declare const isSetPieceStatus: any;
 declare const penaltySystem: any;
-declare const GAME_LOOP: any;
 
 interface Match {
     id: number;
@@ -287,8 +286,8 @@ export const CustomFixtureSimulator = {
                 gameState.homeTeam = homeTeam;
                 gameState.awayTeam = awayTeam;
 
-                const homeTeamObj = (window as any).selectBestTeam ? (window as any).selectBestTeam(homeTeam) : null;
-                const awayTeamObj = (window as any).selectBestTeam ? (window as any).selectBestTeam(awayTeam) : null;
+                const homeTeamObj = selectBestTeam(homeTeam);
+                const awayTeamObj = selectBestTeam(awayTeam);
 
                 if (!homeTeamObj || !awayTeamObj || !homeTeamObj.players || !awayTeamObj.players) {
                     throw new Error("Could not select valid teams.");
@@ -296,13 +295,13 @@ export const CustomFixtureSimulator = {
 
                 gameState.homeFormation = homeTeamObj.formation;
                 gameState.awayFormation = awayTeamObj.formation;
-                gameState.homeTactic = (window as any).selectBestTactic ? (window as any).selectBestTactic(homeTeamObj.players) : 'balanced';
-                gameState.awayTactic = (window as any).selectBestTactic ? (window as any).selectBestTactic(awayTeamObj.players) : 'balanced';
+                gameState.homeTactic = selectBestTactic(homeTeamObj.players);
+                gameState.awayTactic = selectBestTactic(awayTeamObj.players);
 
-                const initialized = (window as any).initializePlayers ? (window as any).initializePlayers(
+                const initialized = initializePlayers(
                     homeTeamObj.players, awayTeamObj.players,
                     homeTeamObj.formation, awayTeamObj.formation
-                ) : null;
+                );
 
                 if (!initialized || !initialized.home || !initialized.away) {
                     throw new Error("Could not initialize players.");

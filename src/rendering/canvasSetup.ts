@@ -8,6 +8,8 @@
  */
 
 import type { GameState } from '../types';
+import { gameState } from '../globalExports';
+import { GAME_CONFIG } from '../config';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -104,31 +106,30 @@ export function initializeCanvasLayers(): boolean {
 
   // YÜKSEK ÇÖZÜNÜRLÜK İÇİN ÖLÇEK FAKTÖRÜ
   // Bu değer, setupGameScreen'de kullanılan çarpanla aynı olmalıdır (Örn: 2)
-  // NOTE: Eğer global bir GAME_CONFIG objeniz varsa, bu değeri oradan çekin.
-  const SCALE_FACTOR = window.CFG().HIGH_DPI_SCALE_FACTOR; // Çözünürlüğü iki katına çıkarıyoruz (800x600 -> 1600x1200)
+  const SCALE_FACTOR = GAME_CONFIG.HIGH_DPI_SCALE_FACTOR; // Çözünürlüğü iki katına çıkarıyoruz (800x600 -> 1600x1200)
 
   container.style.display = 'block';
 
   // Initialize canvases and contexts if they don't exist
-  if (!window.gameState.canvases) {
-    window.gameState.canvases = { background: null, game: null, ui: null };
+  if (!gameState.canvases) {
+    gameState.canvases = { background: null, game: null, ui: null };
   }
-  if (!window.gameState.contexts) {
-    window.gameState.contexts = { background: null, game: null, ui: null };
+  if (!gameState.contexts) {
+    gameState.contexts = { background: null, game: null, ui: null };
   }
 
-  window.gameState.canvases.background = document.getElementById('backgroundCanvas') as HTMLCanvasElement | null;
-  window.gameState.canvases.game = document.getElementById('gameCanvas') as HTMLCanvasElement | null;
-  window.gameState.canvases.ui = document.getElementById('uiCanvas') as HTMLCanvasElement | null;
+  gameState.canvases.background = document.getElementById('backgroundCanvas') as HTMLCanvasElement | null;
+  gameState.canvases.game = document.getElementById('gameCanvas') as HTMLCanvasElement | null;
+  gameState.canvases.ui = document.getElementById('uiCanvas') as HTMLCanvasElement | null;
 
-  window.gameState.backgroundDrawn = false;
+  gameState.backgroundDrawn = false;
 
   // --- Background Canvas ---
-  if (window.gameState.canvases.background) {
-    window.gameState.contexts.background = window.gameState.canvases.background.getContext('2d', { alpha: false });
-    if (window.gameState.contexts.background) {
+  if (gameState.canvases.background) {
+    gameState.contexts.background = gameState.canvases.background.getContext('2d', { alpha: false });
+    if (gameState.contexts.background) {
       // KRİTİK ADIM: Çizim bağlamını ölçeklendir
-      window.gameState.contexts.background.scale(SCALE_FACTOR, SCALE_FACTOR);
+      gameState.contexts.background.scale(SCALE_FACTOR, SCALE_FACTOR);
       console.log(`✓ Background canvas initialized and scaled by ${SCALE_FACTOR}x`);
     }
   } else {
@@ -137,11 +138,11 @@ export function initializeCanvasLayers(): boolean {
   }
 
   // --- Game Canvas ---
-  if (window.gameState.canvases.game) {
-    window.gameState.contexts.game = window.gameState.canvases.game.getContext('2d', { alpha: true });
-    if (window.gameState.contexts.game) {
+  if (gameState.canvases.game) {
+    gameState.contexts.game = gameState.canvases.game.getContext('2d', { alpha: true });
+    if (gameState.contexts.game) {
       // KRİTİK ADIM: Çizim bağlamını ölçeklendir
-      window.gameState.contexts.game.scale(SCALE_FACTOR, SCALE_FACTOR);
+      gameState.contexts.game.scale(SCALE_FACTOR, SCALE_FACTOR);
       console.log(`✓ Game canvas initialized and scaled by ${SCALE_FACTOR}x`);
     }
   } else {
@@ -150,11 +151,11 @@ export function initializeCanvasLayers(): boolean {
   }
 
   // --- UI Canvas ---
-  if (window.gameState.canvases.ui) {
-    window.gameState.contexts.ui = window.gameState.canvases.ui.getContext('2d', { alpha: true });
-    if (window.gameState.contexts.ui) {
+  if (gameState.canvases.ui) {
+    gameState.contexts.ui = gameState.canvases.ui.getContext('2d', { alpha: true });
+    if (gameState.contexts.ui) {
       // KRİTİK ADIM: Çizim bağlamını ölçeklendir
-      window.gameState.contexts.ui.scale(SCALE_FACTOR, SCALE_FACTOR);
+      gameState.contexts.ui.scale(SCALE_FACTOR, SCALE_FACTOR);
       console.log(`✓ UI canvas initialized and scaled by ${SCALE_FACTOR}x`);
     }
   } else {
@@ -168,7 +169,4 @@ export function initializeCanvasLayers(): boolean {
 // ============================================================================
 // BROWSER EXPORTS
 // ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).initializeCanvasLayers = initializeCanvasLayers;
-}
+// Function is now exported via ES6 modules - no window exports needed

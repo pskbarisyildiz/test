@@ -8,6 +8,8 @@
  */
 
 import type { GameState } from '../types';
+import { gameState } from '../globalExports';
+import { GAME_CONFIG } from '../config';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -34,35 +36,35 @@ declare global {
  * Draw the pitch background with caching
  */
 export function drawPitchBackground(): void {
-  if (!window.gameState.contexts || !window.gameState.contexts.background) {
+  if (!gameState.contexts || !gameState.contexts.background) {
     console.warn('Background context not ready.');
     return;
   }
 
-  const ctx = window.gameState.contexts.background;
+  const ctx = gameState.contexts.background;
 
   // Get dynamic canvas dimensions
-  const canvasWidth = window.gameState.isVertical ? 600 : 800;
-  const canvasHeight = window.gameState.isVertical ? 800 : 600;
+  const canvasWidth = gameState.isVertical ? 600 : 800;
+  const canvasHeight = gameState.isVertical ? 800 : 600;
 
   // 1. Clear the main canvas
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
   // 2. Conditionally apply the 90-degree rotation
   ctx.save();
-  if (window.gameState.isVertical) {
+  if (gameState.isVertical) {
     ctx.translate(600, 0); // Translate to top-right corner
     ctx.rotate(Math.PI / 2); // Rotate 90 degrees
   }
 
   // 3. Check for the cached 800x600 pitch
-  if (window.gameState.offscreenPitch) {
+  if (gameState.offscreenPitch) {
     ctx.drawImage(
-      window.gameState.offscreenPitch,
+      gameState.offscreenPitch,
       0, 0, // Source X, Y
-      window.CFG().PITCH_WIDTH, window.CFG().PITCH_HEIGHT,
+      GAME_CONFIG.PITCH_WIDTH, GAME_CONFIG.PITCH_HEIGHT,
       0, 0, // Destination X, Y (Logical 0, 0)
-      window.CFG().PITCH_WIDTH, window.CFG().PITCH_HEIGHT
+      GAME_CONFIG.PITCH_WIDTH, GAME_CONFIG.PITCH_HEIGHT
     );
     ctx.restore(); // Restore context (Semicolon removed from the end)
     return; // Exit the function now that the pitch is drawn
@@ -72,8 +74,8 @@ export function drawPitchBackground(): void {
 
   // Create a new hidden canvas in memory (ALWAYS 800x600)
   const offscreenCanvas = document.createElement('canvas');
-  offscreenCanvas.width = window.CFG().PITCH_WIDTH;  // 800
-  offscreenCanvas.height = window.CFG().PITCH_HEIGHT; // 600
+  offscreenCanvas.width = GAME_CONFIG.PITCH_WIDTH;  // 800
+  offscreenCanvas.height = GAME_CONFIG.PITCH_HEIGHT; // 600
   const offCtx = offscreenCanvas.getContext('2d'); // Draw on the hidden canvas
 
   if (!offCtx) {
@@ -82,8 +84,8 @@ export function drawPitchBackground(): void {
     return;
   }
 
-  const w = window.CFG().PITCH_WIDTH;
-  const h = window.CFG().PITCH_HEIGHT;
+  const w = GAME_CONFIG.PITCH_WIDTH;
+  const h = GAME_CONFIG.PITCH_HEIGHT;
 
   // Perform drawing operations on the hidden 800x600 canvas
   drawGrass(offCtx, w, h);
@@ -95,14 +97,14 @@ export function drawPitchBackground(): void {
 
   offCtx.shadowBlur = 0;
 
-  window.gameState.offscreenPitch = offscreenCanvas;
+  gameState.offscreenPitch = offscreenCanvas;
 
   ctx.drawImage(
-    window.gameState.offscreenPitch,
+    gameState.offscreenPitch,
     0, 0,
-    window.CFG().PITCH_WIDTH, window.CFG().PITCH_HEIGHT,
+    GAME_CONFIG.PITCH_WIDTH, GAME_CONFIG.PITCH_HEIGHT,
     0, 0,
-    window.CFG().PITCH_WIDTH, window.CFG().PITCH_HEIGHT
+    GAME_CONFIG.PITCH_WIDTH, GAME_CONFIG.PITCH_HEIGHT
   );
   // -------------------------------------------------------------------
   ctx.restore(); // Restore context

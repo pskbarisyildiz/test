@@ -12,6 +12,10 @@
  */
 
 import type { GameState } from '../types';
+import { getAttackingGoalX } from '../utils/ui';
+import { SetPieceEnforcement } from './enforcement';
+import { TACTICS, GAME_CONFIG } from '../config';
+import { gameState as globalGameState } from '../globalExports';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -65,7 +69,6 @@ export function configureSetPieceRoutines(gameState: GameState): void {
   }
 
   // Get team and tactic information safely
-  const TACTICS = window.TACTICS ?? {};
   const takingTeam = (gameState.setPiece as any).team; // true for home, false for away
   const homeTacticKey = gameState.homeTactic || 'balanced';
   const awayTacticKey = gameState.awayTactic || 'balanced';
@@ -125,10 +128,7 @@ export function configureSetPieceRoutines(gameState: GameState): void {
         : ((gameState.setPiece as any).team === 'home');
 
       // Calculate goal position and distance
-      const getAttackingGoalX = (window as any).getAttackingGoalX;
-      const opponentGoalX = getAttackingGoalX
-        ? getAttackingGoalX(takingTeamIsHome, gameState.currentHalf)
-        : (takingTeamIsHome ? 750 : 50);
+      const opponentGoalX = getAttackingGoalX(takingTeamIsHome, gameState.currentHalf);
 
       const distToGoal = Math.hypot(fkPos.x - opponentGoalX, fkPos.y - 300);
       const angleToGoal = Math.abs(fkPos.y - 300);
@@ -161,14 +161,18 @@ export function configureSetPieceRoutines(gameState: GameState): void {
  */
 export function executeSetPiece_PreConfiguration(): void {
   try {
-    const gameState = window.gameState as GameState;
+    const gameState = globalGameState as GameState;
     const sp = gameState?.setPiece;
     if (!sp || !(sp as any).type || !sp.position) return;
 
-    // Ensure ball is placed correctly
-    if (typeof (window as any).ensureCorrectSetPiecePlacement === "function") {
-      (window as any).ensureCorrectSetPiecePlacement(gameState);
-    }
+    // Ensure ball is placed correctly (inline logic to avoid circular dependency)
+    const W = GAME_CONFIG.PITCH_WIDTH;
+    const H = GAME_CONFIG.PITCH_HEIGHT;
+    const M = 6;
+    sp.position.x = Math.min(W - M, Math.max(M, Number(sp.position.x) || W / 2));
+    sp.position.y = Math.min(H - M, Math.max(M, Number(sp.position.y) || H / 2));
+    gameState.ballPosition = { x: sp.position.x, y: sp.position.y };
+    gameState.ballVelocity = { x: 0, y: 0 };
 
     // Configure tactical routines if needed (for corner kicks, free kicks)
     if ((sp as any).type === 'CORNER_KICK' || (sp as any).type === 'FREE_KICK' || (sp as any).type === 'GOAL_KICK') {
@@ -181,8 +185,8 @@ export function executeSetPiece_PreConfiguration(): void {
     }
 
     // Initialize enforcement system state machine
-    if (typeof (window as any).SetPieceEnforcement !== 'undefined' && (window as any).SetPieceEnforcement.initializeSetPieceState) {
-      (window as any).SetPieceEnforcement.initializeSetPieceState(gameState);
+    if (SetPieceEnforcement.initializeSetPieceState) {
+      SetPieceEnforcement.initializeSetPieceState(gameState);
     }
 
     // Mark as configured - positioning will be handled by SetPieceBehaviorSystem
@@ -198,8 +202,4 @@ export function executeSetPiece_PreConfiguration(): void {
 // ============================================================================
 // BROWSER EXPORTS
 // ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).configureSetPieceRoutines = configureSetPieceRoutines;
-  (window as any).executeSetPiece_PreConfiguration = executeSetPiece_PreConfiguration;
-}
+// Functions are now exported via ES6 modules - no window exports needed

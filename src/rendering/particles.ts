@@ -8,6 +8,7 @@
  */
 
 import type { GameState, Particle as ParticleInterface } from '../types';
+import { gameState } from '../globalExports';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -114,7 +115,7 @@ export function createGoalExplosion(x: number, y: number, color: string): void {
 
     const particle = new Particle(x, y, color, velocityX, velocityY);
     particle.size = 4 + Math.random() * 6; // Larger particles
-    window.gameState.particles.push(particle);
+    gameState.particles.push(particle);
   }
 
   // Secondary white burst
@@ -126,7 +127,7 @@ export function createGoalExplosion(x: number, y: number, color: string): void {
 
     const particle = new Particle(x, y, '#ffffff', velocityX, velocityY);
     particle.size = 3;
-    window.gameState.particles.push(particle);
+    gameState.particles.push(particle);
   }
 
   // Sparkle layer
@@ -136,10 +137,10 @@ export function createGoalExplosion(x: number, y: number, color: string): void {
     const particle = new Particle(x + offsetX, y + offsetY, color, 0, -120);
     particle.decay = 0.03;
     particle.size = 4;
-    window.gameState.particles.push(particle);
+    gameState.particles.push(particle);
   }
 
-  window.gameState.cameraShake = 12; // Reduced for shorter duration
+  gameState.cameraShake = 12; // Reduced for shorter duration
 }
 
 /**
@@ -158,7 +159,7 @@ export function createBallTrail(x: number, y: number): void {
     // Make the particle fade out much slower for a longer trail
     particle.decay = 0.02; // Slower fade (was 0.08)
     particle.size = 3 + Math.random() * 2;
-    window.gameState.particles.push(particle);
+    gameState.particles.push(particle);
   }
 }
 
@@ -175,7 +176,7 @@ export function createPassEffect(x: number, y: number, color: string): void {
     const particle = new Particle(x, y, color, velocityX, velocityY);
     particle.size = 2 + Math.random() * 3;
     particle.decay = 0.04;
-    window.gameState.particles.push(particle);
+    gameState.particles.push(particle);
   }
 }
 
@@ -195,7 +196,7 @@ export function createSaveEffect(x: number, y: number): void {
     const particle = new Particle(x, y, color, velocityX, velocityY);
     particle.size = 3 + Math.random() * 4;
     particle.decay = 0.03;
-    window.gameState.particles.push(particle);
+    gameState.particles.push(particle);
   }
 }
 
@@ -203,10 +204,4 @@ export function createSaveEffect(x: number, y: number): void {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-  window.Particle = Particle;
-  window.createGoalExplosion = createGoalExplosion;
-  window.createBallTrail = createBallTrail;
-  window.createPassEffect = createPassEffect;
-  window.createSaveEffect = createSaveEffect;
-}
+// Functions are now exported via ES6 modules - no window exports needed

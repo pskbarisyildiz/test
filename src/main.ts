@@ -19,7 +19,7 @@ import { distance } from './utils/math';
 import { getPlayerActivePosition } from './ai';
 import { passBall } from './ai';
 import { gameState } from './globalExports';
-import { GAME_CONFIG, TACTICS } from './config';
+import { GAME_CONFIG, TACTICS, GAME_LOOP, getRoleFromPosition } from './config';
 import { EVENT_TYPES } from './types';
 import { eventBus } from './eventBus';
 import { gameLoop_V2 } from './core';
@@ -28,11 +28,15 @@ import { initFirstTouchStats } from './ai/playerFirstTouch';
 import { initOffsideStats } from './rules/offside';
 import * as SetPieceIntegration from './setpieces/integration';
 import { configureSetPieceRoutines } from './setpieces/config';
+import { calculatePassSuccess } from './ai/decisions';
+import { resolveShot_WithAdvancedGK } from './ai/goalkeeper';
+import { selectBestFormation, selectBestTactic, selectBestTeam, initializePlayers } from './gameSetup';
+import { render, updateGameUI } from './ui/uiManager';
+import { renderGame } from './rendering/gameRenderer';
+import { initializeCanvasLayers } from './rendering/canvasSetup';
+import { drawPitchBackground } from './rendering/drawPitch';
 
 declare const XLSX: any;
-
-// Import from window for functions not yet migrated
-const calculatePassSuccess = (window as any).calculatePassSuccess;
 
 // ============================================================================
 // FILE UPLOAD AND DATA PROCESSING
@@ -69,8 +73,6 @@ export function handleFileUpload(event: Event): void {
 
         const oyuncular = workbook.Sheets['oyuncular'];
         const oyuncularData = XLSX.utils.sheet_to_json(oyuncular, { header: 1 });
-
-        const getRoleFromPosition = (window as any).getRoleFromPosition;
 
         gameState.players = oyuncularData.slice(1)
             .filter((row: any[]) => {
@@ -152,10 +154,7 @@ export function handleFileUpload(event: Event): void {
         gameState.homeTeam = gameState.teams[0] || '';
         gameState.awayTeam = gameState.teams[1] || '';
         gameState.status = 'setup';
-        const render = (window as any).render;
-        if (typeof render === 'function') {
-            render();
-        }
+        render();
     };
     reader.readAsArrayBuffer(file);
 }
@@ -166,24 +165,14 @@ export function attachSetupEventListeners(): void {
     const homeTacticSelect = document.getElementById('homeTacticSelect') as HTMLSelectElement;
     const awayTacticSelect = document.getElementById('awayTacticSelect') as HTMLSelectElement;
 
-    const selectBestFormation = (window as any).selectBestFormation;
-    const selectBestTactic = (window as any).selectBestTactic;
-    const render = (window as any).render;
-
     if (homeSelect) {
         homeSelect.addEventListener('change', (e) => {
             gameState.homeTeam = (e.target as HTMLSelectElement).value;
             const homeTeamPlayers = gameState.players.filter(p => p.team === gameState.homeTeam);
-            if (typeof selectBestFormation === 'function') {
-                gameState.homeFormation = selectBestFormation(homeTeamPlayers);
-            }
-            if (typeof selectBestTactic === 'function') {
-                gameState.homeTactic = selectBestTactic(homeTeamPlayers);
-            }
+            gameState.homeFormation = selectBestFormation(homeTeamPlayers);
+            gameState.homeTactic = selectBestTactic(homeTeamPlayers);
             gameState.homeTacticManuallySet = false;
-            if (typeof render === 'function') {
-                render();
-            }
+            render();
         });
     }
 
@@ -191,16 +180,10 @@ export function attachSetupEventListeners(): void {
         awaySelect.addEventListener('change', (e) => {
             gameState.awayTeam = (e.target as HTMLSelectElement).value;
             const awayTeamPlayers = gameState.players.filter(p => p.team === gameState.awayTeam);
-            if (typeof selectBestFormation === 'function') {
-                gameState.awayFormation = selectBestFormation(awayTeamPlayers);
-            }
-            if (typeof selectBestTactic === 'function') {
-                gameState.awayTactic = selectBestTactic(awayTeamPlayers);
-            }
+            gameState.awayFormation = selectBestFormation(awayTeamPlayers);
+            gameState.awayTactic = selectBestTactic(awayTeamPlayers);
             gameState.awayTacticManuallySet = false;
-            if (typeof render === 'function') {
-                render();
-            }
+            render();
         });
     }
 
@@ -419,10 +402,7 @@ export function processPendingEvents(currentGameTime: number): void {
 
     for (const event of eventsToProcess) {
         if (event.type === 'shot_outcome') {
-            const resolveShot_WithAdvancedGK = (window as any).resolveShot_WithAdvancedGK;
-            if (typeof resolveShot_WithAdvancedGK === 'function') {
-                resolveShot_WithAdvancedGK(event.data);
-            }
+            resolveShot_WithAdvancedGK(event.data);
         }
     }
 }
@@ -950,7 +930,6 @@ export function resetAfterGoal(): void {
 
     const kickOffTeam = gameState.lastGoalScorer === 'home' ? 'away' : 'home';
 
-    const GAME_LOOP = (window as any).GAME_LOOP || { GAME_SPEED: 1 };
     const goalResetDelay = GAME_LOOP.GAME_SPEED > 100 ? 0 : 3000;
 
     setTimeout(() => {
@@ -997,16 +976,6 @@ export function startMatch(): void {
     console.log('START MATCH CALLED!');
 
     try {
-        const selectBestTeam = (window as any).selectBestTeam;
-        const selectBestTactic = (window as any).selectBestTactic;
-        const initializePlayers = (window as any).initializePlayers;
-        const render = (window as any).render;
-        const updateGameUI = (window as any).updateGameUI;
-        const initializeCanvasLayers = (window as any).initializeCanvasLayers;
-        const drawPitchBackground = (window as any).drawPitchBackground;
-        const renderGame = (window as any).renderGame;
-        const GAME_LOOP = (window as any).GAME_LOOP || { GAME_SPEED: 1 };
-
         ensureStatsShape(gameState);
         const homeTeam = selectBestTeam(gameState.homeTeam);
         const awayTeam = selectBestTeam(gameState.awayTeam);
@@ -1082,7 +1051,7 @@ export function startMatch(): void {
         physicsAccumulator = 0;
         gameTime = 0;
 
-        if (typeof render === 'function') render();
+        render();
 
         setTimeout(() => {
             console.log('🎨 Initializing canvas layers...');
@@ -1113,7 +1082,7 @@ export function startMatch(): void {
                 type: 'goal'
             }];
 
-            if (typeof updateGameUI === 'function') updateGameUI();
+            updateGameUI();
 
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
@@ -1193,8 +1162,7 @@ export function introRenderLoop(_timestamp: number): void {
         return;
     }
 
-    const renderGame = (window as any).renderGame;
-    if (typeof renderGame === 'function') renderGame();
+    renderGame();
     animationFrameId = requestAnimationFrame(introRenderLoop);
 }
 
@@ -1205,8 +1173,7 @@ export function handleHalfTime(): void {
 
     gameState.status = 'halftime';
     gameState.commentary.push({ text: '⏸️ HALF TIME!', type: 'goal' });
-    const updateGameUI = (window as any).updateGameUI;
-    if (typeof updateGameUI === 'function') updateGameUI();
+    updateGameUI();
 
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
@@ -1218,7 +1185,6 @@ export function handleHalfTime(): void {
         awayScore: gameState.awayScore
     });
 
-    const GAME_LOOP = (window as any).GAME_LOOP || { GAME_SPEED: 1 };
     const halftimeDelay = GAME_LOOP.GAME_SPEED > 100 ? 0 : 5000;
 
     setTimeout(() => {
@@ -1262,8 +1228,7 @@ export function handleFullTime(): void {
         winner: winner
     });
 
-    const render = (window as any).render;
-    if (typeof render === 'function') render();
+    render();
 }
 
 export function resetMatch(): void {
@@ -1346,61 +1311,19 @@ export function resetMatch(): void {
     };
     pendingGameEvents = [];
 
-    const render = (window as any).render;
-    if (typeof render === 'function') render();
-}
-
-// ============================================================================
-// BROWSER EXPORTS
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-    (window as any).handleFileUpload = handleFileUpload;
-    (window as any).attachSetupEventListeners = attachSetupEventListeners;
-    (window as any).handleFreeKick = handleFreeKick;
-    (window as any).handleThrowIn = handleThrowIn;
-    (window as any).handleBallOutOfBounds = handleBallOutOfBounds;
-    (window as any).processPendingEvents = processPendingEvents;
-    (window as any).restoreFormationAfterSetPiece = restoreFormationAfterSetPiece;
-    (window as any).selectJerseys = selectJerseys;
-    (window as any).setupKickOff = setupKickOff;
-    (window as any).removePlayerFromMatch = removePlayerFromMatch;
-    (window as any).handleShotAttempt = handleShotAttempt;
-    (window as any).updateMatchStats = updateMatchStats;
-    (window as any).MomentumSystem = MomentumSystem;
-    (window as any).updateTeamStates = updateTeamStates;
-    (window as any).determineTeamState = determineTeamState;
-    (window as any).handlePassAttempt = handlePassAttempt;
-    (window as any).resetAfterGoal = resetAfterGoal;
-    (window as any).switchSides = switchSides;
-    (window as any).startMatch = startMatch;
-    (window as any).debugBallState = debugBallState;
-    (window as any).introRenderLoop = introRenderLoop;
-    (window as any).handleHalfTime = handleHalfTime;
-    (window as any).handleFullTime = handleFullTime;
-    (window as any).resetMatch = resetMatch;
-
-    console.log('✅ Main game initialization module loaded (TypeScript)');
+    render();
 }
 
 // ============================================================================
 // DOM READY INITIALIZATION
 // ============================================================================
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        const render = (window as any).render;
-        if (typeof render === 'function') {
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
             render();
-        } else {
-            console.error('❌ render function not found - check script load order');
-        }
-    });
-} else {
-    const render = (window as any).render;
-    if (typeof render === 'function') {
-        render();
+        });
     } else {
-        console.error('❌ render function not found - check script load order');
+        render();
     }
 }

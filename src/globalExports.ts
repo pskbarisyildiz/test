@@ -72,6 +72,22 @@ import {
   executeSetPiece_Router
 } from './setpieces/execution';
 
+// Phase 10: UI Components and Main Functions (for dynamic onclick handlers)
+import {
+  switchSummaryTab
+} from './ui/uiComponents';
+import {
+  switchSimulationMode,
+  addMatchToBatch
+} from './ui/uiScreens';
+import {
+  CustomFixtureSimulator
+} from './batch-simulator';
+import {
+  startMatch,
+  resetMatch
+} from './main';
+
 // ============================================================================
 // GLOBAL TYPE DECLARATIONS
 // ============================================================================
@@ -125,6 +141,13 @@ declare global {
       [key: string]: any;
     };
     SetPieceEnforcement: any;
+    // Phase 10: UI Components and Main Functions (onclick handlers)
+    switchSummaryTab: typeof switchSummaryTab;
+    switchSimulationMode: typeof switchSimulationMode;
+    addMatchToBatch: typeof addMatchToBatch;
+    CustomFixtureSimulator: typeof CustomFixtureSimulator;
+    startMatch: typeof startMatch;
+    resetMatch: typeof resetMatch;
     gameState: GameState;
   }
 }
@@ -309,6 +332,14 @@ export function exportToWindow(): void {
     configureSetPieceRoutines,
     executeSetPiece_Router
   };
+
+  // Phase 10: Export UI components and main functions for dynamic onclick handlers
+  window.switchSummaryTab = switchSummaryTab;
+  window.switchSimulationMode = switchSimulationMode;
+  window.addMatchToBatch = addMatchToBatch;
+  window.CustomFixtureSimulator = CustomFixtureSimulator;
+  window.startMatch = startMatch;
+  window.resetMatch = resetMatch;
 
   // Initialize game state if it doesn't exist
   if (typeof window.gameState === 'undefined') {

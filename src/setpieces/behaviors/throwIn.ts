@@ -18,6 +18,9 @@ import {
   getValidPlayers,
   getSortedLists
 } from '../utils';
+import { GAME_CONFIG } from '../../config';
+import { getPlayerActivePosition } from '../../ai/movement';
+import { distance as getDistance } from '../../utils/math';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -76,8 +79,8 @@ export const ThrowInBehaviors = {
       return this.getDefendingThrowInPosition(player, throwPos, ownGoalX, gameState, teammates);
     }
 
-    const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-    const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+    const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+    const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
     const direction = Math.sign(opponentGoalX - 400);
     const isInAttackingThird = Math.abs(throwPos.x - opponentGoalX) < PITCH_WIDTH / 3;
@@ -159,10 +162,10 @@ export const ThrowInBehaviors = {
       // Select thrower - nearest fullback/wingback/winger
       const throwerCandidates = validTeammates
         .filter(p => ['RB', 'LB', 'RWB', 'LWB', 'RW', 'LW', 'RM', 'LM'].some(role => p.role.includes(role)))
-        .sort((a, b) => (window as any).getDistance(a, throwPos) - (window as any).getDistance(b, throwPos));
+        .sort((a, b) => getDistance(a, throwPos) - getDistance(b, throwPos));
 
       const thrower = throwerCandidates[0] || (validTeammates.length > 0
-        ? validTeammates.sort((a, b) => (window as any).getDistance(a, throwPos) - (window as any).getDistance(b, throwPos))[0]
+        ? validTeammates.sort((a, b) => getDistance(a, throwPos) - getDistance(b, throwPos))[0]
         : null);
 
       if (thrower) {
@@ -360,7 +363,7 @@ export const ThrowInBehaviors = {
       // Remaining players - maintain shape
       validTeammates.forEach(p => {
         if (!assigned.has(String(p.id))) {
-          const activePos = (window as any).getPlayerActivePosition(p, gameState.currentHalf);
+          const activePos = getPlayerActivePosition(p, gameState.currentHalf);
           const finalPos = posManager.findValidPosition(activePos);
           playerJobs.set(String(p.id), {
             ...finalPos,
@@ -381,7 +384,7 @@ export const ThrowInBehaviors = {
       return sanitizePosition(myPositionData, { player, gameState, behavior: 'ProfessionalThrowIn' });
     }
 
-    const activePos = (window as any).getPlayerActivePosition(player, gameState.currentHalf);
+    const activePos = getPlayerActivePosition(player, gameState.currentHalf);
     return sanitizePosition({ x: activePos.x, y: activePos.y, movement: 'fallback_throw' }, { player });
   },
 
@@ -399,7 +402,7 @@ export const ThrowInBehaviors = {
       return sanitizePosition({ x: player?.x ?? 400, y: player?.y ?? 300, movement: 'error_throw_def' }, { player });
     }
 
-    const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+    const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
     const direction = Math.sign(throwPos.x - ownGoalX);
     const touchlineY = throwPos.y < 300 ? 5 : (PITCH_HEIGHT - 5);
@@ -460,7 +463,7 @@ export const ThrowInBehaviors = {
       // Remaining players - maintain defensive shape
       validTeammates.forEach(p => {
         if (!assigned.has(String(p.id))) {
-          const activePos = (window as any).getPlayerActivePosition(p, gameState.currentHalf);
+          const activePos = getPlayerActivePosition(p, gameState.currentHalf);
           const finalPos = posManager.findValidPosition(activePos);
           playerJobs.set(String(p.id), {
             ...finalPos,
@@ -481,7 +484,7 @@ export const ThrowInBehaviors = {
       return sanitizePosition(myPositionData, { player, gameState, behavior: 'DefendingThrowIn' });
     }
 
-    const activePos = (window as any).getPlayerActivePosition(player, gameState.currentHalf);
+    const activePos = getPlayerActivePosition(player, gameState.currentHalf);
     return sanitizePosition({ x: activePos.x, y: activePos.y, movement: 'fallback_throw_def' }, { player });
   }
 };
@@ -490,13 +493,5 @@ export const ThrowInBehaviors = {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-  (window as any).ThrowInBehaviors = ThrowInBehaviors;
-
-  // Register with DependencyRegistry if available
-  if (typeof (window as any).DependencyRegistry !== 'undefined') {
-    (window as any).DependencyRegistry.register('ThrowInBehaviors', ThrowInBehaviors);
-  }
-
-  console.log('✅ THROW-IN BEHAVIORS LOADED (TypeScript)');
-}
+// Functions are now exported via ES6 modules - no window exports needed
+console.log('✅ THROW-IN BEHAVIORS LOADED (TypeScript)');

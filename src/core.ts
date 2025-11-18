@@ -25,15 +25,21 @@ import { initiatePass, initiateDribble, passBall } from './ai';
 import { action_attemptTackle } from './rules/ballControl';
 import { assignBallChasers, validateBallHolder, updatePhysics } from './physics';
 import { renderGame } from './rendering';
-import { GAME_CONFIG, TACTICS } from './config';
+import { GAME_CONFIG, TACTICS, GAME_LOOP } from './config';
 import { gameState } from './globalExports';
 import { EVENT_TYPES } from './types';
 import { eventBus } from './eventBus';
-import { getAttackingGoalX, calculateXG } from './utils/ui';
+import { getAttackingGoalX, calculateXG, isSetPieceStatus } from './utils/ui';
+import { resetAfterGoal, handleShotAttempt, removePlayerFromMatch, handleFreeKick, processPendingEvents } from './main';
+import * as SetPieceIntegration from './setpieces/integration';
+import { SetPieceEnforcement } from './setpieces/enforcement';
 
 import { getVisibleTeammates } from './ai/playerVision';
 import { selectBestAttackingMovement } from './ai/MovementPatterns';
 import { canPlayerActOnBall } from './ai/playerFirstTouch';
+
+// Debug flag (replaces window.DEBUG_AI)
+const DEBUG_AI = false;
 
 // ============================================================================
 // SPATIAL AWARENESS SYSTEM
@@ -131,7 +137,7 @@ class ActionDecisionSystem {
 
         // PRIORITY 1: SHOOT
         if (this.shouldShootNow(player, opponents, gameState)) {
-            if ((window as any).DEBUG_AI) {
+            if (DEBUG_AI) {
                 console.log(`[AI] ${player.name}: SHOOT decision (goalX=${goalX})`);
             }
             return { action: 'SHOOT', target: { x: goalX, y: 300 } };
@@ -140,7 +146,7 @@ class ActionDecisionSystem {
         // PRIORITY 2: PASS
         const bestPass = this.findBestPassTarget(player, teammates, opponents, goalX);
         if (bestPass && bestPass.score > 60) {
-            if ((window as any).DEBUG_AI) {
+            if (DEBUG_AI) {
                 console.log(`[AI] ${player.name}: PASS decision (score=${bestPass.score}, target=${bestPass.teammate.name})`);
             }
             return { action: 'PASS', target: bestPass.teammate };
@@ -148,7 +154,7 @@ class ActionDecisionSystem {
 
         // PRIORITY 3: DRIBBLE
         if (this.hasSpaceToDribble(player, opponents, goalX)) {
-            if ((window as any).DEBUG_AI) {
+            if (DEBUG_AI) {
                 console.log(`[AI] ${player.name}: DRIBBLE decision (to goalX=${goalX})`);
             }
             return { action: 'DRIBBLE', target: { x: goalX, y: player.y } };
@@ -156,13 +162,13 @@ class ActionDecisionSystem {
 
         // DEFAULT:
         if (bestPass) {
-            if ((window as any).DEBUG_AI) {
+            if (DEBUG_AI) {
                 console.log(`[AI] ${player.name}: PASS decision (fallback, score=${bestPass.score})`);
             }
             return { action: 'PASS', target: bestPass.teammate };
         }
 
-        if ((window as any).DEBUG_AI) {
+        if (DEBUG_AI) {
             console.log(`[AI] ${player.name}: HOLD decision (no viable options)`);
         }
         return { action: 'HOLD', target: null };
@@ -537,8 +543,6 @@ class PenaltySystem {
             type: result.outcome === 'GOAL' ? 'goal' : 'save'
         });
 
-        const resetAfterGoal = (window as any).resetAfterGoal;
-
         setTimeout(() => {
             this.reset();
             gameState.status = 'playing';
@@ -596,9 +600,8 @@ export function updatePlayerAI_V2(player: Player, ball: { x: number; y: number }
     }
 
     // Let set-piece enhancement run first
-    const SetPieceIntegration = (window as any).SetPieceIntegration;
     if (SetPieceIntegration?.updatePlayerAI_V2_SetPieceEnhancement) {
-        if (SetPieceIntegration.updatePlayerAI_V2_SetPieceEnhancement(player, ball, allPlayers, gameState)) {
+        if (SetPieceIntegration.updatePlayerAI_V2_SetPieceEnhancement(player, allPlayers, gameState)) {
             return;
         }
     }
@@ -635,10 +638,7 @@ export function updatePlayerAI_V2(player: Player, ball: { x: number; y: number }
 
         if (decision.action === 'SHOOT') {
             const target = decision.target as { x: number; y: number };
-            const handleShotAttempt = (window as any).handleShotAttempt;
-            if (typeof handleShotAttempt === 'function') {
-                handleShotAttempt(player, target.x, allPlayers);
-            }
+            handleShotAttempt(player, target.x, allPlayers);
         } else if (decision.action === 'PASS') {
             initiatePass(player, decision.target as Player);
         } else if (decision.action === 'DRIBBLE') {
@@ -740,20 +740,14 @@ export function handleFoul_V2(fouler: Player, fouled: Player): void {
     // Second yellow -> red
     if (alreadyBooked && severity > 0.80) {
         console.log(`🟥 İKİNCİ SARI KART! ${fouler.name} oyundan atıldı.`);
-        const removePlayerFromMatch = (window as any).removePlayerFromMatch;
-        if (typeof removePlayerFromMatch === 'function') {
-            removePlayerFromMatch(fouler);
-        }
+        removePlayerFromMatch(fouler);
         gameState.cardEvents.push({ player: fouler.name, time: Math.floor(gameState.timeElapsed), type: 'second_yellow' });
 
     } else if (severity > 0.85) {
         // Direct red
         if (severity > 0.97) {
             console.log(`🟥 DİREKT KIRMIZI KART! ${fouler.name} oyundan atıldı.`);
-            const removePlayerFromMatch = (window as any).removePlayerFromMatch;
-            if (typeof removePlayerFromMatch === 'function') {
-                removePlayerFromMatch(fouler);
-            }
+            removePlayerFromMatch(fouler);
             gameState.cardEvents.push({ player: fouler.name, time: Math.floor(gameState.timeElapsed), type: 'direct_red' });
 
         } else if (!alreadyBooked) {
@@ -778,12 +772,7 @@ export function handleFoul_V2(fouler: Player, fouled: Player): void {
     }
 
     // Free kick
-    const handleFreeKick = (window as any).handleFreeKick;
-    if (typeof handleFreeKick === 'function') {
-        handleFreeKick({ x: fouled.x, y: fouled.y }, fouler.isHome);
-    } else {
-        console.error("handleFoul_V2 -> handleFreeKick is not defined!");
-    }
+    handleFreeKick({ x: fouled.x, y: fouled.y }, fouler.isHome);
 }
 
 // ============================================================================
@@ -875,8 +864,6 @@ export function gameLoop_V2(timestamp: number): void {
         return;
     }
 
-    const GAME_LOOP_DEFAULT = { MAX_FRAME_TIME: 0.05, GAME_SPEED: 1, FIXED_TIMESTEP: 0.01666 };
-    const GAME_LOOP = (window as any).GAME_LOOP || GAME_LOOP_DEFAULT;
     let dt = (timestamp - lastFrameTime) / 1000;
     lastFrameTime = timestamp;
     dt = Math.max(0, Math.min(dt, GAME_LOOP.MAX_FRAME_TIME));
@@ -889,10 +876,7 @@ export function gameLoop_V2(timestamp: number): void {
     }
 
     const isGameActive = gameState.status === 'playing';
-    const isSetPieceStatus = (window as any).isSetPieceStatus;
-    const isSetPiece = (typeof isSetPieceStatus === 'function')
-        ? isSetPieceStatus(gameState.status)
-        : ['GOAL_KICK', 'CORNER_KICK', 'THROW_IN', 'FREE_KICK', 'PENALTY', 'KICK_OFF'].includes(gameState.status);
+    const isSetPiece = isSetPieceStatus(gameState.status);
     const runPhysics = isGameActive || isSetPiece;
 
     if (runPhysics) {
@@ -902,7 +886,6 @@ export function gameLoop_V2(timestamp: number): void {
     }
 
     if (isSetPiece) {
-        const SetPieceEnforcement = (window as any).SetPieceEnforcement;
         if (SetPieceEnforcement?.updateSetPieceEnforcement) {
             SetPieceEnforcement.updateSetPieceEnforcement(gameState, allPlayers);
         }
@@ -911,7 +894,6 @@ export function gameLoop_V2(timestamp: number): void {
             const timeUntilExecution = gameState.setPiece.executionTime - Date.now();
 
             if (timeUntilExecution <= 100 && !gameState.setPiece.executed) {
-                const SetPieceIntegration = (window as any).SetPieceIntegration;
                 if (SetPieceIntegration?.executeSetPiece_Router) {
                     SetPieceIntegration.executeSetPiece_Router(gameState);
                 }
@@ -926,10 +908,7 @@ export function gameLoop_V2(timestamp: number): void {
     if (runPhysics) {
         if (gameState.status === 'playing') {
             gameTime += dt;
-            const processPendingEvents = (window as any).processPendingEvents;
-            if (typeof processPendingEvents === 'function') {
-                processPendingEvents(gameTime);
-            }
+            processPendingEvents(gameTime);
         }
 
         const scaledTimestep = getScaledTimestep();
@@ -973,22 +952,3 @@ export function gameLoop_V2(timestamp: number): void {
     }
 }
 
-// ============================================================================
-// BROWSER EXPORTS
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-    (window as any).spatialSystem = spatialSystem;
-    (window as any).actionDecision = actionDecision;
-    (window as any).tackleSystem = tackleSystem;
-    (window as any).penaltySystem = penaltySystem;
-    (window as any).updatePlayerAI_V2 = updatePlayerAI_V2;
-    (window as any).handleFoul_V2 = handleFoul_V2;
-    (window as any).gameLoop_V2 = gameLoop_V2;
-    (window as any).cleanupShotState = cleanupShotState;
-    (window as any).updateDefensiveLines = updateDefensiveLines;
-    (window as any).getScaledTimestep = getScaledTimestep;
-    (window as any).updateParticlesWithCleanup = updateParticlesWithCleanup;
-
-    console.log('✅ V2 UNIFIED CORE LOADED (TypeScript)');
-}

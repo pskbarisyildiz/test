@@ -3,17 +3,9 @@ import { getDistance } from '../utils/ui';
 import { gameState } from '../globalExports';
 import { GAME_CONFIG } from '../config';
 import { SetPieceBehaviorSystem } from './SetPieceBehaviorSystem';
-import {
-    executeCornerKick_Enhanced,
-    executeFreeKick_Enhanced,
-    executeThrowIn_Enhanced,
-    executeGoalKick_Enhanced,
-    executeSetPiece_Router
-} from './execution';
-import {
-    configureSetPieceRoutines,
-    executeSetPiece_PreConfiguration
-} from './config';
+
+// Re-export for external use
+export { executeSetPiece_Router } from './execution';
 
 declare const PITCH_WIDTH: number;
 declare const PITCH_HEIGHT: number;
@@ -22,6 +14,20 @@ export const SET_PIECE_RULES = {
     MIN_DISTANCE_PIXELS: 70,
     THROW_IN_DISTANCE_PIXELS: 15
 };
+
+// Module-level telemetry tracking (replaces window.SET_PIECE_TELEMETRY)
+const SET_PIECE_TELEMETRY = {
+    systemNotLoaded: 0,
+    noGameState: 0,
+    invalidPosition: 0,
+    successfulPositions: 0
+};
+
+// Debug flag (replaces window.DEBUG_SET_PIECES)
+const DEBUG_SET_PIECES = false;
+
+// Original function backup (replaces window._originalSetPieceFunctions)
+let _originalSetPieceFunctions: Record<string, any> | null = null;
 
 export function ensureCorrectSetPiecePlacement(gameState: GameState): void {
     try {
@@ -60,7 +66,7 @@ export function ensureCorrectSetPiecePlacement(gameState: GameState): void {
     }
 }
 
-export function assignSetPieceKicker(player: Player): void {
+export function assignSetPieceKicker(player: Player | null): void {
     if (typeof gameState === 'undefined' || !gameState || !gameState.setPiece) {
         return;
     }
@@ -97,42 +103,33 @@ export function getGoalKickPosition(goalX: number, preferredSide = 'center'): { 
 }
 
 export function positionForSetPiece_Unified(player: Player, allPlayers: Player[]): void {
-    if (!(window as any).SET_PIECE_TELEMETRY) {
-        (window as any).SET_PIECE_TELEMETRY = {
-            systemNotLoaded: 0,
-            noGameState: 0,
-            invalidPosition: 0,
-            successfulPositions: 0
-        };
-    }
-
     if (typeof SetPieceBehaviorSystem === 'undefined' || !SetPieceBehaviorSystem.getSetPiecePosition) {
-        (window as any).SET_PIECE_TELEMETRY.systemNotLoaded++;
+        SET_PIECE_TELEMETRY.systemNotLoaded++;
         console.error(`❌ CRITICAL: SetPieceBehaviorSystem not loaded! Falling back to legacy positioning for ${player.name}`);
-        console.error(`   This should NEVER happen - check script load order! (Count: ${(window as any).SET_PIECE_TELEMETRY.systemNotLoaded})`);
+        console.error(`   This should NEVER happen - check script load order! (Count: ${SET_PIECE_TELEMETRY.systemNotLoaded})`);
         return positionForSetPiece_Legacy(player, allPlayers);
     }
 
     if (!gameState || !gameState.setPiece) {
-        (window as any).SET_PIECE_TELEMETRY.noGameState++;
+        SET_PIECE_TELEMETRY.noGameState++;
         console.warn(`⚠️ positionForSetPiece_Unified called without gameState or setPiece for ${player.name}`);
-        console.warn(`   gameState exists: ${!!gameState}, setPiece exists: ${!!gameState?.setPiece} (Count: ${(window as any).SET_PIECE_TELEMETRY.noGameState})`);
+        console.warn(`   gameState exists: ${!!gameState}, setPiece exists: ${!!gameState?.setPiece} (Count: ${SET_PIECE_TELEMETRY.noGameState})`);
         return positionForSetPiece_Legacy(player, allPlayers);
     }
 
     const position = SetPieceBehaviorSystem.getSetPiecePosition(player, gameState);
 
     if (!position || typeof position.x !== 'number' || typeof position.y !== 'number' || isNaN(position.x) || isNaN(position.y)) {
-        (window as any).SET_PIECE_TELEMETRY.invalidPosition++;
+        SET_PIECE_TELEMETRY.invalidPosition++;
         console.error(`❌ getSetPiecePosition INVALID POSITION for ${player.name} (${player.role}) during ${gameState.setPiece.type}`);
         console.error(`   Returned position:`, position);
-        console.error(`   Expected: {x: number, y: number}, got: {x: ${typeof (position as any)?.x}, y: ${typeof (position as any)?.y}} (Count: ${(window as any).SET_PIECE_TELEMETRY.invalidPosition})`);
+        console.error(`   Expected: {x: number, y: number}, got: {x: ${typeof (position as any)?.x}, y: ${typeof (position as any)?.y}} (Count: ${SET_PIECE_TELEMETRY.invalidPosition})`);
         return positionForSetPiece_Legacy(player, allPlayers);
     }
 
-    (window as any).SET_PIECE_TELEMETRY.successfulPositions++;
-    if ((window as any).DEBUG_SET_PIECES && (window as any).SET_PIECE_TELEMETRY.successfulPositions % 50 === 0) {
-        console.log(`[SetPiece] Telemetry: ${(window as any).SET_PIECE_TELEMETRY.successfulPositions} successful positions, ${(window as any).SET_PIECE_TELEMETRY.invalidPosition} invalid, ${(window as any).SET_PIECE_TELEMETRY.noGameState} missing state, ${(window as any).SET_PIECE_TELEMETRY.systemNotLoaded} system not loaded`);
+    SET_PIECE_TELEMETRY.successfulPositions++;
+    if (DEBUG_SET_PIECES && SET_PIECE_TELEMETRY.successfulPositions % 50 === 0) {
+        console.log(`[SetPiece] Telemetry: ${SET_PIECE_TELEMETRY.successfulPositions} successful positions, ${SET_PIECE_TELEMETRY.invalidPosition} invalid, ${SET_PIECE_TELEMETRY.noGameState} missing state, ${SET_PIECE_TELEMETRY.systemNotLoaded} system not loaded`);
     }
 
     player.targetX = position.x;
@@ -173,23 +170,23 @@ export function positionForSetPiece_Unified(player: Player, allPlayers: Player[]
 export function positionForSetPiece_Legacy(player: Player, allPlayers: Player[]): void {
     const status = gameState.status;
 
-    if (typeof window === 'undefined' || !(window as any)._originalSetPieceFunctions) {
+    if (!_originalSetPieceFunctions) {
         player.targetX = player.x;
         player.targetY = player.y;
         return;
     }
 
-    const originals = (window as any)._originalSetPieceFunctions;
+    const originals = _originalSetPieceFunctions;
 
     try {
-        if (status === 'CORNER_KICK' && typeof originals.positionForCornerKick === 'function') {
-            originals.positionForCornerKick(player, allPlayers);
-        } else if (status === 'FREE_KICK' && typeof originals.positionForFreeKick === 'function') {
-            originals.positionForFreeKick(player, allPlayers);
-        } else if (status === 'THROW_IN' && typeof originals.positionForThrowIn === 'function') {
-            originals.positionForThrowIn(player, allPlayers);
-        } else if (status === 'GOAL_KICK' && typeof originals.positionForGoalKick === 'function') {
-            originals.positionForGoalKick(player, allPlayers);
+        if (status === 'CORNER_KICK' && typeof originals['positionForCornerKick'] === 'function') {
+            originals['positionForCornerKick'](player, allPlayers);
+        } else if (status === 'FREE_KICK' && typeof originals['positionForFreeKick'] === 'function') {
+            originals['positionForFreeKick'](player, allPlayers);
+        } else if (status === 'THROW_IN' && typeof originals['positionForThrowIn'] === 'function') {
+            originals['positionForThrowIn'](player, allPlayers);
+        } else if (status === 'GOAL_KICK' && typeof originals['positionForGoalKick'] === 'function') {
+            originals['positionForGoalKick'](player, allPlayers);
         } else {
             player.targetX = player.x;
             player.targetY = player.y;
@@ -411,21 +408,4 @@ function cleanupSetPieceManagers(): void {
     delete (gameState as any)._currentWallSize;
 }
 
-if (typeof window !== 'undefined') {
-    (window as any).SetPieceIntegration = {
-        positionForSetPiece_Unified,
-        executeSetPiece_PreConfiguration,
-        updatePlayerAI_V2_SetPieceEnhancement,
-        configureSetPieceRoutines,
-        executeSetPiece_Router,
-        executeSetPiece_PostExecution,
-        ensureCorrectSetPiecePlacement,
-        assignSetPieceKicker,
-        executeCornerKick_Enhanced,
-        executeFreeKick_Enhanced,
-        executeThrowIn_Enhanced,
-        executeGoalKick_Enhanced,
-        getCornerKickPosition,
-        getGoalKickPosition,
-    };
-}
+// Functions are now exported via ES6 modules - no window exports needed

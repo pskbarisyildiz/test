@@ -11,6 +11,8 @@ import type {
   Vector2D,
   GameState
 } from '../types';
+import { distance as getDistance } from '../utils/math';
+import { SetPieceBehaviorSystem } from '../setpieces/SetPieceBehaviorSystem';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -151,7 +153,7 @@ export const GoalkeeperBehaviors = {
     // Only sweep if defensive line is pushed high (>200 units from goal)
     if (defensiveLine < 200) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     const threatBehindLine = opponents.find(opp => {
       const oppDistToGoal = Math.abs(opp.x - ownGoalX);
       return oppDistToGoal < defensiveLine - 50 && getDistance(opp, ball) < 100;
@@ -216,7 +218,7 @@ export const GoalkeeperBehaviors = {
     _shooter: Player | null,
     ownGoalX: number
   ): BehaviorResultSuccess {
-    const getDistance = (window as any).getDistance;
+    
     const goalCenter = { x: ownGoalX, y: 300 };
     const ballToGoalDist = getDistance(ball, goalCenter);
 
@@ -254,7 +256,7 @@ export const DefensiveBehaviors = {
   ): BehaviorResultSuccess | null {
     if (!['CB', 'RB', 'LB'].includes(player.role as string)) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     const defensiveLine = teammates.filter(t =>
       ['CB', 'RB', 'LB'].includes(t.role as string)
     );
@@ -293,7 +295,7 @@ export const DefensiveBehaviors = {
   ): BehaviorResultSuccess | null {
     if (!['RB', 'LB'].includes(fb.role as string)) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     const isRightBack = fb.role === 'RB';
     const wideThreats = opponents.filter(opp =>
       (isRightBack && opp.y < 200) || (!isRightBack && opp.y > 400)
@@ -340,7 +342,7 @@ export const DefensiveBehaviors = {
   ): BehaviorResultSuccess | null {
     if (!['CB'].includes(cb.role as string)) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     const strikers = opponents.filter(opp => ['ST', 'CF'].includes(opp.role as string));
     if (strikers.length === 0) return null;
 
@@ -564,7 +566,7 @@ export const MidfieldBehaviors = {
     if (!['CM'].includes(cm.role as string)) return null;
     if (!holder || holder.isHome === cm.isHome) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     // Trigger press when opposition midfielder has ball in central areas
     const holderInCenter = Math.abs(holder.y - 300) < 150;
     const distToHolder = getDistance(cm, holder);
@@ -666,7 +668,7 @@ export const ForwardBehaviors = {
     if (!['ST', 'CF'].includes(striker.role as string)) return null;
     if (!holder || holder.isHome !== striker.isHome) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     const oppDefenders = opponents.filter(o =>
       ['CB', 'RB', 'LB'].includes(o.role as string)
     );
@@ -743,7 +745,7 @@ export const ForwardBehaviors = {
   ): BehaviorResultSuccess | null {
     if (!['ST', 'CF'].includes(striker.role as string)) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     const nearbyOpponents = opponents.filter(o =>
       getDistance(o, striker) < 60
     );
@@ -777,7 +779,7 @@ export const ForwardBehaviors = {
   ): BehaviorResultSuccess | null {
     if (!['ST', 'CF'].includes(striker.role as string)) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     const oppCBs = opponents.filter(o =>
       ['CB', 'GK'].includes(o.role as string)
     );
@@ -876,7 +878,7 @@ export const TransitionBehaviors = {
   ): BehaviorResultSuccess | null {
     if (!justLostPossession) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     const distToBall = getDistance(player, ball);
 
     // Only players within 80 units press immediately
@@ -907,7 +909,7 @@ export const TransitionBehaviors = {
   ): BehaviorResultSuccess | null {
     if (!justLostPossession) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     const distToBall = getDistance(player, ball);
 
     // Players far from ball make recovery runs
@@ -945,7 +947,7 @@ export const TacticalSystemModifiers = {
   ): BehaviorResultSuccess | null {
     if (!holder || holder.isHome !== player.isHome) return null;
 
-    const getDistance = (window as any).getDistance;
+    
     // Create passing triangles
     const nearbyTeammates = teammates.filter(t =>
       getDistance(t, holder) < 150 && t.id !== player.id && t.id !== holder.id
@@ -1177,8 +1179,7 @@ export function selectPlayerBehavior(
  */
 export function detectGamePhase(gameState: GameState): GamePhase {
   // INTEGRATION: Added per SetPieceIntegration.js instructions
-  if (typeof (window as any).SetPieceBehaviorSystem !== 'undefined' &&
-      (window as any).SetPieceBehaviorSystem.isSetPieceActive(gameState)) {
+  if (SetPieceBehaviorSystem.isSetPieceActive(gameState)) {
     return 'SET_PIECE'; // Special phase
   }
 
@@ -1227,24 +1228,10 @@ export function getTacticalSystemType(tacticName?: string): TacticalSystemType {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-  (window as any).BehaviorSystem = {
-    selectPlayerBehavior,
-    detectGamePhase,
-    getTacticalSystemType,
-    BehaviorResult,
-    PHASES
-  };
-
-  // ✅ FIX #9: Register with dependency system
-  if (typeof (window as any).DependencyRegistry !== 'undefined') {
-    (window as any).DependencyRegistry.register('BehaviorSystem', (window as any).BehaviorSystem);
-  }
-
-  console.log('✅ BEHAVIORAL DYNAMICS ENGINE LOADED');
-  console.log('   ✓ 11 role-specific behavior sets');
-  console.log('   ✓ 4 game phases supported');
-  console.log('   ✓ 3 tactical system modifiers');
-  console.log('   ✓ FIX #9: BehaviorResult wrapper for consistent returns');
-  console.log('   ✓ Ready for integration');
-}
+// Functions are now exported via ES6 modules - no window exports needed
+console.log('✅ BEHAVIORAL DYNAMICS ENGINE LOADED');
+console.log('   ✓ 11 role-specific behavior sets');
+console.log('   ✓ 4 game phases supported');
+console.log('   ✓ 3 tactical system modifiers');
+console.log('   ✓ FIX #9: BehaviorResult wrapper for consistent returns');
+console.log('   ✓ Ready for integration');

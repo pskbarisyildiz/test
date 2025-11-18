@@ -10,6 +10,8 @@
 import type { GameState } from '../types';
 import { drawPlayer } from './drawEntities';
 import { drawBall } from './drawEntities';
+import { gameState } from '../globalExports';
+import { GAME_CONFIG } from '../config';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -32,17 +34,17 @@ declare global {
  * Renders all entities on the game canvas
  */
 export function renderGame(): void {
-  if (!window.gameState.contexts || !window.gameState.contexts.game) {
+  if (!gameState.contexts || !gameState.contexts.game) {
     console.warn('Game context not initialized yet');
     return;
   }
 
-  const ctx = window.gameState.contexts.game;
+  const ctx = gameState.contexts.game;
 
   // YÜKSEK ÇÖZÜNÜRLÜK AYARLARI
-  const SCALE_FACTOR = window.CFG().HIGH_DPI_SCALE_FACTOR;
-  const LOGICAL_WIDTH = window.gameState.isVertical ? 600 : 800;
-  const LOGICAL_HEIGHT = window.gameState.isVertical ? 800 : 600;
+  const SCALE_FACTOR = GAME_CONFIG.HIGH_DPI_SCALE_FACTOR;
+  const LOGICAL_WIDTH = gameState.isVertical ? 600 : 800;
+  const LOGICAL_HEIGHT = gameState.isVertical ? 800 : 600;
 
   // 1. Clear the main canvas
   // KRİTİK DÜZELTME: Transform matrisini sıfırla VE hemen ardından ölçeklendirmeyi uygula.
@@ -55,39 +57,39 @@ export function renderGame(): void {
   // 2. Conditionally apply the 90-degree rotation
   // save() çağrısı, setTransform ile ayarlanan SCALE_FACTOR'ü saklar.
   ctx.save();
-  if (window.gameState.isVertical) {
+  if (gameState.isVertical) {
     // Çevirme koordinatları hala mantıksal olmalıdır (600x800)
     ctx.translate(600, 0);
     ctx.rotate(Math.PI / 2);
   }
 
   // 3. Apply camera shake *after* the potential rotation
-  if (window.gameState.cameraShake > 0) {
-    const shakeX = (Math.random() - 0.5) * window.gameState.cameraShake;
-    const shakeY = (Math.random() - 0.5) * window.gameState.cameraShake;
+  if (gameState.cameraShake > 0) {
+    const shakeX = (Math.random() - 0.5) * gameState.cameraShake;
+    const shakeY = (Math.random() - 0.5) * gameState.cameraShake;
     ctx.translate(shakeX, shakeY);
   }
 
   // Çizim kodunun geri kalanı (drawPlayer, drawBall) mantıksal koordinatlarda çalışır
-  if (window.gameState.particles && window.gameState.particles.length > 0) {
-    window.gameState.particles.forEach(p => p.draw(ctx));
+  if (gameState.particles && gameState.particles.length > 0) {
+    gameState.particles.forEach(p => p.draw(ctx));
   }
 
   // Draw players
-  const allPlayers = [...window.gameState.homePlayers, ...window.gameState.awayPlayers];
+  const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
   if (allPlayers.length > 0) {
     allPlayers.forEach(player => {
-      const hasBall = !!(window.gameState.ballHolder && window.gameState.ballHolder.name === player.name && !window.gameState.ballTrajectory);
+      const hasBall = !!(gameState.ballHolder && gameState.ballHolder.name === player.name && !gameState.ballTrajectory);
       drawPlayer(ctx, player, hasBall); // This calls drawPlayerLabel
 
       // This 'intro' block also needs the conditional rotation fix
       // Note: 'intro' is not in GameStatus type, but may be set dynamically
-      if ((window.gameState.status as string) === 'intro') {
+      if ((gameState.status as string) === 'intro') {
         ctx.save();
         ctx.translate(player.x, player.y + 30);
 
         // Conditionally un-rotate
-        if (window.gameState.isVertical) {
+        if (gameState.isVertical) {
           ctx.rotate(-Math.PI / 2);
         }
 
@@ -103,8 +105,8 @@ export function renderGame(): void {
     });
   }
 
-  if (window.gameState.ballPosition) {
-    drawBall(ctx, window.gameState.ballPosition.x, window.gameState.ballPosition.y);
+  if (gameState.ballPosition) {
+    drawBall(ctx, gameState.ballPosition.x, gameState.ballPosition.y);
   }
 
   if (window.SHOW_OFFSIDE_LINES && window.drawOffsideLines) {

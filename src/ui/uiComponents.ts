@@ -7,16 +7,16 @@
  * ✅ Full type safety with strict TypeScript
  */
 
-import type { GameState } from '../types';
+import { gameState } from '../globalExports';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
 // ============================================================================
+// Note: resetMatch moved to globalExports.ts for centralization
 
 declare global {
   interface Window {
     renderStatisticsSummary?: typeof renderStatisticsSummary;
-    resetMatch?: () => void;
     lightenColor?: (color: string, amount: number) => string;
   }
 }
@@ -42,7 +42,7 @@ function lightenColor(color: string, amount: number): string {
 // ============================================================================
 
 export function renderScoreboard(): string {
-    const gameState = (window as any).gameState as GameState;
+    // Using imported gameState from globalExports
     const homeCoach = (gameState as any).teamCoaches?.[gameState.homeTeam] || 'Unknown Coach';
     const awayCoach = (gameState as any).teamCoaches?.[gameState.awayTeam] || 'Unknown Coach';
     const homeLogo = (gameState as any).teamLogos?.[gameState.homeTeam] || '';
@@ -155,7 +155,7 @@ export function renderScoreboard(): string {
 // ============================================================================
 
 export function getStatusIndicator(): string {
-    const gameState = (window as any).gameState as GameState;
+    // Using imported gameState from globalExports
 
     if (gameState.status === 'playing') {
         return '<div style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981, 0 0 3px #10b981; animation: pulse 2s infinite;"></div>';
@@ -174,7 +174,7 @@ export function getStatusIndicator(): string {
 // ============================================================================
 
 export function renderCommentary(): string {
-    const gameState = (window as any).gameState as GameState;
+    // Using imported gameState from globalExports
     const recentComments = gameState.commentary.slice(-2).reverse();
     const commentaryHTML = recentComments.map(c => {
         let accentColor = '#6366f1';
@@ -252,11 +252,11 @@ export function renderCommentary(): string {
 // ============================================================================
 
 export function renderStats(): string {
-    if (typeof (window as any).gameState === 'undefined') {
+    if (!gameState) {
         return '<div class="stats-card"><p>Loading stats...</p></div>';
     }
 
-    const gameState = (window as any).gameState as GameState;
+    // Using imported gameState from globalExports
 
     // Get stats or provide defaults
     const homeStats = gameState.stats.home || { possession: 50, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0 } as any;
@@ -358,7 +358,7 @@ export function renderStats(): string {
 // ============================================================================
 
 export function renderMatchSummary(): string {
-    const gameState = (window as any).gameState as GameState;
+    // Using imported gameState from globalExports
     const homeLogo = (gameState as any).teamLogos?.[gameState.homeTeam] || '';
     const awayLogo = (gameState as any).teamLogos?.[gameState.awayTeam] || '';
 
@@ -861,7 +861,7 @@ export function renderMatchSummary(): string {
 // ============================================================================
 
 export function renderStatisticsSummary(): string {
-    const gameState = (window as any).gameState as GameState;
+    // Using imported gameState from globalExports
     const homeStats = gameState.stats.home || {} as any;
     const awayStats = gameState.stats.away || {} as any;
 
@@ -990,7 +990,7 @@ export function renderStatisticsSummary(): string {
 // TAB SWITCHING FUNCTION
 // ============================================================================
 
-function switchSummaryTab(tab: 'events' | 'stats'): void {
+export function switchSummaryTab(tab: 'events' | 'stats'): void {
     const eventsContent = document.getElementById('summary-events-content');
     const statsContent = document.getElementById('summary-stats-content');
     const eventsTab = document.getElementById('events-tab') as HTMLButtonElement | null;
@@ -1033,13 +1033,4 @@ function switchSummaryTab(tab: 'events' | 'stats'): void {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-    (window as any).renderScoreboard = renderScoreboard;
-    (window as any).getStatusIndicator = getStatusIndicator;
-    (window as any).renderCommentary = renderCommentary;
-    (window as any).renderStats = renderStats;
-    (window as any).renderMatchSummary = renderMatchSummary;
-    (window as any).renderStatisticsSummary = renderStatisticsSummary;
-    (window as any).switchSummaryTab = switchSummaryTab;
-    (window as any).lightenColor = lightenColor;
-}
+// Functions are now exported via ES6 modules - no window exports needed

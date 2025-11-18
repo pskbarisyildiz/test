@@ -34,22 +34,16 @@ import {
   ProfessionalFreeKickBehaviors
 } from '../setpieces';
 import type { PositionWithMovement } from '../setpieces/utils';
+import { GAME_CONFIG } from '../config';
+import { getAttackingGoalX, isSetPieceStatus } from '../utils/ui';
+import { getPlayerActivePosition } from '../ai/movement';
+import { distance as getDistance } from '../utils/math';
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-const GAME_CONFIG_SPB_DEFAULT = {
-  PITCH_WIDTH: 800,
-  PITCH_HEIGHT: 600,
-  MIN_PLAYER_SPACING: 30,
-  GOAL_Y_TOP: 240,
-  GOAL_Y_BOTTOM: 360
-};
-
-const activeConfig = (typeof (window as any).GAME_CONFIG !== 'undefined')
-  ? (window as any).GAME_CONFIG
-  : GAME_CONFIG_SPB_DEFAULT;
+const activeConfig = GAME_CONFIG;
 
 const SET_PIECE_TYPES = {
   CORNER_KICK: 'CORNER_KICK',
@@ -76,7 +70,7 @@ function handleGoalkeeperSetPiecePosition(
   setPiecePos: Vector2D
 ): PositionWithMovement {
   try {
-    const opponentGoalX = (window as any).getAttackingGoalX(player.isHome, gameState.currentHalf);
+    const opponentGoalX = getAttackingGoalX(player.isHome, gameState.currentHalf);
 
     switch (setPieceType) {
       case SET_PIECE_TYPES.CORNER_KICK:
@@ -110,13 +104,13 @@ function handleGoalkeeperSetPiecePosition(
     return sanitizePosition({ x: ownGoalX, y: 300, movement: 'gk_default' }, { player });
   } catch (error) {
     console.error(`GK positioning error:`, error);
-    const fallbackGoalX = (window as any).getAttackingGoalX(!player.isHome, gameState?.currentHalf ?? 1);
+    const fallbackGoalX = getAttackingGoalX(!player.isHome, gameState?.currentHalf ?? 1);
     return sanitizePosition({ x: fallbackGoalX, y: 300, movement: 'gk_error' }, { player });
   }
 }
 
 function getSafeFallbackPosition(player: Player, reason: string, gameState: GameState | null | undefined): PositionWithMovement {
-  const activePos = (window as any).getPlayerActivePosition(player, gameState?.currentHalf ?? 1);
+  const activePos = getPlayerActivePosition(player, gameState?.currentHalf ?? 1);
   return sanitizePosition(
     { x: activePos?.x ?? PITCH_WIDTH / 2, y: activePos?.y ?? PITCH_HEIGHT / 2, movement: `fallback_${reason}` },
     { player, behavior: 'Fallback' }
@@ -130,15 +124,15 @@ function calculateSetPiecePositionWithSafety(
   isAttacking: boolean,
   setPiecePos: Vector2D
 ): PositionWithMovement {
-  const ownGoalX = (window as any).getAttackingGoalX(!player.isHome, gameState.currentHalf);
-  const opponentGoalX = (window as any).getAttackingGoalX(player.isHome, gameState.currentHalf);
+  const ownGoalX = getAttackingGoalX(!player.isHome, gameState.currentHalf);
+  const opponentGoalX = getAttackingGoalX(player.isHome, gameState.currentHalf);
   const teammates = getValidPlayers(player.isHome ? gameState.homePlayers : gameState.awayPlayers);
   const opponents = getValidPlayers(player.isHome ? gameState.awayPlayers : gameState.homePlayers);
 
   try {
     switch (setPieceType) {
       case SET_PIECE_TYPES.FREE_KICK:
-        const distToGoal = (window as any).getDistance(setPiecePos, { x: (isAttacking ? opponentGoalX : ownGoalX), y: 300 });
+        const distToGoal = getDistance(setPiecePos, { x: (isAttacking ? opponentGoalX : ownGoalX), y: 300 });
         return isAttacking ?
           ProfessionalFreeKickBehaviors.getAttackingFreeKickPosition(player, setPiecePos, opponentGoalX, distToGoal, null, gameState, teammates) :
           ProfessionalFreeKickBehaviors.getDefendingFreeKickPosition(player, setPiecePos, ownGoalX, distToGoal, null, opponents, gameState, teammates);
@@ -197,7 +191,7 @@ function getSetPiecePosition(player: Player, gameState: GameState): PositionWith
     const setPiecePos = gameState.setPiece.position;
 
     if (player.role === 'GK' || (player.role as string) === 'goalkeeper') {
-      const ownGoalX = (window as any).getAttackingGoalX(!player.isHome, gameState.currentHalf);
+      const ownGoalX = getAttackingGoalX(!player.isHome, gameState.currentHalf);
       return handleGoalkeeperSetPiecePosition(player, gameState, setPieceType, isAttacking, ownGoalX, setPiecePos);
     }
 
@@ -234,7 +228,7 @@ function shouldLockSetPiecePosition(player: Player, gameState: GameState | null 
 
   const lockKeywords = ['kicker', 'thrower', 'wall'];
   if (lockKeywords.some(keyword => movementLower.includes(keyword))) {
-    return (window as any).getDistance(player, gameState.setPiece.position) < 15;
+    return getDistance(player, gameState.setPiece.position) < 15;
   }
 
   if (!gameState.setPiece.executionTime) return false;
@@ -255,8 +249,8 @@ function getSetPieceMovementType(player: Player, gameState: GameState | null | u
 function isSetPieceActive(gameState: GameState | null | undefined): boolean {
   if (!gameState || !gameState.status) return false;
 
-  if (typeof (window as any).isSetPieceStatus === 'function') {
-    return (window as any).isSetPieceStatus(gameState.status);
+  if (typeof isSetPieceStatus === 'function') {
+    return isSetPieceStatus(gameState.status);
   }
 
   return [
@@ -302,19 +296,11 @@ export const SetPieceBehaviorSystem = {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-  (window as any).SetPieceBehaviorSystem = SetPieceBehaviorSystem;
-
-  // Register with DependencyRegistry
-  if (typeof (window as any).DependencyRegistry !== 'undefined') {
-    (window as any).DependencyRegistry.register('SetPieceBehaviorSystem', SetPieceBehaviorSystem);
-  }
-
-  console.log('✅ PROFESSIONAL SET PIECE BEHAVIOR SYSTEM v6.0 (World Class) LOADED');
-  console.log('   ✓ Formation-aware positioning');
-  console.log('   ✓ Professional throw-in system');
-  console.log('   ✓ Enhanced corner & free kick patterns');
-  console.log('   ✓ FIX #8: Registered with DependencyRegistry');
-  console.log('   ✓ FIX #12: Offside audit trail enabled');
-  console.log('   ✓ Modern goal kick build-up play');
-}
+// Functions are now exported via ES6 modules - no window exports needed
+console.log('✅ PROFESSIONAL SET PIECE BEHAVIOR SYSTEM v6.0 (World Class) LOADED');
+console.log('   ✓ Formation-aware positioning');
+console.log('   ✓ Professional throw-in system');
+console.log('   ✓ Enhanced corner & free kick patterns');
+console.log('   ✓ FIX #8: Registered with DependencyRegistry');
+console.log('   ✓ FIX #12: Offside audit trail enabled');
+console.log('   ✓ Modern goal kick build-up play');

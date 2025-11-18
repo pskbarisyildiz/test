@@ -13,16 +13,11 @@
 
 import type { GameState, Player } from '../types';
 import { distance as getDistance } from '../utils/math';
-
-// ============================================================================
-// HELPER FUNCTIONS (Window Globals)
-// ============================================================================
-
-const getAttackingGoalX = (window as any).getAttackingGoalX;
-const getSafeStat = (window as any).getSafeStat;
-const assignSetPieceKicker = (window as any).assignSetPieceKicker;
-const passBall = (window as any).passBall;
-const GAME_CONFIG = (window as any).GAME_CONFIG;
+import { getAttackingGoalX } from '../utils/ui';
+import { getSafeStat } from './utils';
+import { assignSetPieceKicker, executeSetPiece_PostExecution } from './integration';
+import { passBall } from '../ai/decisions';
+import { GAME_CONFIG } from '../config';
 
 // ============================================================================
 // ENHANCED CORNER KICK EXECUTION
@@ -190,7 +185,7 @@ export function executeFreeKick_Enhanced(gameState: GameState): boolean {
             } else {
                 // Baraj yok - köşelere veya ortaya nişan al
                 const options = [goalYTop + 15, 300, goalYBottom - 15];
-                targetY = options[Math.floor(Math.random() * options.length)];
+                targetY = options[Math.floor(Math.random() * options.length)] || 300;
                 targetY += (Math.random() - 0.5) * 25;
             }
 
@@ -661,22 +656,11 @@ export function executeSetPiece_Router(gameState: GameState): void {
 
     if (success) {
         // Only proceed to post-execution cleanup if successful
-        const executeSetPiece_PostExecution = (window as any).executeSetPiece_PostExecution;
-        if (typeof executeSetPiece_PostExecution === 'function') {
-            executeSetPiece_PostExecution();
-        }
+        executeSetPiece_PostExecution();
     }
 }
 
 // ============================================================================
 // BROWSER EXPORTS
 // ============================================================================
-
-if (typeof window !== 'undefined') {
-    (window as any).executeCornerKick_Enhanced = executeCornerKick_Enhanced;
-    (window as any).executeFreeKick_Enhanced = executeFreeKick_Enhanced;
-    (window as any).executeThrowIn_Enhanced = executeThrowIn_Enhanced;
-    (window as any).executeGoalKick_Enhanced = executeGoalKick_Enhanced;
-    (window as any).executeKickOff_Enhanced = executeKickOff_Enhanced;
-    (window as any).executeSetPiece_Router = executeSetPiece_Router;
-}
+// Functions are now exported via ES6 modules - no window exports needed

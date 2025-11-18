@@ -12,8 +12,16 @@
  * @migrated-from js/ai/aigoalkeeper.js
  */
 
-import type { Player, GameState, Vector2D } from '../types';
+import type { Player, Vector2D } from '../types';
 import { distance } from '../utils/math';
+import { getAttackingGoalX } from '../utils/ui';
+import { eventBus } from '../eventBus';
+import { EVENT_TYPES } from '../types/events';
+import { Particle, createGoalExplosion } from '../rendering/particles';
+import { showGoalAnimation } from '../ui/goalAnimation';
+import { resetAfterGoal } from '../main';
+import { gameState } from '../globalExports';
+import { GAME_CONFIG } from '../config';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -143,15 +151,7 @@ function getDistance(p1: Vector2D | Player, p2: Vector2D | Player): number {
   return distance(p1, p2);
 }
 
-/**
- * Get attacking goal X coordinate
- */
-function getAttackingGoalX(isHome: boolean, currentHalf: number): number {
-  if (typeof (window as any).getAttackingGoalX === 'function') {
-    return (window as any).getAttackingGoalX(isHome, currentHalf);
-  }
-  return isHome ? (currentHalf === 1 ? 750 : 50) : (currentHalf === 1 ? 50 : 750);
-}
+// getAttackingGoalX is now imported from '../utils/ui'
 
 // ============================================================================
 // THREAT ASSESSMENT
@@ -171,7 +171,7 @@ export function assessGoalkeeperThreats(
   _ball: Vector2D,
   opponents: Player[]
 ): ThreatInfo[] {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
   const goalX = getAttackingGoalX(!goalkeeper.isHome, gameState.currentHalf);
 
   const threats = opponents
@@ -227,7 +227,7 @@ export function determineGoalkeeperStance(
   threats: ThreatInfo[],
   _ball: Vector2D
 ): GoalkeeperStance {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   if (!mainThreat) {
     return GOALKEEPER_CONFIG.STANCES['COMFORTABLE']!;
@@ -272,8 +272,8 @@ export function calculateOptimalGoalkeeperPosition(
   stance: GoalkeeperStance,
   ball: Vector2D
 ): Vector2D {
-  const gameState = window.gameState as GameState;
-  const GAME_CONFIG = window.GAME_CONFIG ?? { GOAL_Y_TOP: 240, GOAL_Y_BOTTOM: 360 };
+  // Using imported gameState from globalExports
+  // Using imported GAME_CONFIG from config
   const goalX = getAttackingGoalX(!goalkeeper.isHome, gameState.currentHalf);
   const goalCenterY = GOALKEEPER_CONFIG.GOAL_CENTER_Y;
 
@@ -396,7 +396,7 @@ export function shouldGoalkeeperSweep(
   _ball: Vector2D,
   opponents: Player[]
 ): boolean {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   // Is ball trajectory heading toward goal?
   if (!gameState.ballTrajectory || gameState.ballTrajectory.isShot) {
@@ -448,7 +448,7 @@ export function handleCrossSituation(
   _ball: Vector2D,
   _opponents: Player[]
 ): CrossAction | null {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   // Is it a cross? (high ball in wide position)
   if (!gameState.ballHeight || gameState.ballHeight < 0.5) {
@@ -511,7 +511,7 @@ export function updateGoalkeeperAI_Advanced(
   ball: Vector2D,
   opponents: Player[]
 ): void {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   const threats = assessGoalkeeperThreats(goalkeeper, ball, opponents);
   const mainThreat = threats[0] || null;
@@ -539,20 +539,34 @@ export function updateGoalkeeperAI_Advanced(
     goalkeeper.targetY = crossAction.targetY;
     (goalkeeper as any).speedBoost = 1.2;
     (goalkeeper as any).isClaimingCross = true;
+    (goalkeeper as any).crossClaimStartTime = Date.now();
     console.log(`🙌 ${goalkeeper.name} going for cross!`);
 
+    const claimStartTime = Date.now();
+    const expectedDuration = gameState.ballTrajectory ? gameState.ballTrajectory.duration * 0.8 : 500;
+
     setTimeout(() => {
-      if (getDistance(goalkeeper, gameState.ballPosition) < 40) {
+      // Validate game state hasn't changed
+      if (gameState.status === 'finished' || gameState.status === 'goal_scored') {
+        return;
+      }
+
+      // Check if goalkeeper is still claiming and close enough
+      if ((goalkeeper as any).isClaimingCross &&
+          (goalkeeper as any).crossClaimStartTime === claimStartTime &&
+          getDistance(goalkeeper, gameState.ballPosition) < 40) {
         if (Math.random() < crossAction.successChance) {
           gameState.ballHolder = goalkeeper;
           goalkeeper.hasBallControl = true;
           gameState.ballTrajectory = null;
+          (goalkeeper as any).ballReceivedTime = Date.now();
           console.log(`✅ ${goalkeeper.name} claims the cross!`);
         } else {
           console.log(`❌ ${goalkeeper.name} missed the cross!`);
         }
       }
-    }, gameState.ballTrajectory ? gameState.ballTrajectory.duration * 0.8 : 500);
+      (goalkeeper as any).isClaimingCross = false;
+    }, expectedDuration);
 
     return;
   }
@@ -699,7 +713,7 @@ export function triggerGoalkeeperSave(
 ): void {
   if (!goalkeeper) return;
 
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   // --- BASIC DIVE SETUP ---
   const diveX = shotX - goalkeeper.x;
@@ -733,14 +747,13 @@ export function triggerGoalkeeperSave(
   const numParticles = Math.floor(8 + Math.random() * 4);
   const particleColor = saveProbability > 0.6 ? '#60a5fa' : '#1e40af';
 
-  if (typeof (window as any).Particle !== 'undefined' && gameState?.particles) {
+  if (gameState?.particles) {
     for (let i = 0; i < numParticles; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 80 + Math.random() * 120;
       const velocityX = Math.cos(angle) * speed;
       const velocityY = Math.sin(angle) * speed;
 
-      const Particle = (window as any).Particle;
       const particle = new Particle(
         goalkeeper.x,
         goalkeeper.y,
@@ -797,8 +810,8 @@ export function drawGoalkeeperStanceIndicator(
  * Resolve shot with advanced goalkeeper system
  */
 export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
-  const gameState = window.gameState as GameState;
-  const GAME_CONFIG = window.GAME_CONFIG ?? { GOAL_Y_TOP: 240, GOAL_Y_BOTTOM: 360 };
+  // Using imported gameState from globalExports
+  // Using imported GAME_CONFIG from config
   const { holder, xG, goalkeeper, goalX, shotTargetY } = params;
 
   if (!gameState.shotInProgress) {
@@ -836,7 +849,7 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
       ? [(gameState as any).homeJerseyColor, '#ffffff']
       : [(gameState as any).awayJerseyColor, '#ffffff'];
 
-    (window as any).showGoalAnimation?.(scorerName, teamColors);
+    showGoalAnimation(scorerName, teamColors);
 
     // FIXED: isHome instead of team
     gameState.goalEvents.push({
@@ -845,7 +858,7 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
       isHome: holder.isHome
     } as any);
 
-    (window as any).createGoalExplosion?.(goalX, shotTargetY,
+    createGoalExplosion(goalX, shotTargetY,
       holder.isHome ? (gameState as any).homeJerseyColor : (gameState as any).awayJerseyColor);
 
     const xGDisplay = (xG * 100).toFixed(0);
@@ -854,8 +867,6 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
       type: 'goal'
     });
 
-    const eventBus = (window as any).eventBus;
-    const EVENT_TYPES = (window as any).EVENT_TYPES;
     if (eventBus && EVENT_TYPES) {
       eventBus.publish(EVENT_TYPES.GOAL_SCORED, {
         scorer: holder,
@@ -865,7 +876,7 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
     }
 
     gameState.lastGoalScorer = holder.isHome ? 'home' : 'away';
-    (window as any).resetAfterGoal?.();
+    resetAfterGoal();
   } else {
     // --- SAVED ---
     triggerGoalkeeperSave(goalkeeper, goalX, shotTargetY, saveProbability);
@@ -877,8 +888,6 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
       type: 'save'
     });
 
-    const eventBus = (window as any).eventBus;
-    const EVENT_TYPES = (window as any).EVENT_TYPES;
     if (eventBus && EVENT_TYPES) {
       eventBus.publish(EVENT_TYPES.SHOT_SAVED, {
         goalkeeper: goalkeeper,
@@ -898,20 +907,3 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
   gameState.currentShotXG = null;
 }
 
-// ============================================================================
-// GLOBAL EXPORTS (Browser Compatibility)
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).GOALKEEPER_CONFIG = GOALKEEPER_CONFIG;
-  (window as any).assessGoalkeeperThreats = assessGoalkeeperThreats;
-  (window as any).determineGoalkeeperStance = determineGoalkeeperStance;
-  (window as any).calculateOptimalGoalkeeperPosition = calculateOptimalGoalkeeperPosition;
-  (window as any).shouldGoalkeeperSweep = shouldGoalkeeperSweep;
-  (window as any).handleCrossSituation = handleCrossSituation;
-  (window as any).updateGoalkeeperAI_Advanced = updateGoalkeeperAI_Advanced;
-  (window as any).calculateSaveProbability_Advanced = calculateSaveProbability_Advanced;
-  (window as any).triggerGoalkeeperSave = triggerGoalkeeperSave;
-  (window as any).drawGoalkeeperStanceIndicator = drawGoalkeeperStanceIndicator;
-  (window as any).resolveShot_WithAdvancedGK = resolveShot_WithAdvancedGK;
-}

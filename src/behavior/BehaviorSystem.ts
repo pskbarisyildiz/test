@@ -787,10 +787,4 @@ export const BehaviorSystem = {
     PHASES
 };
 
-if (typeof window !== 'undefined') {
-    (window as any).BehaviorSystem = BehaviorSystem;
-
-    if (typeof (window as any).DependencyRegistry !== 'undefined') {
-        (window as any).DependencyRegistry.register('BehaviorSystem', (window as any).BehaviorSystem);
-    }
-}
+// Functions are now exported via ES6 modules - no window exports needed

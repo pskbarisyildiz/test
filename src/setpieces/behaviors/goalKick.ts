@@ -20,6 +20,8 @@ import {
   getValidPlayers,
   getSortedLists
 } from '../utils';
+import { GAME_CONFIG } from '../../config';
+import { getPlayerActivePosition } from '../../ai/movement';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -40,8 +42,8 @@ interface PlayerJobAssignment {
 function getFormationAnchorForPlayer(player: Player, gameState: GameState): Vector2D | null {
   if (!player || !gameState) return null;
 
-  const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-  const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+  const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+  const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
   const currentHalf = gameState.currentHalf ?? 1;
 
@@ -55,8 +57,8 @@ function getFormationAnchorForPlayer(player: Player, gameState: GameState): Vect
     return { x: safeX, y: safeY };
   }
 
-  if (typeof window !== 'undefined' && typeof (window as any).getPlayerActivePosition === 'function') {
-    return (window as any).getPlayerActivePosition(player, currentHalf);
+  if (typeof window !== 'undefined' && typeof getPlayerActivePosition === 'function') {
+    return getPlayerActivePosition(player, currentHalf);
   }
 
   return {
@@ -82,8 +84,8 @@ export const ProfessionalGoalKickBehaviors = {
       return sanitizePosition({ x: player?.x ?? 400, y: player?.y ?? 300, movement: 'error_gk' }, { player });
     }
 
-    const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-    const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+    const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+    const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
     if (player.role === 'GK') {
       const gkX = ownGoalX + (ownGoalX < 400 ? 70 : -70);
@@ -405,7 +407,7 @@ export const ProfessionalGoalKickBehaviors = {
       return sanitizePosition(myPositionData, { player, gameState, behavior: 'ProfessionalGoalKick' });
     }
 
-    const activePos = (window as any).getPlayerActivePosition(player, gameState.currentHalf);
+    const activePos = getPlayerActivePosition(player, gameState.currentHalf);
     return sanitizePosition({ x: activePos.x, y: activePos.y, movement: 'fallback_goal_kick' }, { player });
   },
 
@@ -421,9 +423,9 @@ export const ProfessionalGoalKickBehaviors = {
       return sanitizePosition({ x: ownGoalX, y: 300, movement: 'gk_stay_goal' }, { player, role: 'GK' });
     }
 
-    const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-    const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
-    const SET_PIECE_TYPES = (window as any).SET_PIECE_TYPES || { GOAL_KICK: 'GOAL_KICK' };
+    const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+    const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
+    const SET_PIECE_TYPES = { GOAL_KICK: 'GOAL_KICK' };
 
     const context = new TacticalContext(gameState, SET_PIECE_TYPES.GOAL_KICK);
     const shouldPress = context.shouldCommitForward(player.isHome);
@@ -549,7 +551,7 @@ export const ProfessionalGoalKickBehaviors = {
       return sanitizePosition(myPositionData, { player, gameState, behavior: 'ProfessionalGoalKickDefending' });
     }
 
-    const activePos = (window as any).getPlayerActivePosition(player, gameState.currentHalf);
+    const activePos = getPlayerActivePosition(player, gameState.currentHalf);
     return sanitizePosition({ x: activePos.x, y: activePos.y, movement: 'fallback_goal_kick_def' }, { player });
   }
 };
@@ -558,13 +560,5 @@ export const ProfessionalGoalKickBehaviors = {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-  (window as any).ProfessionalGoalKickBehaviors = ProfessionalGoalKickBehaviors;
-
-  // Register with DependencyRegistry if available
-  if (typeof (window as any).DependencyRegistry !== 'undefined') {
-    (window as any).DependencyRegistry.register('ProfessionalGoalKickBehaviors', ProfessionalGoalKickBehaviors);
-  }
-
-  console.log('✅ GOAL KICK BEHAVIORS LOADED (TypeScript)');
-}
+// Functions are now exported via ES6 modules - no window exports needed
+console.log('✅ GOAL KICK BEHAVIORS LOADED (TypeScript)');

@@ -7,8 +7,20 @@
  * ✅ Full type safety with strict TypeScript
  */
 
-import type { GameState } from '../types';
 import { CFG } from './utils';
+import { gameState } from '../globalExports';
+import { renderUploadScreen, renderSetupScreen } from './uiScreens';
+import {
+  renderScoreboard,
+  renderCommentary,
+  renderStats,
+  renderMatchSummary,
+  getStatusIndicator
+} from './uiComponents';
+import { initializeCanvasLayers } from '../rendering/canvasSetup';
+import { drawPitchBackground } from '../rendering/drawPitch';
+import { renderGame } from '../rendering/gameRenderer';
+import { toggleOrientation } from '../config';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -47,22 +59,22 @@ export function render(): void {
     const app = document.getElementById('app');
     if (!app) return;
 
-    if (typeof (window as any).gameState === 'undefined') {
+    if (!gameState) {
         console.error('❌ Cannot render: gameState not initialized');
         app.innerHTML = '<div style="padding: 40px; text-align: center; color: white;">Loading game state...</div>';
         return;
     }
 
-    const gameState = (window as any).gameState as GameState;
+    // Using imported gameState from globalExports
 
     // --- 1. RENDER THE CURRENT SCREEN ---
     if (gameState.status === 'upload' || gameState.status === 'setup') {
         (gameState as any).gameUIDisplayed = false; // Reset the flag
-        if (gameState.status === 'upload' && (window as any).renderUploadScreen) {
-            (window as any).renderUploadScreen(app);
+        if (gameState.status === 'upload' && renderUploadScreen) {
+            renderUploadScreen(app);
         }
-        if (gameState.status === 'setup' && (window as any).renderSetupScreen) {
-            (window as any).renderSetupScreen(app);
+        if (gameState.status === 'setup' && renderSetupScreen) {
+            renderSetupScreen(app);
         }
     }
     // If the game is active
@@ -104,9 +116,7 @@ export function render(): void {
         toggleBtn.onmouseout = () => toggleBtn.style.opacity = '0.5';
 
         // Add click event listener
-        if ((window as any).toggleOrientation) {
-            toggleBtn.addEventListener('click', (window as any).toggleOrientation);
-        }
+        toggleBtn.addEventListener('click', toggleOrientation);
 
         // Clear container and add the new button
         toggleContainer.innerHTML = '';
@@ -119,22 +129,22 @@ export function render(): void {
 // ============================================================================
 
 export function updateGameUI(): void {
-    const gameState = (window as any).gameState as GameState;
+    // Using imported gameState from globalExports
 
     // Update Scoreboard text content
     if (uiElements.homeScore) uiElements.homeScore.textContent = String(gameState.homeScore);
     if (uiElements.awayScore) uiElements.awayScore.textContent = String(gameState.awayScore);
     if (uiElements.timeDisplay) uiElements.timeDisplay.textContent = `${String(Math.floor(gameState.timeElapsed)).padStart(2, '0')}'`;
     if (uiElements.halfDisplay) uiElements.halfDisplay.textContent = `HALF ${gameState.currentHalf}`;
-    if (uiElements.statusIndicator && (window as any).getStatusIndicator) {
-        uiElements.statusIndicator.innerHTML = (window as any).getStatusIndicator();
+    if (uiElements.statusIndicator && getStatusIndicator) {
+        uiElements.statusIndicator.innerHTML = getStatusIndicator();
     }
 
     // Update Commentary with fade-out effect
     const commentaryWrapper = document.getElementById('commentary-wrapper');
-    if (commentaryWrapper && (window as any).renderCommentary) {
+    if (commentaryWrapper && renderCommentary) {
         clearTimeout((gameState as any).commentaryFadeTimeout);
-        commentaryWrapper.innerHTML = (window as any).renderCommentary();
+        commentaryWrapper.innerHTML = renderCommentary();
         commentaryWrapper.style.opacity = '0.5'; // Set initial opacity
 
         (gameState as any).commentaryFadeTimeout = setTimeout(() => {
@@ -143,15 +153,15 @@ export function updateGameUI(): void {
     }
 
     // Update Stats
-    if (uiElements.statsWrapper && (window as any).renderStats) {
-        uiElements.statsWrapper.innerHTML = (window as any).renderStats();
+    if (uiElements.statsWrapper && renderStats) {
+        uiElements.statsWrapper.innerHTML = renderStats();
     }
 
 
     // Update Match Summary Overlay (This logic is correct)
     if (uiElements.summaryWrapper) {
-        if (gameState.status === 'finished' && !(gameState as any).summaryDrawn && (window as any).renderMatchSummary) {
-            uiElements.summaryWrapper.innerHTML = (window as any).renderMatchSummary();
+        if (gameState.status === 'finished' && !(gameState as any).summaryDrawn && renderMatchSummary) {
+            uiElements.summaryWrapper.innerHTML = renderMatchSummary();
             (gameState as any).summaryDrawn = true;
 
             setTimeout(() => {
@@ -173,7 +183,7 @@ export function updateGameUI(): void {
 // ============================================================================
 
 export function setupGameScreen(app: HTMLElement): void {
-    const gameState = (window as any).gameState as GameState;
+    // Using imported gameState from globalExports
 
     // 1. MANTIK/OYUN Koordinat Boyutları (CSS Görüntüleme Boyutu)
     const LOGICAL_WIDTH = (gameState as any).isVertical ? 600 : 800;
@@ -191,15 +201,15 @@ export function setupGameScreen(app: HTMLElement): void {
     const containerWidth = LOGICAL_WIDTH;
     const containerHeight = LOGICAL_HEIGHT;
 
-    const renderScoreboard = (window as any).renderScoreboard ? (window as any).renderScoreboard() : '';
-    const renderCommentary = (window as any).renderCommentary ? (window as any).renderCommentary() : '';
-    const renderStats = (window as any).renderStats ? (window as any).renderStats() : '';
+    const scoreboardHTML = renderScoreboard ? renderScoreboard() : '';
+    const commentaryHTML = renderCommentary ? renderCommentary() : '';
+    const statsHTML = renderStats ? renderStats() : '';
 
     app.innerHTML = `
         <div class="container">
             <div style="width: ${containerWidth}px; margin: 0 auto 12px auto;">
                 <div id="scoreboard-wrapper">
-                    ${renderScoreboard}
+                    ${scoreboardHTML}
                 </div>
             </div>
 
@@ -210,14 +220,14 @@ export function setupGameScreen(app: HTMLElement): void {
                     <canvas id="uiCanvas" width="${physicalCanvasWidth}" height="${physicalCanvasHeight}" style="position: absolute; z-index: 3;"></canvas>
 
                     <div id="commentary-wrapper" style="position: absolute; bottom: 16px; left: 16px; z-index: 4; max-width: 350px;">
-                        ${renderCommentary}
+                        ${commentaryHTML}
                     </div>
                 </div>
                 <div id="summary-wrapper"></div>
             </div>
 
             <div style="max-width: ${containerWidth}px; margin: 0 auto;">
-                <div id="stats-wrapper">${renderStats}</div>
+                <div id="stats-wrapper">${statsHTML}</div>
             </div>
 
             <div id="toggle-container" style="max-width: ${containerWidth}px; margin: 10px auto 0; text-align: right;"></div>
@@ -240,18 +250,18 @@ export function setupGameScreen(app: HTMLElement): void {
     // 5. Initialize canvas (geri kalanı değişmez)
     setTimeout(() => {
         console.log('🎨 Setting up canvas & drawing background...');
-        const success = (window as any).initializeCanvasLayers ? (window as any).initializeCanvasLayers() : false;
+        const success = initializeCanvasLayers ? initializeCanvasLayers() : false;
         if (success) {
             // NEW: Check if orientation changed to invalidate cache
             if ((gameState as any).orientationChanged) {
                  (gameState as any).offscreenPitch = null; // Invalidate cache
                  (gameState as any).orientationChanged = false; // Reset flag
             }
-            if ((window as any).drawPitchBackground) {
-                (window as any).drawPitchBackground();
+            if (drawPitchBackground) {
+                drawPitchBackground();
             }
-            if ((window as any).renderGame) {
-                (window as any).renderGame();
+            if (renderGame) {
+                renderGame();
             }
         } else {
             console.error('❌ Failed to initialize canvases');
@@ -263,8 +273,4 @@ export function setupGameScreen(app: HTMLElement): void {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-    (window as any).render = render;
-    (window as any).updateGameUI = updateGameUI;
-    (window as any).setupGameScreen = setupGameScreen;
-}
+// Functions are now exported via ES6 modules - no window exports needed

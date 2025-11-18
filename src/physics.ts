@@ -10,6 +10,11 @@
 import type { Player, GameState } from './types';
 import { distance as getDistance, safeSqrt, safeDiv } from './utils/math';
 import { getAttackingGoalX, isSetPieceStatus } from './utils/ui';
+import { gameState } from './globalExports';
+import { handleBallInterception } from './rules/ballControl';
+
+// Debug flag (replaces window.DEBUG_PHYSICS)
+const DEBUG_PHYSICS = false;
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -51,41 +56,41 @@ declare global {
  * Update ball trajectory during passes and shots
  */
 export function updateBallTrajectory(_dt: number): void {
-  if (!window.gameState.ballTrajectory) {
-    window.gameState.ballHeight = 0;
+  if (!gameState.ballTrajectory) {
+    gameState.ballHeight = 0;
     return;
   }
 
-  const traj = window.gameState.ballTrajectory;
+  const traj = gameState.ballTrajectory;
   const elapsed = Date.now() - traj.startTime;
   const progress = Math.min(elapsed / traj.duration, 1);
 
-  window.gameState.ballPosition.x = traj.startX + (traj.endX - traj.startX) * progress;
-  window.gameState.ballPosition.y = traj.startY + (traj.endY - traj.startY) * progress;
+  gameState.ballPosition.x = traj.startX + (traj.endX - traj.startX) * progress;
+  gameState.ballPosition.y = traj.startY + (traj.endY - traj.startY) * progress;
 
   const heightProgress = Math.sin(progress * Math.PI);
-  window.gameState.ballHeight = heightProgress * traj.maxHeight;
+  gameState.ballHeight = heightProgress * traj.maxHeight;
 
   // Check for out of bounds during aerial passes
-  if (traj.passType === 'aerial' && window.gameState.ballHeight > 0.5) {
-    if (window.gameState.ballPosition.y < 20 || window.gameState.ballPosition.y > 580) {
-      if (window.DEBUG_PHYSICS) {
-        console.log(`[Physics] Ball out of bounds during aerial pass (y=${window.gameState.ballPosition.y}), resetting to center`);
+  if (traj.passType === 'aerial' && gameState.ballHeight > 0.5) {
+    if (gameState.ballPosition.y < 20 || gameState.ballPosition.y > 580) {
+      if (DEBUG_PHYSICS) {
+        console.log(`[Physics] Ball out of bounds during aerial pass (y=${gameState.ballPosition.y}), resetting to center`);
       }
-      window.gameState.ballTrajectory = null;
-      window.gameState.ballHeight = 0;
-      window.gameState.ballPosition = { x: 400, y: 300 };
-      const outText = `${Math.floor(window.gameState.timeElapsed)}' Ball out of play!`;
-      window.gameState.commentary.push({ text: outText, type: 'attack' });
-      window.gameState.commentary = window.gameState.commentary.slice(-6);
+      gameState.ballTrajectory = null;
+      gameState.ballHeight = 0;
+      gameState.ballPosition = { x: 400, y: 300 };
+      const outText = `${Math.floor(gameState.timeElapsed)}' Ball out of play!`;
+      gameState.commentary.push({ text: outText, type: 'attack' });
+      gameState.commentary = gameState.commentary.slice(-6);
       return;
     }
   }
 
   // Handle interception during pass
   if (!traj.isShot && progress > 0.2 && progress < 0.9) {
-    if (typeof window.handleBallInterception === 'function') {
-      window.handleBallInterception(progress);
+    if (typeof handleBallInterception === 'function') {
+      handleBallInterception(progress);
     }
   }
 
@@ -94,19 +99,19 @@ export function updateBallTrajectory(_dt: number): void {
     const direction = Math.atan2(traj.endY - traj.startY, traj.endX - traj.startX);
     const landingSpeed = traj.speed * 0.3;
 
-    window.gameState.ballVelocity.x = Math.cos(direction) * landingSpeed;
-    window.gameState.ballVelocity.y = Math.sin(direction) * landingSpeed;
+    gameState.ballVelocity.x = Math.cos(direction) * landingSpeed;
+    gameState.ballVelocity.y = Math.sin(direction) * landingSpeed;
 
-    if (window.DEBUG_PHYSICS) {
-      console.log(`[Physics] Ball trajectory complete (${traj.passType}): landed at (${window.gameState.ballPosition.x.toFixed(1)}, ${window.gameState.ballPosition.y.toFixed(1)}), velocity=(${window.gameState.ballVelocity.x.toFixed(1)}, ${window.gameState.ballVelocity.y.toFixed(1)})`);
+    if (DEBUG_PHYSICS) {
+      console.log(`[Physics] Ball trajectory complete (${traj.passType}): landed at (${gameState.ballPosition.x.toFixed(1)}, ${gameState.ballPosition.y.toFixed(1)}), velocity=(${gameState.ballVelocity.x.toFixed(1)}, ${gameState.ballVelocity.y.toFixed(1)})`);
     }
 
-    window.gameState.ballTrajectory = null;
-    window.gameState.ballHeight = 0;
-    window.gameState.shotInProgress = false;
-    window.gameState.shooter = null;
-    window.gameState.currentShotXG = null;
-    window.gameState.currentPassReceiver = null;
+    gameState.ballTrajectory = null;
+    gameState.ballHeight = 0;
+    gameState.shotInProgress = false;
+    gameState.shooter = null;
+    gameState.currentShotXG = null;
+    gameState.currentPassReceiver = null;
   }
 }
 
@@ -119,45 +124,45 @@ export function updateBallTrajectory(_dt: number): void {
  */
 export function validateBallState(): void {
   // Validate position
-  if (!isFinite(window.gameState.ballPosition.x) || !isFinite(window.gameState.ballPosition.y)) {
-    console.warn('[Physics] ⚠️ Ball position invalid, resetting to center. Previous value:', window.gameState.ballPosition);
-    window.gameState.ballPosition = { x: 400, y: 300 };
+  if (!isFinite(gameState.ballPosition.x) || !isFinite(gameState.ballPosition.y)) {
+    console.warn('[Physics] ⚠️ Ball position invalid, resetting to center. Previous value:', gameState.ballPosition);
+    gameState.ballPosition = { x: 400, y: 300 };
   }
 
   // Clamp to pitch bounds with margin
-  const oldX = window.gameState.ballPosition.x;
-  const oldY = window.gameState.ballPosition.y;
-  window.gameState.ballPosition.x = Math.max(5, Math.min(795, window.gameState.ballPosition.x));
-  window.gameState.ballPosition.y = Math.max(5, Math.min(595, window.gameState.ballPosition.y));
+  const oldX = gameState.ballPosition.x;
+  const oldY = gameState.ballPosition.y;
+  gameState.ballPosition.x = Math.max(5, Math.min(795, gameState.ballPosition.x));
+  gameState.ballPosition.y = Math.max(5, Math.min(595, gameState.ballPosition.y));
 
-  if (window.DEBUG_PHYSICS && (oldX !== window.gameState.ballPosition.x || oldY !== window.gameState.ballPosition.y)) {
-    console.log(`[Physics] Ball position clamped from (${oldX.toFixed(1)}, ${oldY.toFixed(1)}) to (${window.gameState.ballPosition.x.toFixed(1)}, ${window.gameState.ballPosition.y.toFixed(1)})`);
+  if (DEBUG_PHYSICS && (oldX !== gameState.ballPosition.x || oldY !== gameState.ballPosition.y)) {
+    console.log(`[Physics] Ball position clamped from (${oldX.toFixed(1)}, ${oldY.toFixed(1)}) to (${gameState.ballPosition.x.toFixed(1)}, ${gameState.ballPosition.y.toFixed(1)})`);
   }
 
   // Validate velocity
-  if (!isFinite(window.gameState.ballVelocity.x) || !isFinite(window.gameState.ballVelocity.y)) {
-    console.warn('[Physics] ⚠️ Ball velocity invalid, resetting to zero. Previous value:', window.gameState.ballVelocity);
-    window.gameState.ballVelocity = { x: 0, y: 0 };
+  if (!isFinite(gameState.ballVelocity.x) || !isFinite(gameState.ballVelocity.y)) {
+    console.warn('[Physics] ⚠️ Ball velocity invalid, resetting to zero. Previous value:', gameState.ballVelocity);
+    gameState.ballVelocity = { x: 0, y: 0 };
   }
 
   // Clamp extreme velocities (prevent physics explosions)
   const maxVelocity = 1000;
   const speed = Math.sqrt(
-    window.gameState.ballVelocity.x * window.gameState.ballVelocity.x +
-    window.gameState.ballVelocity.y * window.gameState.ballVelocity.y
+    gameState.ballVelocity.x * gameState.ballVelocity.x +
+    gameState.ballVelocity.y * gameState.ballVelocity.y
   );
   if (speed > maxVelocity) {
     const scale = maxVelocity / speed;
-    if (window.DEBUG_PHYSICS) {
+    if (DEBUG_PHYSICS) {
       console.log(`[Physics] Ball velocity clamped from ${speed.toFixed(1)} to ${maxVelocity} (scale=${scale.toFixed(2)})`);
     }
-    window.gameState.ballVelocity.x *= scale;
-    window.gameState.ballVelocity.y *= scale;
+    gameState.ballVelocity.x *= scale;
+    gameState.ballVelocity.y *= scale;
   }
 
   // Validate height
-  if (!isFinite(window.gameState.ballHeight) || window.gameState.ballHeight < 0) {
-    window.gameState.ballHeight = 0;
+  if (!isFinite(gameState.ballHeight) || gameState.ballHeight < 0) {
+    gameState.ballHeight = 0;
   }
 }
 
@@ -195,24 +200,24 @@ export function updatePhysics(dt: number): void {
   // Validate ball state first to prevent NaN propagation
   validateBallState();
 
-  const isSetPiece = isSetPieceStatus(window.gameState.status);
+  const isSetPiece = isSetPieceStatus(gameState.status);
 
   if (isSetPiece) {
-    if (window.gameState.setPiece && window.gameState.setPiece.position) {
-      window.gameState.ballPosition.x = window.gameState.setPiece.position.x;
-      window.gameState.ballPosition.y = window.gameState.setPiece.position.y;
-      window.gameState.ballVelocity = { x: 0, y: 0 };
-      window.gameState.ballHeight = 0;
-      window.gameState.ballTrajectory = null;
+    if (gameState.setPiece && gameState.setPiece.position) {
+      gameState.ballPosition.x = gameState.setPiece.position.x;
+      gameState.ballPosition.y = gameState.setPiece.position.y;
+      gameState.ballVelocity = { x: 0, y: 0 };
+      gameState.ballHeight = 0;
+      gameState.ballTrajectory = null;
     }
-    const allPlayers = [...window.gameState.homePlayers, ...window.gameState.awayPlayers];
+    const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
     updatePlayerPhysics(allPlayers, dt);
     return;
   }
 
-  const allPlayers = [...window.gameState.homePlayers, ...window.gameState.awayPlayers];
+  const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
   updateBallTrajectory(dt);
-  if (!window.gameState.ballTrajectory) {
+  if (!gameState.ballTrajectory) {
     updateBallWithHolder(allPlayers, dt);
   }
   updatePlayerPhysics(allPlayers, dt);
@@ -232,7 +237,7 @@ export function updatePhysics(dt: number): void {
  * Update ball position when held by a player
  */
 export function updateBallWithHolder(allPlayers: Player[], dt: number): void {
-  const holder = window.gameState.ballHolder;
+  const holder = gameState.ballHolder;
 
   if (holder && allPlayers.includes(holder)) {
     const facingAngle = typeof window.getPlayerFacingDirection === 'function'
@@ -241,8 +246,8 @@ export function updateBallWithHolder(allPlayers: Player[], dt: number): void {
     const ballOffsetDistance = 12;
     const offsetX = Math.cos(facingAngle) * ballOffsetDistance;
     const offsetY = Math.sin(facingAngle) * ballOffsetDistance;
-    window.gameState.ballPosition.x = holder.x + offsetX;
-    window.gameState.ballPosition.y = holder.y + offsetY;
+    gameState.ballPosition.x = holder.x + offsetX;
+    gameState.ballPosition.y = holder.y + offsetY;
 
     if (holder.role === 'GK') {
       handleGoalkeeperBallHold(holder, allPlayers);
@@ -250,37 +255,37 @@ export function updateBallWithHolder(allPlayers: Player[], dt: number): void {
   } else {
     if (holder) {
       console.log('Clearing invalid ball holder');
-      window.gameState.ballHolder = null;
+      gameState.ballHolder = null;
     }
 
     const currentSpeed = Math.sqrt(
-      window.gameState.ballVelocity.x * window.gameState.ballVelocity.x +
-      window.gameState.ballVelocity.y * window.gameState.ballVelocity.y
+      gameState.ballVelocity.x * gameState.ballVelocity.x +
+      gameState.ballVelocity.y * gameState.ballVelocity.y
     );
 
     // Apply friction
     const FRICTION = window.BALL_PHYSICS?.FRICTION ?? 0.985;
     const frictionDecay = Math.pow(FRICTION, dt);
-    window.gameState.ballVelocity.x *= frictionDecay;
-    window.gameState.ballVelocity.y *= frictionDecay;
+    gameState.ballVelocity.x *= frictionDecay;
+    gameState.ballVelocity.y *= frictionDecay;
 
     if (currentSpeed < 5) {
-      window.gameState.ballVelocity.x = 0;
-      window.gameState.ballVelocity.y = 0;
+      gameState.ballVelocity.x = 0;
+      gameState.ballVelocity.y = 0;
     }
 
-    window.gameState.ballPosition.x += window.gameState.ballVelocity.x * dt;
-    window.gameState.ballPosition.y += window.gameState.ballVelocity.y * dt;
+    gameState.ballPosition.x += gameState.ballVelocity.x * dt;
+    gameState.ballPosition.y += gameState.ballVelocity.y * dt;
 
     // Handle out of bounds
-    if (window.gameState.ballPosition.x < 5 || window.gameState.ballPosition.x > 795) {
+    if (gameState.ballPosition.x < 5 || gameState.ballPosition.x > 795) {
       if (typeof window.handleBallOutOfBounds === 'function') {
         window.handleBallOutOfBounds();
       }
       return;
     }
 
-    if (window.gameState.ballPosition.y < 5 || window.gameState.ballPosition.y > 595) {
+    if (gameState.ballPosition.y < 5 || gameState.ballPosition.y > 595) {
       if (typeof window.handleThrowIn === 'function') {
         window.handleThrowIn();
       }
@@ -289,14 +294,14 @@ export function updateBallWithHolder(allPlayers: Player[], dt: number): void {
 
     // Ball control resolution
     const now = Date.now();
-    const timeSinceLastAttempt = now - (window.gameState.lastControlAttempt || 0);
+    const timeSinceLastAttempt = now - (gameState.lastControlAttempt || 0);
     const minInterval = currentSpeed > 100 ? 100 : 200;
 
     if (timeSinceLastAttempt > minInterval) {
       if (typeof window.resolveBallControl === 'function') {
         window.resolveBallControl(allPlayers);
       }
-      window.gameState.lastControlAttempt = now;
+      gameState.lastControlAttempt = now;
     }
   }
 }
@@ -412,19 +417,19 @@ interface ChaseEvaluation {
  * Assign which players should chase the loose ball
  */
 export function assignBallChasers(allPlayers: Player[], priorityChaser: Player | null = null): void {
-  window.gameState.ballChasers.clear();
+  gameState.ballChasers.clear();
 
-  if (window.gameState.ballHolder?.hasBallControl || window.gameState.ballTrajectory) {
+  if (gameState.ballHolder?.hasBallControl || gameState.ballTrajectory) {
     allPlayers.forEach(p => { p.isChasingBall = false; });
     return;
   }
 
-  if (!window.gameState.ballPosition) return;
+  if (!gameState.ballPosition) return;
 
   const chaseEvaluations: ChaseEvaluation[] = allPlayers
     .filter(p => p.role !== 'GK')
     .map(player => {
-      const distToBall = getDistance(player, window.gameState.ballPosition);
+      const distToBall = getDistance(player, gameState.ballPosition);
       if (distToBall > 150) return { player, score: 0, distToBall };
 
       let score = 100;
@@ -437,8 +442,8 @@ export function assignBallChasers(allPlayers: Player[], priorityChaser: Player |
       if (player.vx || player.vy) {
         const playerAngle = Math.atan2(player.vy, player.vx);
         const ballAngle = Math.atan2(
-          window.gameState.ballPosition.y - player.y,
-          window.gameState.ballPosition.x - player.x
+          gameState.ballPosition.y - player.y,
+          gameState.ballPosition.x - player.x
         );
         let angleDiff = Math.abs(playerAngle - ballAngle);
         if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
@@ -449,8 +454,8 @@ export function assignBallChasers(allPlayers: Player[], priorityChaser: Player |
       const stamina = (player as Player & { stamina?: number }).stamina ?? 100;
       if (stamina < 40) score *= 0.7;
 
-      const ownGoalX = getAttackingGoalX(!player.isHome, window.gameState.currentHalf);
-      const ballDistToOwnGoal = Math.abs(window.gameState.ballPosition.x - ownGoalX);
+      const ownGoalX = getAttackingGoalX(!player.isHome, gameState.currentHalf);
+      const ballDistToOwnGoal = Math.abs(gameState.ballPosition.x - ownGoalX);
 
       if (ballDistToOwnGoal < 250) {
         if (['CB', 'RB', 'LB', 'CDM'].includes(player.role)) {
@@ -475,12 +480,12 @@ export function assignBallChasers(allPlayers: Player[], priorityChaser: Player |
 
   [...homeChasers, ...awayChasers].forEach(evaluation => {
     evaluation.player.isChasingBall = true;
-    (window.gameState.ballChasers as Set<unknown>).add(evaluation.player.id);
+    (gameState.ballChasers as Set<unknown>).add(evaluation.player.id);
   });
 
   if (priorityChaser) {
     priorityChaser.isChasingBall = true;
-    (window.gameState.ballChasers as Set<unknown>).add(priorityChaser.id);
+    (gameState.ballChasers as Set<unknown>).add(priorityChaser.id);
   }
 }
 
@@ -498,13 +503,13 @@ function handleGoalkeeperBallHold(holder: Player, allPlayers: Player[]): void {
 
   const GK_HOLD_TIME = window.GAME_CONFIG?.GK_HOLD_TIME ?? 5000;
 
-  if (holder.ballReceivedTime && holder === window.gameState.ballHolder) {
+  if (holder.ballReceivedTime && holder === gameState.ballHolder) {
     const holdTime = Date.now() - holder.ballReceivedTime;
     if (holdTime > GK_HOLD_TIME) {
       const teammates = allPlayers.filter(p => p.isHome === holder.isHome && p.role !== 'GK');
       if (teammates.length === 0) return;
 
-      const teamState = holder.isHome ? window.gameState.homeTeamState : window.gameState.awayTeamState;
+      const teamState = holder.isHome ? gameState.homeTeamState : gameState.awayTeamState;
       let target: Player;
 
       if (teamState === 'COUNTER_ATTACK') {
@@ -618,10 +623,10 @@ function applyPlayerFriction(player: Player, dt: number): void {
  * Update camera shake effect
  */
 function updateCameraShake(dt: number): void {
-  const cameraShake = (window.gameState as GameState & { cameraShake?: number }).cameraShake ?? 0;
+  const cameraShake = (gameState as GameState & { cameraShake?: number }).cameraShake ?? 0;
   if (cameraShake > 0) {
     const newShake = cameraShake - cameraShake * 18 * dt;
-    (window.gameState as GameState & { cameraShake: number }).cameraShake = newShake < 0.1 ? 0 : newShake;
+    (gameState as GameState & { cameraShake: number }).cameraShake = newShake < 0.1 ? 0 : newShake;
   }
 }
 

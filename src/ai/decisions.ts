@@ -12,9 +12,15 @@
  * @migrated-from js/ai/aidecisions.js
  */
 
-import type { Player, GameState, Vector2D } from '../types';
+import type { Player, Vector2D } from '../types';
 import { distance } from '../utils/math';
 import { canPlayerActOnBall } from './playerFirstTouch';
+import { getAttackingGoalX, getValidStat, isSetPieceStatus, calculateXG } from '../utils/ui';
+import { recordOffsidePositions } from '../rules/offside';
+import { getPlayerFacingDirection, findBestPassOption_WithVision } from './playerVision';
+import { handleShotAttempt } from '../main';
+import { gameState } from '../globalExports';
+import { GAME_CONFIG, PHYSICS } from '../config';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -48,58 +54,8 @@ function getDistance(p1: Vector2D | Player, p2: Vector2D | Player): number {
   return distance(p1, p2);
 }
 
-/**
- * Get attacking goal X coordinate for a team
- */
-function getAttackingGoalX(isHome: boolean, currentHalf: number): number {
-  if (typeof (window as any).getAttackingGoalX === 'function') {
-    return (window as any).getAttackingGoalX(isHome, currentHalf);
-  }
-  return isHome ? (currentHalf === 1 ? 750 : 50) : (currentHalf === 1 ? 50 : 750);
-}
-
-/**
- * Get valid stat value with fallback
- */
-function getValidStat(value: number | undefined, fallback: number): number {
-  if (typeof (window as any).getValidStat === 'function') {
-    return (window as any).getValidStat(value, fallback);
-  }
-  return value !== undefined && isFinite(value) ? value : fallback;
-}
-
-/**
- * Check if game status is a set piece
- */
-function isSetPieceStatus(status: string): boolean {
-  if (typeof (window as any).isSetPieceStatus === 'function') {
-    return (window as any).isSetPieceStatus(status);
-  }
-  return ['FREE_KICK', 'CORNER_KICK', 'THROW_IN', 'GOAL_KICK', 'KICK_OFF', 'PENALTY'].includes(status);
-}
-
-/**
- * Record offside positions when pass is made
- */
-function recordOffsidePositions(passingPlayer: Player, allPlayers: Player[]): void {
-  if (typeof (window as any).recordOffsidePositions === 'function') {
-    (window as any).recordOffsidePositions(passingPlayer, allPlayers);
-  }
-}
-
-
-/**
- * Get player facing direction
- */
-function getPlayerFacingDirection(player: Player): number {
-  if (typeof (window as any).getPlayerFacingDirection === 'function') {
-    return (window as any).getPlayerFacingDirection(player);
-  }
-  // Fallback: Use velocity or default forward
-  const gameState = window.gameState as GameState;
-  const goalX = getAttackingGoalX(player.isHome, gameState.currentHalf);
-  return Math.atan2(300 - player.y, goalX - player.x);
-}
+// getAttackingGoalX, getValidStat, isSetPieceStatus, recordOffsidePositions, and getPlayerFacingDirection
+// are now imported from their respective modules
 
 // ============================================================================
 // TEAM STATISTICS
@@ -139,7 +95,7 @@ export function passBall(
   speed: number = 400,
   isShot: boolean = false
 ): void {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   if (passingPlayer && !isShot) {
     // --- 1. STATS: PASS ATTEMPTED ---
@@ -167,7 +123,7 @@ export function passBall(
   let maxHeight = 0;
   let passType: 'ground' | 'aerial' | 'shot' = 'ground';
 
-  const PHYSICS = window.PHYSICS ?? { LONG_PASS_THRESHOLD: 150 };
+  // Using imported PHYSICS from config
   const LONG_PASS_THRESHOLD = (PHYSICS as any).LONG_PASS_THRESHOLD ?? 150;
 
   if (isShot) {
@@ -392,7 +348,7 @@ export function initiatePass(player: Player, target: Player | null): void {
     return;
   }
 
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
   const distance = getDistance(player, target);
   const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
   const nearbyOpponents = allPlayers
@@ -441,7 +397,7 @@ export function initiatePass(player: Player, target: Player | null): void {
  * Initiate a through ball
  */
 export function initiateThroughBall(player: Player, throughBall: ThroughBallOpportunity): void {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
   let passSpeed = 600 + player.passing * 5;
 
   // ✅ FIX: Reduce pass power immediately after kick-off to prevent wild passes
@@ -507,8 +463,8 @@ export function handlePlayerWithBall_WithFirstTouch(
   opponents: Player[],
   teammates: Player[]
 ): void {
-  const gameState = window.gameState as GameState;
-  const GAME_CONFIG = window.GAME_CONFIG ?? { GOAL_CHECK_DISTANCE: 200, PASSING_CHANCE: 0.6 };
+  // Using imported gameState from globalExports
+  // Using imported GAME_CONFIG from config
 
   // Can't act if still settling the ball
   if (!canPlayerActOnBall(player)) {
@@ -551,7 +507,7 @@ export function handlePlayerWithBall_WithFirstTouch(
 
   if (holdTime > maxHoldTime) {
     if (underHeavyPressure && Math.random() < 0.6) {
-      const passTarget = (window as any).findBestPassOption?.(player, teammates, opponents);
+      const passTarget = findBestPassOption_WithVision(player, teammates, opponents);
       if (passTarget) {
         initiatePass(player, passTarget);
         return;
@@ -569,18 +525,18 @@ export function handlePlayerWithBall_WithFirstTouch(
   const allPlayers = [...teammates, ...opponents];
 
   if (isInBox && hasPathToGoal && !underHeavyPressure && decision < 0.8) {
-    (window as any).handleShotAttempt?.(player, goalX, allPlayers);
+    handleShotAttempt(player, goalX, allPlayers);
     return;
   }
 
   if (isGoodPosition && decision < shootingChance * 1.5 && hasPathToGoal) {
-    (window as any).handleShotAttempt?.(player, goalX, allPlayers);
+    handleShotAttempt(player, goalX, allPlayers);
     return;
   }
 
   if (underHeavyPressure) {
     if (decision < 0.7) {
-      const passTarget = (window as any).findBestPassOption?.(player, teammates, opponents);
+      const passTarget = findBestPassOption_WithVision(player, teammates, opponents);
       if (passTarget) {
         initiatePass(player, passTarget);
       } else {
@@ -601,7 +557,7 @@ export function handlePlayerWithBall_WithFirstTouch(
   }
 
   if (underPressure || decision < (GAME_CONFIG as any).PASSING_CHANCE) {
-    const passTarget = (window as any).findBestPassOption?.(player, teammates, opponents);
+    const passTarget = findBestPassOption_WithVision(player, teammates, opponents);
     if (passTarget) {
       initiatePass(player, passTarget);
     } else {
@@ -626,7 +582,7 @@ export function handlePlayerWithBall_WithVision(
   opponents: Player[],
   teammates: Player[]
 ): void {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   // Pre-condition: Can player act on ball?
   if (!canPlayerActOnBall(player)) {
@@ -665,7 +621,7 @@ export function handlePlayerWithBall_WithVision(
   const distToGoal = getDistance(player, { x: goalX, y: 300 });
   // Only consider shooting at reasonable distance (~35 meters)
   if (distToGoal < 280) {
-    const xG = (window as any).calculateXG?.(player, goalX, player.y, opponents) ?? 0;
+    const xG = calculateXG(player, goalX, player.y, opponents);
     shotValue = xG * 100; // Convert xG to 0-100 scale
 
     // Reduce shot value if under pressure or bad angle
@@ -674,7 +630,7 @@ export function handlePlayerWithBall_WithVision(
   }
 
   // 2. CALCULATE PASS VALUE
-  const passTarget = (window as any).findBestPassOption_WithVision?.(player, teammates, opponents);
+  const passTarget = findBestPassOption_WithVision(player, teammates, opponents);
   let passValue = 0;
   if (passTarget) {
     const distToTarget = getDistance(player, passTarget);
@@ -715,7 +671,7 @@ export function handlePlayerWithBall_WithVision(
   // Choose action with highest value that passes threshold
 
   if (shotValue > passValue && shotValue > dribbleValue && shotValue > 30) {
-    (window as any).handleShotAttempt?.(player, goalX, allPlayers);
+    handleShotAttempt(player, goalX, allPlayers);
     return;
   }
 
@@ -729,19 +685,3 @@ export function handlePlayerWithBall_WithVision(
   initiateDribble(player, goalX);
 }
 
-// ============================================================================
-// GLOBAL EXPORTS (Browser Compatibility)
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).calculateAvgDribbling = calculateAvgDribbling;
-  (window as any).passBall = passBall;
-  (window as any).calculateDribbleSuccess = calculateDribbleSuccess;
-  (window as any).calculatePassSuccess = calculatePassSuccess;
-  (window as any).checkForThroughBall = checkForThroughBall;
-  (window as any).initiatePass = initiatePass;
-  (window as any).initiateThroughBall = initiateThroughBall;
-  (window as any).initiateDribble = initiateDribble;
-  (window as any).handlePlayerWithBall_WithFirstTouch = handlePlayerWithBall_WithFirstTouch;
-  (window as any).handlePlayerWithBall_WithVision = handlePlayerWithBall_WithVision;
-}
