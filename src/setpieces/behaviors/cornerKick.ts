@@ -21,6 +21,9 @@ import {
   getSortedLists,
   checkAndAdjustOffsidePosition
 } from '../utils';
+import { GAME_CONFIG } from '../../config';
+import { getAttackingGoalX } from '../../utils/ui';
+import { getPlayerActivePosition } from '../../ai/movement';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -88,15 +91,14 @@ export const ProfessionalCornerBehaviors = {
     }
 
     if (player.role === 'GK') {
-      const gkX = (window as any).getAttackingGoalX(!player.isHome, gameState.currentHalf);
+      const gkX = getAttackingGoalX(!player.isHome, gameState.currentHalf);
       return sanitizePosition({ x: gkX, y: 300, movement: 'gk_stay_goal', role: 'GK' }, { player, role: 'GK' });
     }
 
-    const SET_PIECE_TYPES = (window as any).SET_PIECE_TYPES || { CORNER_KICK: 'CORNER_KICK' };
-    const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-    const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
-    const activeConfig = (window as any).activeConfig || { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
-    const getPlayerTacticalMentality = (window as any).getPlayerTacticalMentality;
+    const SET_PIECE_TYPES = { CORNER_KICK: 'CORNER_KICK' };
+    const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+    const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
+    const activeConfig = { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
 
     const context = new TacticalContext(gameState, SET_PIECE_TYPES.CORNER_KICK);
     const shouldCommit = context.shouldCommitForward(player.isHome);
@@ -168,9 +170,9 @@ export const ProfessionalCornerBehaviors = {
       const validTeammates = getValidPlayers(teammates).filter(p => p.role !== 'GK');
 
       // ENHANCED: Position-specific role assignment
-      // Separate players by tactical mentality
+      // Defensive players based on role
       const defensivePlayers = validTeammates.filter(p =>
-        getPlayerTacticalMentality ? getPlayerTacticalMentality(p) === 'defensive' : false
+        p.role === 'CB' || p.role === 'LB' || p.role === 'RB' || p.role === 'CDM'
       );
 
       // Select players based on attributes AND position
@@ -335,7 +337,7 @@ export const ProfessionalCornerBehaviors = {
       let supportIdx = 0;
       validTeammates.forEach(p => {
         if (!assigned.has(String(p.id))) {
-          const activePos = (window as any).getPlayerActivePosition(p, gameState.currentHalf);
+          const activePos = getPlayerActivePosition(p, gameState.currentHalf);
           const finalPos = posManager.findValidPosition(activePos);
           playerJobs.set(String(p.id), {
             ...finalPos,
@@ -366,7 +368,7 @@ export const ProfessionalCornerBehaviors = {
       return sanitizePosition(adjustedPosition, { player, gameState, behavior: 'ProfessionalCornerAttacking' });
     }
 
-    const activePos = (window as any).getPlayerActivePosition(player, gameState.currentHalf);
+    const activePos = getPlayerActivePosition(player, gameState.currentHalf);
     return sanitizePosition({ x: activePos.x, y: activePos.y, movement: 'fallback_corner_att' }, { player });
   },
 
@@ -386,17 +388,17 @@ export const ProfessionalCornerBehaviors = {
 
     if (player.role === 'GK') {
       // GK positioning based on corner side
-      const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
-      const activeConfig = (window as any).activeConfig || { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
+      const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
+      const activeConfig = { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
       const isRightCorner = cornerPos.y < (PITCH_HEIGHT / 2);
       const gkY = isRightCorner ? activeConfig.GOAL_Y_TOP + 50 : activeConfig.GOAL_Y_BOTTOM - 50;
       return sanitizePosition({ x: ownGoalX, y: gkY, movement: 'gk_corner_positioning', role: 'GK' }, { player, role: 'GK' });
     }
 
-    const SET_PIECE_TYPES = (window as any).SET_PIECE_TYPES || { CORNER_KICK: 'CORNER_KICK' };
-    const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-    const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
-    const activeConfig = (window as any).activeConfig || { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
+    const SET_PIECE_TYPES = { CORNER_KICK: 'CORNER_KICK' };
+    const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+    const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
+    const activeConfig = { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
 
     if (!sortedLists) sortedLists = getSortedLists(teammates, opponents);
 
@@ -548,22 +550,8 @@ export const ProfessionalCornerBehaviors = {
       return sanitizePosition(finalPos, { player, gameState, behavior: 'ProfessionalCornerDefending' });
     }
 
-    const activePos = (window as any).getPlayerActivePosition(player, gameState.currentHalf);
+    const activePos = getPlayerActivePosition(player, gameState.currentHalf);
     return sanitizePosition({ x: activePos.x, y: activePos.y, movement: 'fallback_corner_def' }, { player });
   }
 };
 
-// ============================================================================
-// BROWSER EXPORTS
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).ProfessionalCornerBehaviors = ProfessionalCornerBehaviors;
-
-  // Register with DependencyRegistry if available
-  if (typeof (window as any).DependencyRegistry !== 'undefined') {
-    (window as any).DependencyRegistry.register('ProfessionalCornerBehaviors', ProfessionalCornerBehaviors);
-  }
-
-  console.log('✅ CORNER KICK BEHAVIORS LOADED (TypeScript)');
-}

@@ -12,6 +12,8 @@
 import type { Player, GameState, Vector2D } from '../../types';
 import { sanitizePosition } from '../utils';
 import { distance } from '../../utils/math';
+import { GAME_CONFIG } from '../../config';
+import { getAttackingGoalX } from '../../utils/ui';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -38,7 +40,7 @@ export const KickoffBehaviors = {
     // === GOALKEEPER POSITIONING ===
     // GK is the only one who needs a slight adjustment (to their goal line).
     if (player.role === 'GK') {
-      const ownGoalX = (window as any).getAttackingGoalX(!player.isHome, gameState.currentHalf);
+      const ownGoalX = getAttackingGoalX(!player.isHome, gameState.currentHalf);
       return sanitizePosition({
         x: ownGoalX,
         y: 300,
@@ -77,10 +79,9 @@ export const KickoffBehaviors = {
   isValidKickoffPosition(player: Player, position: Vector2D, isKickingTeam: boolean, gameState: GameState): boolean {
     if (!position || !gameState) return false;
 
-    const GAME_CONFIG = (window as any).GAME_CONFIG || { PITCH_WIDTH: 800, PITCH_HEIGHT: 600 };
     const centerX = GAME_CONFIG.PITCH_WIDTH / 2;
     const centerY = GAME_CONFIG.PITCH_HEIGHT / 2;
-    const ownGoalX = (window as any).getAttackingGoalX(!player.isHome, gameState.currentHalf);
+    const ownGoalX = getAttackingGoalX(!player.isHome, gameState.currentHalf);
     const ownHalfIsLeft = ownGoalX < centerX;
 
     // Check if in own half (with 10px tolerance)
@@ -119,7 +120,6 @@ export const KickoffBehaviors = {
       return { primary: null, secondary: null };
     }
 
-    const GAME_CONFIG = (window as any).GAME_CONFIG || { PITCH_WIDTH: 800, PITCH_HEIGHT: 600 };
     const centerX = GAME_CONFIG.PITCH_WIDTH / 2;
     const centerY = GAME_CONFIG.PITCH_HEIGHT / 2;
 
