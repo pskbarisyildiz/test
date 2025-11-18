@@ -165,17 +165,26 @@ export function awardOffsideFreeKick(offsidePlayer: Player): void {
         return;
     }
 
+    const offsideCallTime = Date.now();
     setTimeout(() => {
-        if (gameState.status !== 'finished') {
-            gameState.ballPosition.x = freeKickX;
-            gameState.ballPosition.y = freeKickY;
-            gameState.ballVelocity.x = 0;
-            gameState.ballVelocity.y = 0;
-            gameState.ballHolder = freeKickTaker;
-            freeKickTaker.hasBallControl = true;
-            (freeKickTaker as any).ballReceivedTime = Date.now();
-            offsideTracker.playersOffsideWhenBallPlayed.clear();
+        // Validate game state hasn't changed significantly
+        if (gameState.status === 'finished' || gameState.status === 'goal_scored') {
+            return;
         }
+
+        // Only proceed if no new possession or set piece has started
+        if (gameState.ballHolder && gameState.ballHolder.id !== freeKickTaker.id) {
+            return;
+        }
+
+        gameState.ballPosition.x = freeKickX;
+        gameState.ballPosition.y = freeKickY;
+        gameState.ballVelocity.x = 0;
+        gameState.ballVelocity.y = 0;
+        gameState.ballHolder = freeKickTaker;
+        freeKickTaker.hasBallControl = true;
+        (freeKickTaker as any).ballReceivedTime = offsideCallTime;
+        offsideTracker.playersOffsideWhenBallPlayed.clear();
     }, 1000);
 }
 

@@ -468,8 +468,8 @@ export function findMostDangerousAttacker(
     t.player.x > playerZone.x1 && t.player.x < playerZone.x2 &&
     t.player.y > playerZone.y1 && t.player.y < playerZone.y2
   );
-  if (threatsInZone.length > 0 && threatsInZone[0] && threatsInZone[0].score > 100) {
-    return threatsInZone[0].player;
+  if (threatsInZone.length > 0 && threatsInZone[0]!.score > 100) {
+    return threatsInZone[0]!.player;
   }
 
   // 5. No target found

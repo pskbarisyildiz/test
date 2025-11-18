@@ -46,9 +46,12 @@ export function resolveBallControl(allPlayers: Player[]): void {
 
     const vel = gameState.ballVelocity;
     const ballSpeed = vel ? Math.sqrt(vel.x ** 2 + vel.y ** 2) : 0;
-    if (ballSpeed < 5 && controlCandidates.length > 1 && controlCandidates[0] && controlCandidates[0].distToBall < 30 && controlCandidates[1] && controlCandidates[1].distToBall < 30) {
-        const contender1 = controlCandidates[0].player;
-        const contender2 = controlCandidates[1].player;
+    // Check for 50/50 duel scenario: slow ball with two close contenders
+    if (ballSpeed < 5 && controlCandidates.length >= 2 &&
+        controlCandidates[0]!.distToBall < 30 &&
+        controlCandidates[1]!.distToBall < 30) {
+        const contender1 = controlCandidates[0]!.player;
+        const contender2 = controlCandidates[1]!.player;
 
         const p1_strength = (contender1.physicality * 0.6) + (contender1.pace * 0.2) + (Math.random() * 20);
         const p2_strength = (contender2.physicality * 0.6) + (contender2.pace * 0.2) + (Math.random() * 20);
@@ -60,8 +63,8 @@ export function resolveBallControl(allPlayers: Player[]): void {
             controllingPlayer = contender2;
             (contender1 as any).stunnedUntil = Date.now() + 250;
         }
-    } else if (controlCandidates[0]) {
-        controllingPlayer = controlCandidates[0].player;
+    } else if (controlCandidates.length > 0) {
+        controllingPlayer = controlCandidates[0]!.player;
     }
 
     if (!controllingPlayer) return;

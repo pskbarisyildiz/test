@@ -539,20 +539,34 @@ export function updateGoalkeeperAI_Advanced(
     goalkeeper.targetY = crossAction.targetY;
     (goalkeeper as any).speedBoost = 1.2;
     (goalkeeper as any).isClaimingCross = true;
+    (goalkeeper as any).crossClaimStartTime = Date.now();
     console.log(`🙌 ${goalkeeper.name} going for cross!`);
 
+    const claimStartTime = Date.now();
+    const expectedDuration = gameState.ballTrajectory ? gameState.ballTrajectory.duration * 0.8 : 500;
+
     setTimeout(() => {
-      if (getDistance(goalkeeper, gameState.ballPosition) < 40) {
+      // Validate game state hasn't changed
+      if (gameState.status === 'finished' || gameState.status === 'goal_scored') {
+        return;
+      }
+
+      // Check if goalkeeper is still claiming and close enough
+      if ((goalkeeper as any).isClaimingCross &&
+          (goalkeeper as any).crossClaimStartTime === claimStartTime &&
+          getDistance(goalkeeper, gameState.ballPosition) < 40) {
         if (Math.random() < crossAction.successChance) {
           gameState.ballHolder = goalkeeper;
           goalkeeper.hasBallControl = true;
           gameState.ballTrajectory = null;
+          (goalkeeper as any).ballReceivedTime = Date.now();
           console.log(`✅ ${goalkeeper.name} claims the cross!`);
         } else {
           console.log(`❌ ${goalkeeper.name} missed the cross!`);
         }
       }
-    }, gameState.ballTrajectory ? gameState.ballTrajectory.duration * 0.8 : 500);
+      (goalkeeper as any).isClaimingCross = false;
+    }, expectedDuration);
 
     return;
   }

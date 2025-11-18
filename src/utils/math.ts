@@ -206,5 +206,3 @@ if (typeof window !== 'undefined') {
   };
   console.log('✅ Safe Math Utilities loaded (TypeScript)');
 }
-
-export { distance };
