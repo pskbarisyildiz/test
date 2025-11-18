@@ -24,6 +24,10 @@ import {
   getSortedLists,
   checkAndAdjustOffsidePosition
 } from '../utils';
+import { GAME_CONFIG } from '../../config';
+import { getAttackingGoalX } from '../../utils/ui';
+import { getPlayerActivePosition } from '../../ai/movement';
+import { distance as getDistance } from '../../utils/math';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -93,8 +97,8 @@ function getSafeStat(stats: any, key: string, defaultValue: number = 0): number 
 }
 
 function getRoleBasedFallbackPosition(role: string | undefined, context: any = {}): any {
-  const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-  const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+  const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+  const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
   let fallbackX = PITCH_WIDTH / 2;
   let fallbackY = PITCH_HEIGHT / 2;
@@ -129,7 +133,7 @@ export const ProfessionalFreeKickBehaviors = {
     }
 
     if (player.role === 'GK') {
-      const gkX = (window as any).getAttackingGoalX(!player.isHome, gameState.currentHalf);
+      const gkX = getAttackingGoalX(!player.isHome, gameState.currentHalf);
       return sanitizePosition({ x: gkX, y: 300, movement: 'gk_stay_goal' }, { player });
     }
 
@@ -140,7 +144,7 @@ export const ProfessionalFreeKickBehaviors = {
 
     const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
     const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
-    const activeConfig = (window as any).activeConfig || { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
+    const activeConfig = { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
 
     const isDangerous = distToGoal < 280;
     const isCentral = Math.abs(fkPos.y - 300) < 100;
@@ -403,7 +407,7 @@ export const ProfessionalFreeKickBehaviors = {
       let supportIdx = 0;
       validTeammates.forEach(p => {
         if (!assigned.has(String(p.id))) {
-          const activePos = (window as any).getPlayerActivePosition(p, gameState.currentHalf);
+          const activePos = getPlayerActivePosition(p, gameState.currentHalf);
           const finalPos = posManager.findValidPosition(activePos);
           playerJobs.set(String(p.id), {
             ...finalPos,
@@ -434,7 +438,7 @@ export const ProfessionalFreeKickBehaviors = {
       return sanitizePosition(adjustedPosition, { player, gameState, behavior: 'ProfessionalFreeKickAttacking' });
     }
 
-    const activePos = (window as any).getPlayerActivePosition(player, gameState.currentHalf);
+    const activePos = getPlayerActivePosition(player, gameState.currentHalf);
     return sanitizePosition({ x: activePos.x, y: activePos.y, movement: 'fallback_fk_att' }, { player });
   },
 
@@ -465,8 +469,8 @@ export const ProfessionalFreeKickBehaviors = {
 
     const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
     const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
-    const SET_PIECE_TYPES = (window as any).SET_PIECE_TYPES || { FREE_KICK: 'FREE_KICK' };
-    const activeConfig = (window as any).activeConfig || { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
+    const SET_PIECE_TYPES = { FREE_KICK: 'FREE_KICK' };
+    const activeConfig = { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
 
     const isCentral = Math.abs(fkPos.y - 300) < 130;
     const isDangerous = distToGoal < 280;
@@ -650,7 +654,7 @@ export const ProfessionalFreeKickBehaviors = {
       }
 
       // Encroachment rule
-      const dist = (window as any).getDistance({ x: finalPos.x, y: finalPos.y }, fkPos);
+      const dist = getDistance({ x: finalPos.x, y: finalPos.y }, fkPos);
       if (dist < 92 && !finalPos.role?.startsWith('JOB_WALL_')) {
         const angle = Math.atan2(finalPos.y - fkPos.y, finalPos.x - fkPos.x);
         finalPos.x = fkPos.x + Math.cos(angle) * 92;
@@ -660,7 +664,7 @@ export const ProfessionalFreeKickBehaviors = {
       return sanitizePosition(finalPos, { player, gameState, behavior: 'ProfessionalFreeKickDefending' });
     }
 
-    const activePos = (window as any).getPlayerActivePosition(player, gameState.currentHalf);
+    const activePos = getPlayerActivePosition(player, gameState.currentHalf);
     return sanitizePosition({ x: activePos.x, y: activePos.y, movement: 'fallback_fk_def' }, { player });
   },
 
@@ -682,7 +686,7 @@ export const ProfessionalFreeKickBehaviors = {
 
       const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
       const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
-      const activeConfig = (window as any).activeConfig || { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
+      const activeConfig = { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
 
       // Calculate wall base position to cover near post
       const wallDistance = 92; // 10 yards
@@ -791,17 +795,3 @@ export const ProfessionalFreeKickBehaviors = {
   }
 };
 
-// ============================================================================
-// BROWSER EXPORTS
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).ProfessionalFreeKickBehaviors = ProfessionalFreeKickBehaviors;
-
-  // Register with DependencyRegistry if available
-  if (typeof (window as any).DependencyRegistry !== 'undefined') {
-    (window as any).DependencyRegistry.register('ProfessionalFreeKickBehaviors', ProfessionalFreeKickBehaviors);
-  }
-
-  console.log('✅ FREE KICK BEHAVIORS LOADED (TypeScript)');
-}

@@ -12,6 +12,9 @@
 
 import type { Player, GameState, Vector2D } from '../types';
 import { distance } from '../utils/math';
+import { GAME_CONFIG } from '../config';
+import { getPlayerActivePosition } from '../ai/movement';
+import { getAttackingGoalX } from '../utils/ui';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -113,9 +116,8 @@ export class PositionManager {
   priorityZones: Map<string, { x: number; y: number; radius: number }>;
 
   constructor() {
-    const activeConfig = (window as any).GAME_CONFIG || { MIN_PLAYER_SPACING: 30 };
     this.occupiedPositions = [];
-    this.minDistance = activeConfig.MIN_PLAYER_SPACING || 30;
+    this.minDistance = 30;
     this.priorityZones = new Map();
   }
 
@@ -208,14 +210,14 @@ export function getSafeStat(stats: any, key: string, defaultValue: number = 0): 
 }
 
 function getRoleBasedFallbackPosition(role: string | undefined, context: any = {}): PositionWithMovement {
-  const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-  const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+  const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+  const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
   let fallbackX = PITCH_WIDTH / 2;
   let fallbackY = PITCH_HEIGHT / 2;
 
   if (role && context.player && context.gameState) {
-    const activePos = (window as any).getPlayerActivePosition(context.player, context.gameState.currentHalf);
+    const activePos = getPlayerActivePosition(context.player, context.gameState.currentHalf);
     fallbackX = activePos.x;
     fallbackY = activePos.y;
   }
@@ -227,8 +229,8 @@ function getRoleBasedFallbackPosition(role: string | undefined, context: any = {
 }
 
 export function sanitizePosition(pos: any, context: any = {}): PositionWithMovement {
-  const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-  const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+  const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+  const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
   // Validation of position data
   if (!pos || typeof pos !== 'object') {
@@ -335,12 +337,12 @@ export function getFormationAwarePosition(
 ): PositionWithMovement {
   if (!player || !basePosition || !gameState) return basePosition;
 
-  const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-  const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+  const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+  const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
   const setPieceType = ((gameState.setPiece as any)?.type || gameState.status || '').toUpperCase();
-  const ownGoalX = (window as any).getAttackingGoalX(!player.isHome, gameState.currentHalf);
-  const opponentGoalX = (window as any).getAttackingGoalX(player.isHome, gameState.currentHalf);
+  const ownGoalX = getAttackingGoalX(!player.isHome, gameState.currentHalf);
+  const opponentGoalX = getAttackingGoalX(player.isHome, gameState.currentHalf);
   const direction = Math.sign(opponentGoalX - 400);
 
   // Goal kicks and kickoffs need to respect the bespoke restart layout
@@ -506,19 +508,3 @@ export const checkAndAdjustOffsidePositionWithAudit = (
   };
 };
 
-// ============================================================================
-// BROWSER EXPORTS
-// ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).TacticalContext = TacticalContext;
-  (window as any).PositionManager = PositionManager;
-  (window as any).sanitizePosition = sanitizePosition;
-  (window as any).getValidPlayers = getValidPlayers;
-  (window as any).getSortedLists = getSortedLists;
-  (window as any).determineSetPieceTeam = determineSetPieceTeam;
-  (window as any).isPlayerAttacking = isPlayerAttacking;
-  (window as any).getFormationAwarePosition = getFormationAwarePosition;
-  (window as any).checkAndAdjustOffsidePosition = checkAndAdjustOffsidePosition;
-  (window as any).checkAndAdjustOffsidePositionWithAudit = checkAndAdjustOffsidePositionWithAudit;
-}
