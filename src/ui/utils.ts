@@ -7,36 +7,16 @@
  * ✅ Full type safety with strict TypeScript
  */
 
-import type { GameState, Player, GameConfig } from '../types';
-
-// ============================================================================
-// GLOBAL DECLARATIONS
-// ============================================================================
-
-declare global {
-  interface Window {
-    GAME_CONFIG_SPB_DEFAULT?: GameConfig;
-    getNearestAttacker?: typeof getNearestAttacker;
-    calculateXG?: typeof calculateXG;
-    getValidStat?: typeof getValidStat;
-  }
-}
+import type { GameState, Player } from '../types';
+import { GAME_CONFIG } from '../config';
+import { gameState } from '../globalExports';
 
 // ============================================================================
 // CONFIG HELPERS
 // ============================================================================
 
 export function CFG(): any {
-    if (typeof window !== 'undefined' && (window as any).GAME_CONFIG) return (window as any).GAME_CONFIG;
-    if (typeof (window as any).GAME_CONFIG !== 'undefined') return (window as any).GAME_CONFIG;
-    if (typeof (window as any).GAME_CONFIG_SPB_DEFAULT !== 'undefined') return (window as any).GAME_CONFIG_SPB_DEFAULT;
-    return {
-        PITCH_WIDTH: 800,
-        PITCH_HEIGHT: 600,
-        GOAL_Y_TOP: 240,
-        GOAL_Y_BOTTOM: 360,
-        MIN_PLAYER_SPACING: 30
-    };
+    return GAME_CONFIG;
 }
 
 export function ensureStatsShape(gs: GameState): void {
@@ -99,7 +79,7 @@ export function getAttackingGoalX(isHome: boolean, currentHalf: number): number 
     const GOAL_X_RIGHT_DEFAULT = 750;
 
     // 2. Global GAME_CONFIG'i güvenle kontrol et
-    const activeConfig = (typeof (window as any).GAME_CONFIG !== 'undefined') ? (window as any).GAME_CONFIG : null;
+    const activeConfig = GAME_CONFIG;
 
     // 3. Değerleri belirle (Global config varsa onu kullan, yoksa varsayılanı kullan)
     const goalLeft = (activeConfig && activeConfig.GOAL_X_LEFT) ? activeConfig.GOAL_X_LEFT : GOAL_X_LEFT_DEFAULT;
@@ -205,8 +185,8 @@ export function resolveSide(value: any): 'home' | 'away' | null {
     if (value === false || value === 'away') return 'away';
 
     if (typeof value === 'string') {
-      if (value === ((window as any).gameState?.homeTeam || '').trim()) return 'home';
-      if (value === ((window as any).gameState?.awayTeam || '').trim()) return 'away';
+      if (value === (gameState?.homeTeam || '').trim()) return 'home';
+      if (value === (gameState?.awayTeam || '').trim()) return 'away';
     }
 
     if (value && typeof value === 'object') {
@@ -232,13 +212,4 @@ export function invertSide(side: 'home' | 'away' | string): 'home' | 'away' | nu
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-    (window as any).SET_PIECE_STATUSES = SET_PIECE_STATUSES;
-    (window as any).isSetPieceStatus = isSetPieceStatus;
-    (window as any).getDistance = (window as any).getDistance || getDistance;
-    (window as any).getAttackingGoalX = (window as any).getAttackingGoalX || getAttackingGoalX;
-    (window as any).getNearestAttacker = (window as any).getNearestAttacker || getNearestAttacker;
-    (window as any).calculateXG = (window as any).calculateXG || calculateXG;
-    (window as any).pointToLineDistance = (window as any).pointToLineDistance || pointToLineDistance;
-    (window as any).getValidStat = (window as any).getValidStat || getValidStat;
-}
+// Functions are now exported via ES6 modules - no window exports needed

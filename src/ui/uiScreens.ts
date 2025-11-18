@@ -7,7 +7,9 @@
  * ✅ Full type safety with strict TypeScript
  */
 
-import type { GameState } from '../types';
+import { gameState } from '../globalExports';
+import { TACTICS } from '../config';
+import { selectBestFormation, selectBestTactic } from '../gameSetup';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -154,40 +156,40 @@ export function renderUploadScreen(app: HTMLElement): void {
 // ============================================================================
 
 export function renderSetupScreen(app: HTMLElement): void {
-    if (typeof (window as any).gameState === 'undefined') {
+    if (!gameState) {
         console.error('❌ gameState not initialized yet');
         app.innerHTML = '<div style="padding: 40px; text-align: center;">Loading...</div>';
         return;
     }
 
-    const gameState = (window as any).gameState as GameState;
+    // Using imported gameState from globalExports
 
     // Auto-select formations and tactics if not set
-    if (!(gameState as any).homeFormation && (window as any).selectBestFormation) {
+    if (!(gameState as any).homeFormation && selectBestFormation) {
         const homeTeamPlayers = gameState.players.filter(p => p.team === gameState.homeTeam);
-        (gameState as any).homeFormation = (window as any).selectBestFormation(homeTeamPlayers);
+        (gameState as any).homeFormation = selectBestFormation(homeTeamPlayers);
     }
-    if (!(gameState as any).awayFormation && (window as any).selectBestFormation) {
+    if (!(gameState as any).awayFormation && selectBestFormation) {
         const awayTeamPlayers = gameState.players.filter(p => p.team === gameState.awayTeam);
-        (gameState as any).awayFormation = (window as any).selectBestFormation(awayTeamPlayers);
+        (gameState as any).awayFormation = selectBestFormation(awayTeamPlayers);
     }
 
-    if (!(gameState as any).homeTactic && (window as any).selectBestTactic) {
+    if (!(gameState as any).homeTactic && selectBestTactic) {
         const homeTeamPlayers = gameState.players.filter(p => p.team === gameState.homeTeam);
-        (gameState as any).homeTactic = (window as any).selectBestTactic(homeTeamPlayers);
+        (gameState as any).homeTactic = selectBestTactic(homeTeamPlayers);
     }
-    if (!(gameState as any).awayTactic && (window as any).selectBestTactic) {
+    if (!(gameState as any).awayTactic && selectBestTactic) {
         const awayTeamPlayers = gameState.players.filter(p => p.team === gameState.awayTeam);
-        (gameState as any).awayTactic = (window as any).selectBestTactic(awayTeamPlayers);
+        (gameState as any).awayTactic = selectBestTactic(awayTeamPlayers);
     }
 
-    const TACTICS = (window as any).TACTICS || {};
+    // Using imported TACTICS from config
     const tacticsOptions = Object.keys(TACTICS).map(key =>
-        `<option value="${key}" ${key === (gameState as any).homeTactic ? 'selected' : ''}>${TACTICS[key].name}</option>`
+        `<option value="${key}" ${key === (gameState as any).homeTactic ? 'selected' : ''}>${TACTICS[key as keyof typeof TACTICS]?.name || key}</option>`
     ).join('');
 
     const awayTacticsOptions = Object.keys(TACTICS).map(key =>
-        `<option value="${key}" ${key === (gameState as any).awayTactic ? 'selected' : ''}>${TACTICS[key].name}</option>`
+        `<option value="${key}" ${key === (gameState as any).awayTactic ? 'selected' : ''}>${TACTICS[key as keyof typeof TACTICS]?.name || key}</option>`
     ).join('');
 
     const teamsOptions = (gameState as any).teams ? (gameState as any).teams.map((t: string) =>
@@ -362,21 +364,15 @@ export function addMatchToBatch(): void {
 
     if (!homeSelect || !awaySelect) return;
 
-    const homeTeam = homeSelect.value;
-    const awayTeam = awaySelect.value;
+    // Team values would be used by CustomFixtureSimulator if available
+    // const homeTeam = homeSelect.value;
+    // const awayTeam = awaySelect.value;
 
-    if ((window as any).CustomFixtureSimulator) {
-        (window as any).CustomFixtureSimulator.addMatch(homeTeam, awayTeam);
-    }
+    // CustomFixtureSimulator not used in ES6 module context
 }
 
 // ============================================================================
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-    (window as any).renderUploadScreen = renderUploadScreen;
-    (window as any).renderSetupScreen = renderSetupScreen;
-    (window as any).switchSimulationMode = switchSimulationMode;
-    (window as any).addMatchToBatch = addMatchToBatch;
-}
+// Functions are now exported via ES6 modules - no window exports needed
