@@ -13843,6 +13843,7 @@ var FootballSim = (() => {
     window.CustomFixtureSimulator = CustomFixtureSimulator;
     window.startMatch = startMatch;
     window.resetMatch = resetMatch;
+    window.handleFileUpload = handleFileUpload;
     if (typeof window.gameState === "undefined") {
       window.gameState = initializeGameState();
       console.log("\u2713 Game state initialized (TypeScript)");

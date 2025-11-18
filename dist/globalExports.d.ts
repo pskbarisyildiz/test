@@ -18,7 +18,7 @@ import { executeSetPiece_Router } from './setpieces/execution';
 import { switchSummaryTab } from './ui/uiComponents';
 import { switchSimulationMode, addMatchToBatch } from './ui/uiScreens';
 import { CustomFixtureSimulator } from './batch-simulator';
-import { startMatch, resetMatch } from './main';
+import { startMatch, resetMatch, handleFileUpload } from './main';
 declare global {
     interface Window {
         GAME_LOOP: typeof GAME_LOOP;
@@ -73,6 +73,7 @@ declare global {
         CustomFixtureSimulator: typeof CustomFixtureSimulator;
         startMatch: typeof startMatch;
         resetMatch: typeof resetMatch;
+        handleFileUpload: typeof handleFileUpload;
         gameState: GameState;
     }
 }
