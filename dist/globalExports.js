@@ -17,6 +17,8 @@ import { initFirstTouchStats } from './ai/playerFirstTouch';
 import { ensureCorrectSetPiecePlacement, assignSetPieceKicker, getCornerKickPosition, getGoalKickPosition, positionForSetPiece_Unified, updatePlayerAI_V2_SetPieceEnhancement, executeSetPiece_PostExecution } from './setpieces/integration';
 import { configureSetPieceRoutines, executeSetPiece_PreConfiguration } from './setpieces/config';
 import { executeSetPiece_Router } from './setpieces/execution';
+// Phase 10: Ball Control Rules
+import { resolveBallControl, handleBallInterception } from './rules/ballControl';
 // Phase 10: UI Components and Main Functions (for dynamic onclick handlers)
 import { switchSummaryTab } from './ui/uiComponents';
 import { switchSimulationMode, addMatchToBatch } from './ui/uiScreens';
@@ -193,6 +195,9 @@ export function exportToWindow() {
         configureSetPieceRoutines,
         executeSetPiece_Router
     };
+    // Phase 10: Export ball control rules
+    window.resolveBallControl = resolveBallControl;
+    window.handleBallInterception = handleBallInterception;
     // Phase 10: Export UI components and main functions for dynamic onclick handlers
     window.switchSummaryTab = switchSummaryTab;
     window.switchSimulationMode = switchSimulationMode;
