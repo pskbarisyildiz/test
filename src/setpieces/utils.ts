@@ -140,8 +140,8 @@ export class PositionManager {
   }
 
   findValidPosition(idealPos: Vector2D, maxAttempts: number = 10, allowPriorityOverlap: boolean = false): Vector2D {
-    const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-    const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+    const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+    const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
     const safeIdeal = sanitizePosition(idealPos, { behavior: 'PositionManager' });
 
@@ -423,7 +423,7 @@ export function checkAndAdjustOffsidePosition(
 ): any {
   if (!position || !opponents || opponents.length === 0) return position;
 
-  const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
+  const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
   const direction = Math.sign(opponentGoalX - 400);
 
   // Filter opponent field players (excluding goalkeeper)

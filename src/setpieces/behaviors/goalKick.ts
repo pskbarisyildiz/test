@@ -560,13 +560,5 @@ export const ProfessionalGoalKickBehaviors = {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-  (window as any).ProfessionalGoalKickBehaviors = ProfessionalGoalKickBehaviors;
-
-  // Register with DependencyRegistry if available
-  if (typeof (window as any).DependencyRegistry !== 'undefined') {
-    (window as any).DependencyRegistry.register('ProfessionalGoalKickBehaviors', ProfessionalGoalKickBehaviors);
-  }
-
-  console.log('✅ GOAL KICK BEHAVIORS LOADED (TypeScript)');
-}
+// Functions are now exported via ES6 modules - no window exports needed
+console.log('✅ GOAL KICK BEHAVIORS LOADED (TypeScript)');

@@ -493,13 +493,5 @@ export const ThrowInBehaviors = {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-  (window as any).ThrowInBehaviors = ThrowInBehaviors;
-
-  // Register with DependencyRegistry if available
-  if (typeof (window as any).DependencyRegistry !== 'undefined') {
-    (window as any).DependencyRegistry.register('ThrowInBehaviors', ThrowInBehaviors);
-  }
-
-  console.log('✅ THROW-IN BEHAVIORS LOADED (TypeScript)');
-}
+// Functions are now exported via ES6 modules - no window exports needed
+console.log('✅ THROW-IN BEHAVIORS LOADED (TypeScript)');

@@ -663,12 +663,4 @@ export function executeSetPiece_Router(gameState: GameState): void {
 // ============================================================================
 // BROWSER EXPORTS
 // ============================================================================
-
-if (typeof window !== 'undefined') {
-    (window as any).executeCornerKick_Enhanced = executeCornerKick_Enhanced;
-    (window as any).executeFreeKick_Enhanced = executeFreeKick_Enhanced;
-    (window as any).executeThrowIn_Enhanced = executeThrowIn_Enhanced;
-    (window as any).executeGoalKick_Enhanced = executeGoalKick_Enhanced;
-    (window as any).executeKickOff_Enhanced = executeKickOff_Enhanced;
-    (window as any).executeSetPiece_Router = executeSetPiece_Router;
-}
+// Functions are now exported via ES6 modules - no window exports needed

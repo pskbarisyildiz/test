@@ -142,14 +142,5 @@ export const KickoffBehaviors = {
 // ============================================================================
 // BROWSER EXPORTS
 // ============================================================================
-
-if (typeof window !== 'undefined') {
-  (window as any).KickoffBehaviors = KickoffBehaviors;
-
-  // Register with DependencyRegistry if available
-  if (typeof (window as any).DependencyRegistry !== 'undefined') {
-    (window as any).DependencyRegistry.register('KickoffBehaviors', KickoffBehaviors);
-  }
-
-  console.log('✅ KICKOFF BEHAVIORS LOADED - (Simplified HOLD_POSITION fix)');
-}
+// Functions are now exported via ES6 modules - no window exports needed
+console.log('✅ KICKOFF BEHAVIORS LOADED - (Simplified HOLD_POSITION fix)');

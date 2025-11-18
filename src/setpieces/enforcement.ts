@@ -400,14 +400,10 @@ export const SetPieceEnforcement = {
     updateSetPieceEnforcement
 };
 
-// Browser exports
-if (typeof window !== 'undefined') {
-    (window as any).SetPieceEnforcement = SetPieceEnforcement;
-
-    console.log('✅ SET PIECE ENFORCEMENT SYSTEM v1.0 LOADED');
-    console.log('   ✓ [setpiece-fix] Taker-first action logic');
-    console.log('   ✓ [setpiece-fix] 100px opponent distance enforcement');
-    console.log('   ✓ [kick-off-half-fix] Players stay in own half before kick-off');
-    console.log('   ✓ [gk-protection] Goalkeeper protection enabled');
-    console.log('   ✓ [setpiece-fix] State machine (WAIT_FOR_TAKER_ACTION)');
-}
+// Browser exports - now using ES6 modules
+console.log('✅ SET PIECE ENFORCEMENT SYSTEM v1.0 LOADED');
+console.log('   ✓ [setpiece-fix] Taker-first action logic');
+console.log('   ✓ [setpiece-fix] 100px opponent distance enforcement');
+console.log('   ✓ [kick-off-half-fix] Players stay in own half before kick-off');
+console.log('   ✓ [gk-protection] Goalkeeper protection enabled');
+console.log('   ✓ [setpiece-fix] State machine (WAIT_FOR_TAKER_ACTION)');
