@@ -15,6 +15,9 @@ import {
     executeSetPiece_PreConfiguration
 } from './config';
 
+// Re-export for external use
+export { executeSetPiece_Router } from './execution';
+
 declare const PITCH_WIDTH: number;
 declare const PITCH_HEIGHT: number;
 
