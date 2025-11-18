@@ -12,7 +12,7 @@
  * @migrated-from js/ai/aigoalkeeper.js
  */
 
-import type { Player, GameState, Vector2D } from '../types';
+import type { Player, Vector2D } from '../types';
 import { distance } from '../utils/math';
 import { getAttackingGoalX } from '../utils/ui';
 import { eventBus } from '../eventBus';
@@ -20,6 +20,8 @@ import { EVENT_TYPES } from '../types/events';
 import { Particle, createGoalExplosion } from '../rendering/particles';
 import { showGoalAnimation } from '../ui/goalAnimation';
 import { resetAfterGoal } from '../main';
+import { gameState } from '../globalExports';
+import { GAME_CONFIG } from '../config';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -169,7 +171,7 @@ export function assessGoalkeeperThreats(
   _ball: Vector2D,
   opponents: Player[]
 ): ThreatInfo[] {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
   const goalX = getAttackingGoalX(!goalkeeper.isHome, gameState.currentHalf);
 
   const threats = opponents
@@ -225,7 +227,7 @@ export function determineGoalkeeperStance(
   threats: ThreatInfo[],
   _ball: Vector2D
 ): GoalkeeperStance {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   if (!mainThreat) {
     return GOALKEEPER_CONFIG.STANCES['COMFORTABLE']!;
@@ -270,8 +272,8 @@ export function calculateOptimalGoalkeeperPosition(
   stance: GoalkeeperStance,
   ball: Vector2D
 ): Vector2D {
-  const gameState = window.gameState as GameState;
-  const GAME_CONFIG = window.GAME_CONFIG ?? { GOAL_Y_TOP: 240, GOAL_Y_BOTTOM: 360 };
+  // Using imported gameState from globalExports
+  // Using imported GAME_CONFIG from config
   const goalX = getAttackingGoalX(!goalkeeper.isHome, gameState.currentHalf);
   const goalCenterY = GOALKEEPER_CONFIG.GOAL_CENTER_Y;
 
@@ -394,7 +396,7 @@ export function shouldGoalkeeperSweep(
   _ball: Vector2D,
   opponents: Player[]
 ): boolean {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   // Is ball trajectory heading toward goal?
   if (!gameState.ballTrajectory || gameState.ballTrajectory.isShot) {
@@ -446,7 +448,7 @@ export function handleCrossSituation(
   _ball: Vector2D,
   _opponents: Player[]
 ): CrossAction | null {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   // Is it a cross? (high ball in wide position)
   if (!gameState.ballHeight || gameState.ballHeight < 0.5) {
@@ -509,7 +511,7 @@ export function updateGoalkeeperAI_Advanced(
   ball: Vector2D,
   opponents: Player[]
 ): void {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   const threats = assessGoalkeeperThreats(goalkeeper, ball, opponents);
   const mainThreat = threats[0] || null;
@@ -711,7 +713,7 @@ export function triggerGoalkeeperSave(
 ): void {
   if (!goalkeeper) return;
 
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   // --- BASIC DIVE SETUP ---
   const diveX = shotX - goalkeeper.x;
@@ -808,8 +810,8 @@ export function drawGoalkeeperStanceIndicator(
  * Resolve shot with advanced goalkeeper system
  */
 export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
-  const gameState = window.gameState as GameState;
-  const GAME_CONFIG = window.GAME_CONFIG ?? { GOAL_Y_TOP: 240, GOAL_Y_BOTTOM: 360 };
+  // Using imported gameState from globalExports
+  // Using imported GAME_CONFIG from config
   const { holder, xG, goalkeeper, goalX, shotTargetY } = params;
 
   if (!gameState.shotInProgress) {

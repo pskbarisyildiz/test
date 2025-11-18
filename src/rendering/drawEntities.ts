@@ -9,6 +9,7 @@
 
 import type { GameState, Player } from '../types';
 import { createBallTrail } from './particles';
+import { gameState } from '../globalExports';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -93,7 +94,7 @@ export function drawPlayer(ctx: CanvasRenderingContext2D, player: Player, hasBal
     player.x - offset, player.y - offset, 0,
     player.x, player.y, size
   );
-  const color = player.isHome ? window.gameState.homeJerseyColor : window.gameState.awayJerseyColor;
+  const color = player.isHome ? gameState.homeJerseyColor : gameState.awayJerseyColor;
 
   gradient.addColorStop(0, lightenColor(color, 50));
   gradient.addColorStop(0.5, color);
@@ -105,7 +106,7 @@ export function drawPlayer(ctx: CanvasRenderingContext2D, player: Player, hasBal
   ctx.fill();
 
   // Enhanced highlight with better visibility
-  const isShooter = window.gameState.shooter && window.gameState.shooter.name === player.name && window.gameState.shotInProgress;
+  const isShooter = gameState.shooter && gameState.shooter.name === player.name && gameState.shotInProgress;
 
   if (hasBall || isShooter) {
     ctx.save();
@@ -149,7 +150,7 @@ export function drawPlayerShadow(_ctx: CanvasRenderingContext2D, _player: Player
 export function drawPlayerBody(ctx: CanvasRenderingContext2D, player: Player, size: number): void {
   const offset = size * 0.5; // e.g., 5 * 0.5 = 2.5
   const gradient = ctx.createRadialGradient(player.x - offset, player.y - offset, 0, player.x, player.y, size);
-  const color = player.isHome ? window.gameState.homeJerseyColor : window.gameState.awayJerseyColor;
+  const color = player.isHome ? gameState.homeJerseyColor : gameState.awayJerseyColor;
 
   gradient.addColorStop(0, lightenColor(color, 40));
   gradient.addColorStop(0.6, color);
@@ -165,7 +166,7 @@ export function drawPlayerBody(ctx: CanvasRenderingContext2D, player: Player, si
  * Draw player highlight (unused but kept for compatibility)
  */
 export function drawPlayerHighlight(ctx: CanvasRenderingContext2D, player: Player, size: number, hasBall: boolean): void {
-  const isShooter = window.gameState.shooter && window.gameState.shooter.name === player.name && window.gameState.shotInProgress;
+  const isShooter = gameState.shooter && gameState.shooter.name === player.name && gameState.shotInProgress;
 
   // Define smaller line widths
   const highlightLineWidth = isShooter ? 2 : 1.5;
@@ -203,7 +204,7 @@ export function drawPlayerLabel(ctx: CanvasRenderingContext2D, player: Player): 
   ctx.translate(player.x, player.y);
 
   // 2. Conditionally un-rotate the context
-  if (window.gameState.isVertical) {
+  if (gameState.isVertical) {
     ctx.rotate(-Math.PI / 2);
   }
 
@@ -254,17 +255,17 @@ export function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number): v
   }
 
   const baseSize = 9;
-  const size = baseSize + window.gameState.ballHeight * 6;
+  const size = baseSize + gameState.ballHeight * 6;
 
   // Create ball trail effect when ball is moving
-  if (window.gameState.ballTrajectory || (window.gameState.ballVelocity && (Math.abs(window.gameState.ballVelocity.x) > 50 || Math.abs(window.gameState.ballVelocity.y) > 50))) {
+  if (gameState.ballTrajectory || (gameState.ballVelocity && (Math.abs(gameState.ballVelocity.x) > 50 || Math.abs(gameState.ballVelocity.y) > 50))) {
     createBallTrail(x, y);
   }
 
   drawShotEffect(ctx, x, y, size);
 
   // Draw a dedicated shadow on the ground before drawing the ball
-  drawGroundShadow(ctx, x, y, baseSize, window.gameState.ballHeight);
+  drawGroundShadow(ctx, x, y, baseSize, gameState.ballHeight);
 
   // Draw the ball itself on top of the shadow
   drawBallBody(ctx, x, y, size);
@@ -275,7 +276,7 @@ export function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number): v
  * Draw shot effect around the ball
  */
 export function drawShotEffect(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
-  if (window.gameState.shotInProgress && window.gameState.ballTrajectory) {
+  if (gameState.shotInProgress && gameState.ballTrajectory) {
     ctx.save();
     ctx.globalAlpha = 0.4;
     ctx.strokeStyle = '#ff4444';

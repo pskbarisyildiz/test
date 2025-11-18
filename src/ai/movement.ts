@@ -12,12 +12,14 @@
  * @migrated-from js/ai/aimovement.js
  */
 
-import type { Player, GameState, Vector2D } from '../types';
+import type { Player, Vector2D } from '../types';
 import { distance, pointToLineDistance } from '../utils/math';
 import { getAttackingGoalX } from '../utils/ui';
 import { shouldAvoidOffside } from '../rules/offside';
 import { updateGoalkeeperAI_Advanced } from '../ai/goalkeeper';
 import { BehaviorSystem } from '../behavior/BehaviorSystem';
+import { gameState } from '../globalExports';
+import { GAME_CONFIG, TACTICS, POSITION_CONFIGS } from '../config';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -81,7 +83,7 @@ function getDistance(p1: Vector2D | Player, p2: Vector2D | Player): number {
  * Get position configuration for a role
  */
 export function getPositionConfig(role: string): PositionConfig {
-  const POSITION_CONFIGS = window.POSITION_CONFIGS ?? {};
+  // Using imported POSITION_CONFIGS from config
   return (POSITION_CONFIGS as any)[role.toUpperCase()] || {
     defensiveness: 0.5,
     attackRange: 0.5,
@@ -104,8 +106,8 @@ export function getPositionConfig(role: string): PositionConfig {
  * - Tactical shifts based on team state
  */
 export function getPlayerActivePosition(player: Player, currentHalf: number): Vector2D {
-  const gameState = window.gameState as GameState;
-  const GAME_CONFIG = window.GAME_CONFIG ?? { PITCH_WIDTH: 800, PITCH_HEIGHT: 600, GOAL_X_LEFT: 50, GOAL_X_RIGHT: 750 };
+  // Using imported gameState from globalExports
+  // Using imported GAME_CONFIG from config
 
   // 1. STEP: Get base "home" position
   let homeX = (player as any).homeX ?? 400;
@@ -290,7 +292,7 @@ export function assessDefensiveThreats(
   opponents: Player[],
   ownGoalX: number
 ): ThreatAssessment[] {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
   const ballCarrier = gameState.ballHolder;
 
   return opponents.map(opponent => {
@@ -503,7 +505,7 @@ export function updateTacticalPosition(
   _teammates: Player[],
   opponents: Player[]
 ): void {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   // Fix: AI Conflict Prevention
   // If status is not 'playing' (e.g. 'FREE_KICK', 'CORNER_KICK' etc.)
@@ -516,7 +518,7 @@ export function updateTacticalPosition(
     return; // Don't run tactical AI
   }
 
-  const TACTICS = window.TACTICS ?? {};
+  // Using imported TACTICS from config
   const tactic = (TACTICS as any)[player.isHome ? gameState.homeTactic : gameState.awayTactic] || {};
   const teamState = player.isHome ? gameState.homeTeamState : gameState.awayTeamState;
   const activePosition = getPlayerActivePosition(player, gameState.currentHalf);
@@ -668,7 +670,7 @@ export function applyMarkingAndPressing(
   tactic: any,
   teamState: TeamState
 ): MarkingResult {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
   const ballCarrier = gameState.ballHolder;
   if (!ballCarrier) return { shouldMark: false, shouldPress: false, x: activePosition.x, y: activePosition.y };
 
@@ -724,7 +726,7 @@ export function applyDefensivePositioning(
   ownGoalX: number,
   teamState: TeamState
 ): MovementResult {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
   const ballDistToOwnGoal = Math.abs(ball.x - ownGoalX);
   const ballSideY = ball.y;
   const playerSideY = player.y;
@@ -822,7 +824,7 @@ export function applyAttackingMovement(
   opponentGoalX: number,
   _teamState: TeamState
 ): MovementResult {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
   const opponents = player.isHome ? gameState.awayPlayers : gameState.homePlayers;
   const direction = Math.sign(opponentGoalX - player.x) || 1;
   const ballOnOtherSide = (holder.y > 300 && player.y < 300) || (holder.y < 300 && player.y > 300);

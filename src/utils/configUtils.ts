@@ -8,6 +8,7 @@
 import type {
   GameConfig
 } from '../types';
+import { GAME_CONFIG, PHYSICS, BALL_PHYSICS, GAME_LOOP } from '../config';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -48,8 +49,8 @@ export function CFG<T>(key: string, defaultValue?: T): T;
 export function CFG<T>(key?: string, defaultValue?: T): T | GameConfig | Record<string, never> {
   // If no key provided, return entire GAME_CONFIG
   if (!key) {
-    if (typeof window !== 'undefined' && typeof window.GAME_CONFIG !== 'undefined') {
-      return window.GAME_CONFIG;
+    if (typeof window !== 'undefined' && typeof GAME_CONFIG !== 'undefined') {
+      return GAME_CONFIG;
     }
     console.warn('GAME_CONFIG not loaded yet');
     return {};
@@ -57,10 +58,10 @@ export function CFG<T>(key?: string, defaultValue?: T): T | GameConfig | Record<
 
   // Search order: GAME_CONFIG → PHYSICS → BALL_PHYSICS → GAME_LOOP
   const configSources: (Record<string, unknown> | undefined)[] = [
-    typeof window !== 'undefined' && window.GAME_CONFIG ? (window.GAME_CONFIG as unknown as Record<string, unknown>) : undefined,
-    typeof window !== 'undefined' && window.PHYSICS ? (window.PHYSICS as unknown as Record<string, unknown>) : undefined,
-    typeof window !== 'undefined' && window.BALL_PHYSICS ? (window.BALL_PHYSICS as unknown as Record<string, unknown>) : undefined,
-    typeof window !== 'undefined' && window.GAME_LOOP ? (window.GAME_LOOP as unknown as Record<string, unknown>) : undefined
+    typeof window !== 'undefined' && GAME_CONFIG ? (GAME_CONFIG as unknown as Record<string, unknown>) : undefined,
+    typeof window !== 'undefined' && PHYSICS ? (PHYSICS as unknown as Record<string, unknown>) : undefined,
+    typeof window !== 'undefined' && BALL_PHYSICS ? (BALL_PHYSICS as unknown as Record<string, unknown>) : undefined,
+    typeof window !== 'undefined' && GAME_LOOP ? (GAME_LOOP as unknown as Record<string, unknown>) : undefined
   ];
 
   for (const source of configSources) {
@@ -164,8 +165,8 @@ export function CFG_PATH<T>(path: string, defaultValue?: T): T | undefined {
   let current: unknown;
 
   // Try GAME_CONFIG first
-  if (typeof window !== 'undefined' && typeof window.GAME_CONFIG !== 'undefined') {
-    current = window.GAME_CONFIG;
+  if (typeof window !== 'undefined' && typeof GAME_CONFIG !== 'undefined') {
+    current = GAME_CONFIG;
     for (const key of keys) {
       if (current && typeof current === 'object' && key in current) {
         current = (current as Record<string, unknown>)[key];

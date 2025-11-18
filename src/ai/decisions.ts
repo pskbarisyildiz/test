@@ -12,13 +12,15 @@
  * @migrated-from js/ai/aidecisions.js
  */
 
-import type { Player, GameState, Vector2D } from '../types';
+import type { Player, Vector2D } from '../types';
 import { distance } from '../utils/math';
 import { canPlayerActOnBall } from './playerFirstTouch';
 import { getAttackingGoalX, getValidStat, isSetPieceStatus, calculateXG } from '../utils/ui';
 import { recordOffsidePositions } from '../rules/offside';
 import { getPlayerFacingDirection, findBestPassOption_WithVision } from './playerVision';
 import { handleShotAttempt } from '../main';
+import { gameState } from '../globalExports';
+import { GAME_CONFIG, PHYSICS } from '../config';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -93,7 +95,7 @@ export function passBall(
   speed: number = 400,
   isShot: boolean = false
 ): void {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   if (passingPlayer && !isShot) {
     // --- 1. STATS: PASS ATTEMPTED ---
@@ -121,7 +123,7 @@ export function passBall(
   let maxHeight = 0;
   let passType: 'ground' | 'aerial' | 'shot' = 'ground';
 
-  const PHYSICS = window.PHYSICS ?? { LONG_PASS_THRESHOLD: 150 };
+  // Using imported PHYSICS from config
   const LONG_PASS_THRESHOLD = (PHYSICS as any).LONG_PASS_THRESHOLD ?? 150;
 
   if (isShot) {
@@ -346,7 +348,7 @@ export function initiatePass(player: Player, target: Player | null): void {
     return;
   }
 
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
   const distance = getDistance(player, target);
   const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
   const nearbyOpponents = allPlayers
@@ -395,7 +397,7 @@ export function initiatePass(player: Player, target: Player | null): void {
  * Initiate a through ball
  */
 export function initiateThroughBall(player: Player, throughBall: ThroughBallOpportunity): void {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
   let passSpeed = 600 + player.passing * 5;
 
   // ✅ FIX: Reduce pass power immediately after kick-off to prevent wild passes
@@ -461,8 +463,8 @@ export function handlePlayerWithBall_WithFirstTouch(
   opponents: Player[],
   teammates: Player[]
 ): void {
-  const gameState = window.gameState as GameState;
-  const GAME_CONFIG = window.GAME_CONFIG ?? { GOAL_CHECK_DISTANCE: 200, PASSING_CHANCE: 0.6 };
+  // Using imported gameState from globalExports
+  // Using imported GAME_CONFIG from config
 
   // Can't act if still settling the ball
   if (!canPlayerActOnBall(player)) {
@@ -580,7 +582,7 @@ export function handlePlayerWithBall_WithVision(
   opponents: Player[],
   teammates: Player[]
 ): void {
-  const gameState = window.gameState as GameState;
+  // Using imported gameState from globalExports
 
   // Pre-condition: Can player act on ball?
   if (!canPlayerActOnBall(player)) {
