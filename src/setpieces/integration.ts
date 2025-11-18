@@ -60,7 +60,7 @@ export function ensureCorrectSetPiecePlacement(gameState: GameState): void {
     }
 }
 
-export function assignSetPieceKicker(player: Player): void {
+export function assignSetPieceKicker(player: Player | null): void {
     if (typeof gameState === 'undefined' || !gameState || !gameState.setPiece) {
         return;
     }

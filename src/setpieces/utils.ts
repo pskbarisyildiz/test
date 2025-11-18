@@ -196,7 +196,7 @@ export class PositionManager {
 //   }
 // }
 
-function getSafeStat(stats: any, key: string, defaultValue: number = 0): number {
+export function getSafeStat(stats: any, key: string, defaultValue: number = 0): number {
   if (stats && typeof stats[key] === 'number' && !isNaN(stats[key])) {
     return stats[key];
   }
