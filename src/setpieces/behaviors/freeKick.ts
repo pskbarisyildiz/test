@@ -142,8 +142,8 @@ export const ProfessionalFreeKickBehaviors = {
       return getRoleBasedFallbackPosition(player.role, { player, gameState });
     }
 
-    const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-    const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+    const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+    const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
     const activeConfig = { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
 
     const isDangerous = distToGoal < 280;
@@ -467,8 +467,8 @@ export const ProfessionalFreeKickBehaviors = {
       return getRoleBasedFallbackPosition(player.role, { player, gameState });
     }
 
-    const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-    const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+    const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+    const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
     const SET_PIECE_TYPES = { FREE_KICK: 'FREE_KICK' };
     const activeConfig = { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
 
@@ -684,8 +684,8 @@ export const ProfessionalFreeKickBehaviors = {
         return getRoleBasedFallbackPosition(positionData.role, { player, gameState });
       }
 
-      const PITCH_WIDTH = (window as any).GAME_CONFIG?.PITCH_WIDTH || 800;
-      const PITCH_HEIGHT = (window as any).GAME_CONFIG?.PITCH_HEIGHT || 600;
+      const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
+      const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
       const activeConfig = { GOAL_Y_TOP: 225, GOAL_Y_BOTTOM: 375 };
 
       // Calculate wall base position to cover near post

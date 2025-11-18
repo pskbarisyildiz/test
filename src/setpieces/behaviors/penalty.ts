@@ -57,6 +57,4 @@ export const PenaltyKickBehaviors = {
 // BROWSER EXPORTS
 // ============================================================================
 
-if (typeof window !== 'undefined') {
-  (window as any).PenaltyKickBehaviors = PenaltyKickBehaviors;
-}
+
