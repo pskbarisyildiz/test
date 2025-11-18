@@ -12324,7 +12324,10 @@ var FootballSim = (() => {
       gameState.shotInProgress = false;
       gameState.shooter = null;
       gameState.currentShotXG = null;
+      const priorityChaser = gameState.currentPassReceiver;
       gameState.currentPassReceiver = null;
+      const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
+      assignBallChasers(allPlayers, priorityChaser);
     }
   }
   function validateBallState() {

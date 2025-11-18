@@ -111,7 +111,14 @@ export function updateBallTrajectory(_dt: number): void {
     gameState.shotInProgress = false;
     gameState.shooter = null;
     gameState.currentShotXG = null;
+
+    // ✅ FIX: Assign ball chasers when pass/trajectory completes and ball is loose
+    // This ensures players immediately pursue the ball when it lands from a pass
+    const priorityChaser = gameState.currentPassReceiver;
     gameState.currentPassReceiver = null;
+
+    const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
+    assignBallChasers(allPlayers, priorityChaser);
   }
 }
 
