@@ -270,18 +270,19 @@ export function updatePlayerPhysics(allPlayers, dt) {
             const speed = Math.sqrt(player.vx * player.vx + player.vy * player.vy);
             const distCovered = player.distanceCovered ?? 0;
             player.distanceCovered = distCovered + speed * dt;
-            // Stamina drain based on speed
+            // IMPROVED: Stamina drain per second (not per frame) - more balanced
             let drainRate = 0.15;
             if (speed > 180)
-                drainRate = 1.8;
+                drainRate = 0.8; // Was 1.8 - way too punishing
             else if (speed > 140)
-                drainRate = 1.0;
+                drainRate = 0.4; // Was 1.0
             else if (speed > 100)
-                drainRate = 0.5;
+                drainRate = 0.25; // Was 0.5
             if (player.isChasingBall)
                 drainRate *= 1.2;
+            // Apply drain rate scaled by deltaTime (drain is per second)
             const stamina = player.stamina ?? 100;
-            player.stamina = Math.max(0, stamina - drainRate * dt);
+            player.stamina = Math.max(0, stamina - (drainRate * dt));
             if (stamina < 20) {
                 player.speedBoost = Math.max(player.speedBoost * 0.90, 0.6);
             }
@@ -420,7 +421,10 @@ function updatePlayerVelocity(player, dx, dy, dist, dt) {
     const paceFactor = 0.3 + (player.pace / 100) * 0.7;
     const accel = PHYSICS.ACCELERATION * (paceFactor + physicalityBonus) * speedMultiplier;
     const maxSpeed = PHYSICS.MAX_SPEED * paceFactor * speedMultiplier;
-    const effectiveMaxSpeed = player.hasBallControl ? maxSpeed * PHYSICS.DRIBBLE_SPEED_PENALTY : maxSpeed;
+    // IMPROVED: Players move faster when off-ball to get into position
+    const effectiveMaxSpeed = player.hasBallControl
+        ? maxSpeed * PHYSICS.DRIBBLE_SPEED_PENALTY // 75% speed with ball
+        : maxSpeed * 1.15; // 115% speed without ball (positioning)
     let desiredSpeed = effectiveMaxSpeed;
     if (dist < SLOWING_RADIUS) {
         desiredSpeed = effectiveMaxSpeed * (dist / SLOWING_RADIUS);

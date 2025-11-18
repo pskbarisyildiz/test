@@ -374,16 +374,17 @@ export function updatePlayerPhysics(allPlayers: Player[], dt: number): void {
       const distCovered = (player as Player & { distanceCovered?: number }).distanceCovered ?? 0;
       (player as Player & { distanceCovered: number }).distanceCovered = distCovered + speed * dt;
 
-      // Stamina drain based on speed
+      // IMPROVED: Stamina drain per second (not per frame) - more balanced
       let drainRate = 0.15;
-      if (speed > 180) drainRate = 1.8;
-      else if (speed > 140) drainRate = 1.0;
-      else if (speed > 100) drainRate = 0.5;
+      if (speed > 180) drainRate = 0.8;        // Was 1.8 - way too punishing
+      else if (speed > 140) drainRate = 0.4;   // Was 1.0
+      else if (speed > 100) drainRate = 0.25;  // Was 0.5
 
       if (player.isChasingBall) drainRate *= 1.2;
 
+      // Apply drain rate scaled by deltaTime (drain is per second)
       const stamina = (player as Player & { stamina?: number }).stamina ?? 100;
-      (player as Player & { stamina: number }).stamina = Math.max(0, stamina - drainRate * dt);
+      (player as Player & { stamina: number }).stamina = Math.max(0, stamina - (drainRate * dt));
 
       if (stamina < 20) {
         player.speedBoost = Math.max(player.speedBoost * 0.90, 0.6);
@@ -559,7 +560,10 @@ function updatePlayerVelocity(player: Player, dx: number, dy: number, dist: numb
   const accel = PHYSICS.ACCELERATION * (paceFactor + physicalityBonus) * speedMultiplier;
   const maxSpeed = PHYSICS.MAX_SPEED * paceFactor * speedMultiplier;
 
-  const effectiveMaxSpeed = player.hasBallControl ? maxSpeed * PHYSICS.DRIBBLE_SPEED_PENALTY : maxSpeed;
+  // IMPROVED: Players move faster when off-ball to get into position
+  const effectiveMaxSpeed = player.hasBallControl
+    ? maxSpeed * PHYSICS.DRIBBLE_SPEED_PENALTY  // 75% speed with ball
+    : maxSpeed * 1.15;                           // 115% speed without ball (positioning)
 
   let desiredSpeed = effectiveMaxSpeed;
   if (dist < SLOWING_RADIUS) {

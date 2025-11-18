@@ -293,7 +293,7 @@ export function handleThrowIn(): void {
         type: 'THROW_IN',
         team: throwInTeam,
         position: { x: throwInX, y: throwInY },
-        executionTime: Date.now() + 1000,
+        executionTime: Date.now() + 400,  // IMPROVED: Much faster (was 1000ms)
         executed: false
     };
 
@@ -351,7 +351,7 @@ export function handleBallOutOfBounds(): void {
             type: 'CORNER_KICK',
             team: !defendingTeamIsHome,
             position: SetPieceIntegration.getCornerKickPosition(isLeftCorner, isTopCorner),
-            executionTime: Date.now() + 1200,
+            executionTime: Date.now() + 800,  // IMPROVED: Faster execution (was 1200ms)
             executed: false
         };
 
@@ -377,7 +377,7 @@ export function handleBallOutOfBounds(): void {
             type: 'GOAL_KICK',
             team: defendingTeamIsHome,
             position: SetPieceIntegration.getGoalKickPosition(gkX, 'center'),
-            executionTime: Date.now() + 1200,
+            executionTime: Date.now() + 1000,  // IMPROVED: Faster execution (was 1200ms)
             executed: false
         };
 
