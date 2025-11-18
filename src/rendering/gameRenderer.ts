@@ -11,6 +11,7 @@ import type { GameState } from '../types';
 import { drawPlayer } from './drawEntities';
 import { drawBall } from './drawEntities';
 import { gameState } from '../globalExports';
+import { GAME_CONFIG } from '../config';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -41,7 +42,7 @@ export function renderGame(): void {
   const ctx = gameState.contexts.game;
 
   // YÜKSEK ÇÖZÜNÜRLÜK AYARLARI
-  const SCALE_FACTOR = window.CFG().HIGH_DPI_SCALE_FACTOR;
+  const SCALE_FACTOR = GAME_CONFIG.HIGH_DPI_SCALE_FACTOR;
   const LOGICAL_WIDTH = gameState.isVertical ? 600 : 800;
   const LOGICAL_HEIGHT = gameState.isVertical ? 800 : 600;
 

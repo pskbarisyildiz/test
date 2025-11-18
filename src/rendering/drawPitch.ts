@@ -9,6 +9,7 @@
 
 import type { GameState } from '../types';
 import { gameState } from '../globalExports';
+import { GAME_CONFIG } from '../config';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -61,9 +62,9 @@ export function drawPitchBackground(): void {
     ctx.drawImage(
       gameState.offscreenPitch,
       0, 0, // Source X, Y
-      window.CFG().PITCH_WIDTH, window.CFG().PITCH_HEIGHT,
+      GAME_CONFIG.PITCH_WIDTH, GAME_CONFIG.PITCH_HEIGHT,
       0, 0, // Destination X, Y (Logical 0, 0)
-      window.CFG().PITCH_WIDTH, window.CFG().PITCH_HEIGHT
+      GAME_CONFIG.PITCH_WIDTH, GAME_CONFIG.PITCH_HEIGHT
     );
     ctx.restore(); // Restore context (Semicolon removed from the end)
     return; // Exit the function now that the pitch is drawn
@@ -73,8 +74,8 @@ export function drawPitchBackground(): void {
 
   // Create a new hidden canvas in memory (ALWAYS 800x600)
   const offscreenCanvas = document.createElement('canvas');
-  offscreenCanvas.width = window.CFG().PITCH_WIDTH;  // 800
-  offscreenCanvas.height = window.CFG().PITCH_HEIGHT; // 600
+  offscreenCanvas.width = GAME_CONFIG.PITCH_WIDTH;  // 800
+  offscreenCanvas.height = GAME_CONFIG.PITCH_HEIGHT; // 600
   const offCtx = offscreenCanvas.getContext('2d'); // Draw on the hidden canvas
 
   if (!offCtx) {
@@ -83,8 +84,8 @@ export function drawPitchBackground(): void {
     return;
   }
 
-  const w = window.CFG().PITCH_WIDTH;
-  const h = window.CFG().PITCH_HEIGHT;
+  const w = GAME_CONFIG.PITCH_WIDTH;
+  const h = GAME_CONFIG.PITCH_HEIGHT;
 
   // Perform drawing operations on the hidden 800x600 canvas
   drawGrass(offCtx, w, h);
@@ -101,9 +102,9 @@ export function drawPitchBackground(): void {
   ctx.drawImage(
     gameState.offscreenPitch,
     0, 0,
-    window.CFG().PITCH_WIDTH, window.CFG().PITCH_HEIGHT,
+    GAME_CONFIG.PITCH_WIDTH, GAME_CONFIG.PITCH_HEIGHT,
     0, 0,
-    window.CFG().PITCH_WIDTH, window.CFG().PITCH_HEIGHT
+    GAME_CONFIG.PITCH_WIDTH, GAME_CONFIG.PITCH_HEIGHT
   );
   // -------------------------------------------------------------------
   ctx.restore(); // Restore context

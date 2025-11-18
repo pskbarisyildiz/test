@@ -9,6 +9,7 @@
 
 import type { GameState } from '../types';
 import { gameState } from '../globalExports';
+import { GAME_CONFIG } from '../config';
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -105,8 +106,7 @@ export function initializeCanvasLayers(): boolean {
 
   // YÜKSEK ÇÖZÜNÜRLÜK İÇİN ÖLÇEK FAKTÖRÜ
   // Bu değer, setupGameScreen'de kullanılan çarpanla aynı olmalıdır (Örn: 2)
-  // NOTE: Eğer global bir GAME_CONFIG objeniz varsa, bu değeri oradan çekin.
-  const SCALE_FACTOR = window.CFG().HIGH_DPI_SCALE_FACTOR; // Çözünürlüğü iki katına çıkarıyoruz (800x600 -> 1600x1200)
+  const SCALE_FACTOR = GAME_CONFIG.HIGH_DPI_SCALE_FACTOR; // Çözünürlüğü iki katına çıkarıyoruz (800x600 -> 1600x1200)
 
   container.style.display = 'block';
 
