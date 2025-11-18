@@ -13852,6 +13852,7 @@ var FootballSim = (() => {
     };
     window.resolveBallControl = resolveBallControl;
     window.handleBallInterception = handleBallInterception;
+    window.updatePlayerAI_V2 = updatePlayerAI_V2;
     window.switchSummaryTab = switchSummaryTab;
     window.switchSimulationMode = switchSimulationMode;
     window.addMatchToBatch = addMatchToBatch;
@@ -13859,6 +13860,8 @@ var FootballSim = (() => {
     window.startMatch = startMatch;
     window.resetMatch = resetMatch;
     window.handleFileUpload = handleFileUpload;
+    window.handleBallOutOfBounds = handleBallOutOfBounds;
+    window.handleThrowIn = handleThrowIn;
     if (typeof window.gameState === "undefined") {
       window.gameState = initializeGameState();
       console.log("\u2713 Game state initialized (TypeScript)");

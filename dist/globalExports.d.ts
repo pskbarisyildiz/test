@@ -15,10 +15,11 @@ import { initFirstTouchStats } from './ai/playerFirstTouch';
 import { ensureCorrectSetPiecePlacement, assignSetPieceKicker, getCornerKickPosition, getGoalKickPosition, positionForSetPiece_Unified, updatePlayerAI_V2_SetPieceEnhancement, executeSetPiece_PostExecution } from './setpieces/integration';
 import { configureSetPieceRoutines, executeSetPiece_PreConfiguration } from './setpieces/config';
 import { executeSetPiece_Router } from './setpieces/execution';
+import { updatePlayerAI_V2 } from './core';
 import { switchSummaryTab } from './ui/uiComponents';
 import { switchSimulationMode, addMatchToBatch } from './ui/uiScreens';
 import { CustomFixtureSimulator } from './batch-simulator';
-import { startMatch, resetMatch, handleFileUpload } from './main';
+import { startMatch, resetMatch, handleFileUpload, handleBallOutOfBounds, handleThrowIn } from './main';
 declare global {
     interface Window {
         GAME_LOOP: typeof GAME_LOOP;
@@ -67,6 +68,7 @@ declare global {
             [key: string]: any;
         };
         SetPieceEnforcement: any;
+        updatePlayerAI_V2: typeof updatePlayerAI_V2;
         switchSummaryTab: typeof switchSummaryTab;
         switchSimulationMode: typeof switchSimulationMode;
         addMatchToBatch: typeof addMatchToBatch;
@@ -74,6 +76,8 @@ declare global {
         startMatch: typeof startMatch;
         resetMatch: typeof resetMatch;
         handleFileUpload: typeof handleFileUpload;
+        handleBallOutOfBounds: typeof handleBallOutOfBounds;
+        handleThrowIn: typeof handleThrowIn;
         gameState: GameState;
     }
 }

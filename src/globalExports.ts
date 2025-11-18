@@ -78,6 +78,11 @@ import {
   handleBallInterception
 } from './rules/ballControl';
 
+// Phase 11: Core Game Functions
+import {
+  updatePlayerAI_V2
+} from './core';
+
 // Phase 10: UI Components and Main Functions (for dynamic onclick handlers)
 import {
   switchSummaryTab
@@ -92,7 +97,9 @@ import {
 import {
   startMatch,
   resetMatch,
-  handleFileUpload
+  handleFileUpload,
+  handleBallOutOfBounds,
+  handleThrowIn
 } from './main';
 
 // ============================================================================
@@ -148,6 +155,8 @@ declare global {
       [key: string]: any;
     };
     SetPieceEnforcement: any;
+    // Phase 11: Core Game Functions
+    updatePlayerAI_V2: typeof updatePlayerAI_V2;
     // Phase 10: UI Components and Main Functions (onclick handlers)
     switchSummaryTab: typeof switchSummaryTab;
     switchSimulationMode: typeof switchSimulationMode;
@@ -156,6 +165,8 @@ declare global {
     startMatch: typeof startMatch;
     resetMatch: typeof resetMatch;
     handleFileUpload: typeof handleFileUpload;
+    handleBallOutOfBounds: typeof handleBallOutOfBounds;
+    handleThrowIn: typeof handleThrowIn;
     gameState: GameState;
   }
 }
@@ -345,6 +356,9 @@ export function exportToWindow(): void {
   window.resolveBallControl = resolveBallControl;
   window.handleBallInterception = handleBallInterception;
 
+  // Phase 11: Export core game functions
+  window.updatePlayerAI_V2 = updatePlayerAI_V2;
+
   // Phase 10: Export UI components and main functions for dynamic onclick handlers
   window.switchSummaryTab = switchSummaryTab;
   window.switchSimulationMode = switchSimulationMode;
@@ -353,6 +367,8 @@ export function exportToWindow(): void {
   window.startMatch = startMatch;
   window.resetMatch = resetMatch;
   window.handleFileUpload = handleFileUpload;
+  window.handleBallOutOfBounds = handleBallOutOfBounds;
+  window.handleThrowIn = handleThrowIn;
 
   // Initialize game state if it doesn't exist
   if (typeof window.gameState === 'undefined') {
