@@ -14,21 +14,7 @@ import { selectBestFormation, selectBestTactic } from '../gameSetup';
 // ============================================================================
 // GLOBAL DECLARATIONS
 // ============================================================================
-
-declare global {
-  interface Window {
-    switchSimulationMode?: typeof switchSimulationMode;
-    addMatchToBatch?: typeof addMatchToBatch;
-    handleFileUpload?: (event: Event) => void;
-    attachSetupEventListeners?: () => void;
-    CustomFixtureSimulator?: {
-      addMatch: (homeTeam: string, awayTeam: string) => void;
-      clearAll: () => void;
-      simulateAll: () => void;
-    };
-    startMatch?: () => void;
-  }
-}
+// Note: Window interface declarations moved to globalExports.ts for centralization
 
 // ============================================================================
 // UPLOAD SCREEN

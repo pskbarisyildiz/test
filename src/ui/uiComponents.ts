@@ -12,11 +12,11 @@ import { gameState } from '../globalExports';
 // ============================================================================
 // GLOBAL DECLARATIONS
 // ============================================================================
+// Note: resetMatch moved to globalExports.ts for centralization
 
 declare global {
   interface Window {
     renderStatisticsSummary?: typeof renderStatisticsSummary;
-    resetMatch?: () => void;
     lightenColor?: (color: string, amount: number) => string;
   }
 }
