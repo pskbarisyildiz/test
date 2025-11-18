@@ -1,5 +1,5 @@
 # TypeScript Build Outputs
-dist/
+# dist/ - Commented out to allow committing the browser bundle
 *.tsbuildinfo
 
 # Dependencies

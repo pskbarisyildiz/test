@@ -1,0 +1,23 @@
+/**
+ * Penalty Kick Behaviors - TypeScript Migration
+ *
+ * Handles player positioning for penalty kicks:
+ * - Kicker positioning at penalty spot
+ * - Penalty arc waiting positions
+ * - Goalkeeper positioning
+ *
+ * @module setpieces/behaviors/penalty
+ * @migrated-from js/setpieces/behaviors/penalty.js
+ */
+import type { Player, GameState, Vector2D } from '../../types';
+export declare const PenaltyKickBehaviors: {
+    /**
+     * Get kicker position at penalty spot
+     */
+    getKickerPosition(penaltyPos: Vector2D): import("../utils").PositionWithMovement;
+    /**
+     * Get penalty arc position for waiting players
+     */
+    getPenaltyArcPosition(player: Player, penaltyPos: Vector2D, isAttacking: boolean, gameState: GameState): import("../utils").PositionWithMovement;
+};
+//# sourceMappingURL=penalty.d.ts.map
