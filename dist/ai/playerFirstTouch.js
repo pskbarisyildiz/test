@@ -246,6 +246,10 @@ export function drawFirstTouchIndicator(ctx, player) {
     ctx.restore();
 }
 export function initFirstTouchStats() {
+    if (!gameState.stats.home)
+        gameState.stats.home = {};
+    if (!gameState.stats.away)
+        gameState.stats.away = {};
     gameState.stats.home.firstTouches = {
         perfect: 0,
         good: 0,
@@ -263,7 +267,11 @@ export function initFirstTouchStats() {
 }
 export function recordFirstTouchStatistic(player, outcome) {
     const teamStats = player.isHome ? gameState.stats.home : gameState.stats.away;
-    teamStats.firstTouches[outcome]++;
+    if (!teamStats || !teamStats.firstTouches)
+        return;
+    if (outcome === 'perfect' || outcome === 'good' || outcome === 'poor' || outcome === 'failed') {
+        teamStats.firstTouches[outcome]++;
+    }
     teamStats.firstTouches.total++;
 }
 //# sourceMappingURL=playerFirstTouch.js.map

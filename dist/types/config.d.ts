@@ -46,6 +46,8 @@ export interface GameConfig {
     readonly AVERAGE_SPRINT_TIME_TO_GOAL: number;
     readonly REACTION_TIME_MIN: number;
     readonly REACTION_TIME_MAX: number;
+    readonly GOAL_X_LEFT: number;
+    readonly GOAL_X_RIGHT: number;
     GAME_SPEED?: number;
 }
 export interface BehaviorTreeConfig {

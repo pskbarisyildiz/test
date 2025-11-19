@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../config';
 import { gameState } from '../globalExports';
+import { distance } from './math';
 export function ensureStatsShape(gs) {
     gs.stats = gs.stats || {};
     const s = gs.stats;
@@ -22,6 +23,8 @@ export function setPossession(gs, homePct, awayPct) {
     s.home.possession = Math.max(0, Math.min(100, homePct));
     s.away.possession = Math.max(0, Math.min(100, awayPct));
     // update legacy mirror
+    if (!s.possession)
+        s.possession = { home: 0, away: 0 };
     s.possession.home = s.home.possession;
     s.possession.away = s.away.possession;
 }
@@ -38,11 +41,9 @@ export function isSetPieceStatus(status) {
         return false;
     return SET_PIECE_STATUSES.includes(status);
 }
-export function getDistance(a, b) {
-    const ax = Number(a?.x) || 0, ay = Number(a?.y) || 0;
-    const bx = Number(b?.x) || 0, by = Number(b?.y) || 0;
-    return Math.hypot(ax - bx, ay - by);
-}
+// Re-export distance function from math.ts as getDistance for backward compatibility
+// This consolidates duplicate implementations and uses the safer version
+export { distance as getDistance };
 export function getAttackingGoalX(isHome, currentHalf) {
     const GOAL_X_LEFT_DEFAULT = 50;
     const GOAL_X_RIGHT_DEFAULT = 750;
@@ -76,7 +77,7 @@ export function calculateXG(shooter, goalX, goalY, opponents) {
     const angleQuality = Math.max(0, 1 - (angleToGoalCenter / maxAngle));
     const normalizedDistance = Math.min(distToGoal / 400, 1);
     const distanceQuality = Math.pow(1 - normalizedDistance, 1.5);
-    const nearbyDefenders = opponents.filter(opp => getDistance(shooter, opp) < 30);
+    const nearbyDefenders = opponents.filter(opp => distance(shooter, opp) < 30);
     const pressureMultiplier = Math.max(0.4, 1 - (nearbyDefenders.length * 0.18));
     const shooterAbility = 0.2 + (shooter.shooting / 100) * 0.8;
     const speed = Math.sqrt(shooter.vx * shooter.vx + shooter.vy * shooter.vy);

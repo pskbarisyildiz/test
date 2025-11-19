@@ -36,7 +36,8 @@ function getDistance(p1, p2) {
  */
 export function getPositionConfig(role) {
     // Using imported POSITION_CONFIGS from config
-    return POSITION_CONFIGS[role.toUpperCase()] || {
+    const normalizedRole = role.toUpperCase();
+    return POSITION_CONFIGS[normalizedRole] || {
         defensiveness: 0.5,
         attackRange: 0.5,
         ballChasePriority: 0.5,
@@ -408,7 +409,7 @@ export function updateTacticalPosition(player, ball, _teammates, opponents) {
         return;
     }
     // Ball chasers go straight to ball
-    if (gameState.ballChasers.has(player.id)) {
+    if (gameState.ballChasers.has(player)) {
         player.targetX = ball.x;
         player.targetY = ball.y;
         player.targetLocked = true;

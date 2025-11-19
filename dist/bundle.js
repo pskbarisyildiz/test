@@ -5654,6 +5654,7 @@ var FootballSim = (() => {
         </div>
     `;
     setTimeout(() => {
+      attachSetupEventListeners();
     }, 0);
   }
   function switchSimulationMode(mode) {
@@ -13970,6 +13971,15 @@ var FootballSim = (() => {
     window.resolveBallControl = resolveBallControl;
     window.handleBallInterception = handleBallInterception;
     window.updatePlayerAI_V2 = updatePlayerAI_V2;
+    window.updatePhysics = updatePhysics;
+    window.assignBallChasers = assignBallChasers;
+    window.getPlayerActivePosition = getPlayerActivePosition;
+    window.getAttackingGoalX = getAttackingGoalX;
+    window.processPendingEvents = processPendingEvents;
+    window.updateMatchStats = updateMatchStats;
+    window.switchSides = switchSides;
+    window.resetAfterGoal = resetAfterGoal;
+    window.handleShotAttempt = handleShotAttempt;
     window.switchSummaryTab = switchSummaryTab;
     window.switchSimulationMode = switchSimulationMode;
     window.addMatchToBatch = addMatchToBatch;

@@ -556,7 +556,11 @@ export function handleShotAttempt(holder, goalX, allPlayers) {
 // ============================================================================
 export function updateMatchStats() {
     const now = Date.now();
-    const elapsed = (now - gameState.stats.lastPossessionUpdate) / 1000;
+    const lastUpdate = gameState.stats.lastPossessionUpdate ?? now;
+    const elapsed = (now - lastUpdate) / 1000;
+    if (!gameState.stats.possessionTimer) {
+        gameState.stats.possessionTimer = { home: 0, away: 0 };
+    }
     if (gameState.ballHolder) {
         if (gameState.ballHolder.isHome) {
             gameState.stats.possessionTimer.home += elapsed;

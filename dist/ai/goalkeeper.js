@@ -405,7 +405,7 @@ export function updateGoalkeeperAI_Advanced(goalkeeper, ball, opponents) {
     goalkeeper.targetX = optimalPosition.x;
     goalkeeper.targetY = optimalPosition.y;
     goalkeeper.speedBoost = 1.0 - stance.mobilityPenalty;
-    goalkeeper.currentMainThreat = mainThreat;
+    goalkeeper.currentMainThreat = mainThreat?.player || null;
     goalkeeper.threatCount = threats.length;
     goalkeeper.isSweeping = false;
     goalkeeper.isClaimingCross = false;

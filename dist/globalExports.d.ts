@@ -16,6 +16,10 @@ import { ensureCorrectSetPiecePlacement, assignSetPieceKicker, getCornerKickPosi
 import { configureSetPieceRoutines, executeSetPiece_PreConfiguration } from './setpieces/config';
 import { executeSetPiece_Router } from './setpieces/execution';
 import { updatePlayerAI_V2 } from './core';
+import { updatePhysics, assignBallChasers } from './physics';
+import { getPlayerActivePosition } from './ai/movement';
+import { getAttackingGoalX } from './utils/ui';
+import { processPendingEvents, updateMatchStats, switchSides, resetAfterGoal, handleShotAttempt } from './main';
 import { switchSummaryTab } from './ui/uiComponents';
 import { switchSimulationMode, addMatchToBatch } from './ui/uiScreens';
 import { CustomFixtureSimulator } from './batch-simulator';
@@ -69,6 +73,15 @@ declare global {
         };
         SetPieceEnforcement: any;
         updatePlayerAI_V2: typeof updatePlayerAI_V2;
+        updatePhysics: typeof updatePhysics;
+        assignBallChasers: typeof assignBallChasers;
+        getPlayerActivePosition: typeof getPlayerActivePosition;
+        getAttackingGoalX: typeof getAttackingGoalX;
+        processPendingEvents: typeof processPendingEvents;
+        updateMatchStats: typeof updateMatchStats;
+        switchSides: typeof switchSides;
+        resetAfterGoal: typeof resetAfterGoal;
+        handleShotAttempt: typeof handleShotAttempt;
         switchSummaryTab: typeof switchSummaryTab;
         switchSimulationMode: typeof switchSimulationMode;
         addMatchToBatch: typeof addMatchToBatch;

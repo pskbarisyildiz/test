@@ -219,11 +219,17 @@ export function shouldAvoidOffside(player, ball, opponents) {
     return false;
 }
 export function initOffsideStats() {
+    if (!gameState.stats.home)
+        gameState.stats.home = {};
+    if (!gameState.stats.away)
+        gameState.stats.away = {};
     gameState.stats.home.offsides = 0;
     gameState.stats.away.offsides = 0;
 }
 export function recordOffsideStatistic(player) {
     const teamStats = player.isHome ? gameState.stats.home : gameState.stats.away;
-    teamStats.offsides++;
+    if (!teamStats)
+        return;
+    teamStats.offsides = (teamStats.offsides || 0) + 1;
 }
 //# sourceMappingURL=offside.js.map

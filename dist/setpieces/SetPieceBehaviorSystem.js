@@ -91,7 +91,7 @@ function calculateSetPiecePositionWithSafety(player, gameState, setPieceType, is
                     GoalKickBehaviors.getDefendingGoalKickPosition(player, opponentGoalX, ownGoalX, gameState, opponents, teammates);
             case SET_PIECE_TYPES.PENALTY:
                 if (isAttacking) {
-                    const isKicker = gameState.setPiece.kicker && String(gameState.setPiece.kicker.id) === String(player.id);
+                    const isKicker = gameState.setPiece?.kicker && String(gameState.setPiece.kicker.id) === String(player.id);
                     if (isKicker) {
                         return PenaltyBehaviors.getKickerPosition(setPiecePos);
                     }
@@ -99,9 +99,9 @@ function calculateSetPiecePositionWithSafety(player, gameState, setPieceType, is
                 return PenaltyBehaviors.getPenaltyArcPosition(player, setPiecePos, isAttacking, gameState);
             case SET_PIECE_TYPES.KICK_OFF:
                 if (typeof KickoffBehaviors.getKickoffPosition !== 'undefined') {
-                    const kickingTeamIsHome = typeof gameState.setPiece.team === 'boolean'
+                    const kickingTeamIsHome = typeof gameState.setPiece?.team === 'boolean'
                         ? gameState.setPiece.team
-                        : gameState.setPiece.team === 'home';
+                        : gameState.setPiece?.team === 'home';
                     const isKickingTeam = player.isHome === kickingTeamIsHome;
                     return KickoffBehaviors.getKickoffPosition(player, setPiecePos, isKickingTeam, gameState);
                 }
@@ -152,9 +152,9 @@ function shouldLockSetPiecePosition(player, gameState) {
     const movementLower = typeof movement === 'string' ? movement.toLowerCase() : '';
     const lockKeywords = ['kicker', 'thrower', 'wall'];
     if (lockKeywords.some(keyword => movementLower.includes(keyword))) {
-        return getDistance(player, gameState.setPiece.position) < 15;
+        return getDistance(player, gameState.setPiece?.position) < 15;
     }
-    if (!gameState.setPiece.executionTime)
+    if (!gameState.setPiece?.executionTime)
         return false;
     const timeUntilExecution = gameState.setPiece.executionTime - Date.now();
     return timeUntilExecution < 1500 && timeUntilExecution > -500;
