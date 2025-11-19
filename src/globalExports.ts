@@ -83,6 +83,31 @@ import {
   updatePlayerAI_V2
 } from './core';
 
+// Physics Functions
+import {
+  updatePhysics,
+  assignBallChasers
+} from './physics';
+
+// AI Movement Functions
+import {
+  getPlayerActivePosition
+} from './ai/movement';
+
+// UI Utility Functions
+import {
+  getAttackingGoalX
+} from './utils/ui';
+
+// Main Game Functions
+import {
+  processPendingEvents,
+  updateMatchStats,
+  switchSides,
+  resetAfterGoal,
+  handleShotAttempt
+} from './main';
+
 // Phase 10: UI Components and Main Functions (for dynamic onclick handlers)
 import {
   switchSummaryTab
@@ -91,6 +116,9 @@ import {
   switchSimulationMode,
   addMatchToBatch
 } from './ui/uiScreens';
+import {
+  render
+} from './ui/uiManager';
 import {
   CustomFixtureSimulator
 } from './batch-simulator';
@@ -157,10 +185,24 @@ declare global {
     SetPieceEnforcement: any;
     // Phase 11: Core Game Functions
     updatePlayerAI_V2: typeof updatePlayerAI_V2;
+    // Physics Functions
+    updatePhysics: typeof updatePhysics;
+    assignBallChasers: typeof assignBallChasers;
+    // AI Movement Functions
+    getPlayerActivePosition: typeof getPlayerActivePosition;
+    // UI Utility Functions
+    getAttackingGoalX: typeof getAttackingGoalX;
+    // Main Game Functions
+    processPendingEvents: typeof processPendingEvents;
+    updateMatchStats: typeof updateMatchStats;
+    switchSides: typeof switchSides;
+    resetAfterGoal: typeof resetAfterGoal;
+    handleShotAttempt: typeof handleShotAttempt;
     // Phase 10: UI Components and Main Functions (onclick handlers)
     switchSummaryTab: typeof switchSummaryTab;
     switchSimulationMode: typeof switchSimulationMode;
     addMatchToBatch: typeof addMatchToBatch;
+    render?: typeof render;
     CustomFixtureSimulator: typeof CustomFixtureSimulator;
     startMatch: typeof startMatch;
     resetMatch: typeof resetMatch;
@@ -359,10 +401,28 @@ export function exportToWindow(): void {
   // Phase 11: Export core game functions
   window.updatePlayerAI_V2 = updatePlayerAI_V2;
 
+  // Export physics functions
+  window.updatePhysics = updatePhysics;
+  window.assignBallChasers = assignBallChasers;
+
+  // Export AI movement functions
+  window.getPlayerActivePosition = getPlayerActivePosition;
+
+  // Export UI utility functions
+  window.getAttackingGoalX = getAttackingGoalX;
+
+  // Export main game functions
+  window.processPendingEvents = processPendingEvents;
+  window.updateMatchStats = updateMatchStats;
+  window.switchSides = switchSides;
+  window.resetAfterGoal = resetAfterGoal;
+  window.handleShotAttempt = handleShotAttempt;
+
   // Phase 10: Export UI components and main functions for dynamic onclick handlers
   window.switchSummaryTab = switchSummaryTab;
   window.switchSimulationMode = switchSimulationMode;
   window.addMatchToBatch = addMatchToBatch;
+  window.render = render;
   window.CustomFixtureSimulator = CustomFixtureSimulator;
   window.startMatch = startMatch;
   window.resetMatch = resetMatch;

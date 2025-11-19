@@ -163,9 +163,47 @@ export interface Player {
     goalkeeper: any;
     wasOffsideWhenBallPlayed?: boolean;
     facingAngle?: number;
+    firstTouchQuality?: number;
+    firstTouchTime?: number;
+    ballSettleTime?: number;
+    setPieceRole?: string;
+    setPieceLocked?: boolean;
+    setPieceMovement?: string;
+    setPieceRunTarget?: {
+        x: number;
+        y: number;
+    } | null;
+    _setPieceWasClose?: boolean;
+    stance?: string;
+    stanceSaveBonus?: number;
+    stanceMobilityPenalty?: number;
+    isSweeping?: boolean;
+    isClaimingCross?: boolean;
+    crossClaimStartTime?: number;
+    currentMainThreat?: Player | null;
+    threatCount?: number;
+    isDiving?: boolean;
+    diveStartTime?: number;
+    diveDirection?: {
+        x: number;
+        y: number;
+    };
+    diveDuration?: number;
 }
 export interface GameState {
-    stats: any;
+    stats: {
+        home: any;
+        away: any;
+        possession?: {
+            home: number;
+            away: number;
+        };
+        possessionTimer?: {
+            home: number;
+            away: number;
+        };
+        lastPossessionUpdate?: number;
+    };
     canvases?: {
         background: HTMLCanvasElement | null;
         game: HTMLCanvasElement | null;

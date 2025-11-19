@@ -192,7 +192,7 @@ export const CustomFixtureSimulator = {
                 }
                 else {
                     gameState.status = 'KICK_OFF';
-                    gameState.setPiece = { type: 'KICK_OFF', team: teamWithBall === 'home', position: { x: 400, y: 300 }, executionTime: Date.now() };
+                    gameState.setPiece = { type: 'KICK_OFF', team: teamWithBall === 'home', position: { x: 400, y: 300 }, executed: false, executionTime: Date.now() };
                 }
             };
             window.handleHalfTime = () => {
@@ -373,16 +373,16 @@ export const CustomFixtureSimulator = {
                         if (window.DEBUG_BATCH_SIM) {
                             console.log(`[BatchSim] Restored rendering functions for match ${matchId}`);
                         }
-                        const homePassAcc = (gameState.stats.home.passesAttempted || 0) > 0 ? Math.round((gameState.stats.home.passesCompleted / gameState.stats.home.passesAttempted) * 100) : 0;
-                        const awayPassAcc = (gameState.stats.away.passesAttempted || 0) > 0 ? Math.round((gameState.stats.away.passesCompleted / gameState.stats.away.passesAttempted) * 100) : 0;
+                        const homePassAcc = (gameState.stats.home?.passesAttempted || 0) > 0 ? Math.round((gameState.stats.home.passesCompleted / gameState.stats.home.passesAttempted) * 100) : 0;
+                        const awayPassAcc = (gameState.stats.away?.passesAttempted || 0) > 0 ? Math.round((gameState.stats.away.passesCompleted / gameState.stats.away.passesAttempted) * 100) : 0;
                         const result = {
                             matchId: matchId, homeTeam: homeTeam, awayTeam: awayTeam,
                             homeScore: gameState.homeScore ?? 0, awayScore: gameState.awayScore ?? 0,
-                            homeXG: (gameState.stats.home.xGTotal || 0).toFixed(2), awayXG: (gameState.stats.away.xGTotal || 0).toFixed(2),
-                            homePossession: gameState.stats.home.possession || 0, awayPossession: gameState.stats.away.possession || 0,
-                            homeShots: (gameState.stats.home.shotsOnTarget || 0) + (gameState.stats.home.shotsOffTarget || 0),
-                            awayShots: (gameState.stats.away.shotsOnTarget || 0) + (gameState.stats.away.shotsOffTarget || 0),
-                            homeShotsOnTarget: gameState.stats.home.shotsOnTarget || 0, awayShotsOnTarget: gameState.stats.away.shotsOnTarget || 0,
+                            homeXG: (gameState.stats.home?.xGTotal || 0).toFixed(2), awayXG: (gameState.stats.away?.xGTotal || 0).toFixed(2),
+                            homePossession: gameState.stats.home?.possession || 0, awayPossession: gameState.stats.away?.possession || 0,
+                            homeShots: (gameState.stats.home?.shotsOnTarget || 0) + (gameState.stats.home?.shotsOffTarget || 0),
+                            awayShots: (gameState.stats.away?.shotsOnTarget || 0) + (gameState.stats.away?.shotsOffTarget || 0),
+                            homeShotsOnTarget: gameState.stats.home?.shotsOnTarget || 0, awayShotsOnTarget: gameState.stats.away?.shotsOnTarget || 0,
                             homePassAccuracy: homePassAcc, awayPassAccuracy: awayPassAcc,
                             winner: (gameState.homeScore ?? 0) > (gameState.awayScore ?? 0) ? homeTeam : (gameState.awayScore ?? 0) > (gameState.homeScore ?? 0) ? awayTeam : 'Draw',
                             goalEvents: [...(gameState.goalEvents || [])], cardEvents: [...(gameState.cardEvents || [])]
@@ -680,6 +680,46 @@ export const CustomFixtureSimulator = {
             window.batchGameIntervalId = null;
         }
         if (typeof gameState !== 'undefined') {
+            // Clear match-specific state to prevent data from persisting to next game
+            gameState.goalEvents = [];
+            gameState.cardEvents = [];
+            gameState.homeScore = 0;
+            gameState.awayScore = 0;
+            gameState.timeElapsed = 0;
+            gameState.currentHalf = 1;
+            gameState.commentary = [];
+            gameState.fouls = 0;
+            gameState.yellowCards = [];
+            gameState.redCards = [];
+            gameState.lastGoalScorer = null;
+            // Reset stats
+            gameState.stats = {
+                home: {
+                    possession: 0,
+                    possessionTime: 0,
+                    passesCompleted: 0,
+                    passesAttempted: 0,
+                    shotsOnTarget: 0,
+                    shotsOffTarget: 0,
+                    tackles: 0,
+                    interceptions: 0,
+                    xGTotal: 0
+                },
+                away: {
+                    possession: 0,
+                    possessionTime: 0,
+                    passesCompleted: 0,
+                    passesAttempted: 0,
+                    shotsOnTarget: 0,
+                    shotsOffTarget: 0,
+                    tackles: 0,
+                    interceptions: 0,
+                    xGTotal: 0
+                },
+                possession: { home: 50, away: 50 },
+                possessionTimer: { home: 0, away: 0 },
+                lastPossessionUpdate: Date.now()
+            };
             gameState.status = 'setup';
             if (typeof window.render === 'function') {
                 window.render();

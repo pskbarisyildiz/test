@@ -768,18 +768,50 @@ export function handleFoul_V2(fouler: Player, fouled: Player): void {
     if (alreadyBooked && severity > 0.80) {
         console.log(`🟥 İKİNCİ SARI KART! ${fouler.name} oyundan atıldı.`);
         removePlayerFromMatch(fouler);
-        gameState.cardEvents.push({ player: fouler.name, time: Math.floor(gameState.timeElapsed), type: 'second_yellow' });
+        gameState.redCards.push({
+            player: fouler.name,
+            time: Math.floor(gameState.timeElapsed),
+            type: 'second_yellow'
+        });
+        gameState.cardEvents.push({
+            player: fouler.name,
+            time: Math.floor(gameState.timeElapsed),
+            type: 'second_yellow',
+            isHome: fouler.isHome,
+            card: 'red'
+        });
 
     } else if (severity > 0.85) {
         // Direct red
         if (severity > 0.97) {
             console.log(`🟥 DİREKT KIRMIZI KART! ${fouler.name} oyundan atıldı.`);
             removePlayerFromMatch(fouler);
-            gameState.cardEvents.push({ player: fouler.name, time: Math.floor(gameState.timeElapsed), type: 'direct_red' });
+            gameState.redCards.push({
+                player: fouler.name,
+                time: Math.floor(gameState.timeElapsed),
+                type: 'direct_red'
+            });
+            gameState.cardEvents.push({
+                player: fouler.name,
+                time: Math.floor(gameState.timeElapsed),
+                type: 'direct_red',
+                isHome: fouler.isHome,
+                card: 'red'
+            });
 
         } else if (!alreadyBooked) {
             console.log(`🟨 SARI KART! ${fouler.name}`);
-            gameState.cardEvents.push({ player: fouler.name, time: Math.floor(gameState.timeElapsed), type: 'yellow' });
+            gameState.yellowCards.push({
+                player: fouler.name,
+                time: Math.floor(gameState.timeElapsed)
+            });
+            gameState.cardEvents.push({
+                player: fouler.name,
+                time: Math.floor(gameState.timeElapsed),
+                type: 'yellow',
+                isHome: fouler.isHome,
+                card: 'yellow'
+            });
         }
     }
 
@@ -870,7 +902,6 @@ export function updateParticlesWithCleanup(gameState: GameState): void {
 
     if (gameState.particles.length > MAX_PARTICLES) {
         gameState.particles = gameState.particles.slice(-MAX_PARTICLES);
-        console.log(`⚠️ Particle count capped at ${MAX_PARTICLES} (performance protection)`);
     }
 }
 

@@ -762,6 +762,48 @@ export const CustomFixtureSimulator = {
             (window as any).batchGameIntervalId = null;
         }
         if (typeof gameState !== 'undefined') {
+            // Clear match-specific state to prevent data from persisting to next game
+            gameState.goalEvents = [];
+            gameState.cardEvents = [];
+            gameState.homeScore = 0;
+            gameState.awayScore = 0;
+            gameState.timeElapsed = 0;
+            gameState.currentHalf = 1;
+            gameState.commentary = [];
+            gameState.fouls = 0;
+            gameState.yellowCards = [];
+            gameState.redCards = [];
+            gameState.lastGoalScorer = null;
+
+            // Reset stats
+            gameState.stats = {
+                home: {
+                    possession: 0,
+                    possessionTime: 0,
+                    passesCompleted: 0,
+                    passesAttempted: 0,
+                    shotsOnTarget: 0,
+                    shotsOffTarget: 0,
+                    tackles: 0,
+                    interceptions: 0,
+                    xGTotal: 0
+                },
+                away: {
+                    possession: 0,
+                    possessionTime: 0,
+                    passesCompleted: 0,
+                    passesAttempted: 0,
+                    shotsOnTarget: 0,
+                    shotsOffTarget: 0,
+                    tackles: 0,
+                    interceptions: 0,
+                    xGTotal: 0
+                },
+                possession: { home: 50, away: 50 },
+                possessionTimer: { home: 0, away: 0 },
+                lastPossessionUpdate: Date.now()
+            };
+
             gameState.status = 'setup';
             if (typeof (window as any).render === 'function') {
                 (window as any).render();

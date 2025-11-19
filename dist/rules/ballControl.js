@@ -21,7 +21,7 @@ export function resolveBallControl(allPlayers) {
     const eligiblePlayers = allPlayers.filter(p => !(p.stunnedUntil && Date.now() < p.stunnedUntil));
     if (eligiblePlayers.length === 0)
         return;
-    const BALL_CONTROL_DISTANCE = (typeof PHYSICS !== 'undefined') ? PHYSICS.BALL_CONTROL_DISTANCE : 25;
+    const BALL_CONTROL_DISTANCE = PHYSICS?.BALL_CONTROL_DISTANCE ?? 25;
     const controlCandidates = eligiblePlayers.map(player => {
         const distToBall = distance(player, gameState.ballPosition);
         let effectiveControlDistance = BALL_CONTROL_DISTANCE * (player.isChasingBall ? 2.0 : 1.0);
@@ -85,7 +85,7 @@ export function resolveBallControl(allPlayers) {
     }
 }
 export function canControlBall(player, ball) {
-    const BALL_CONTROL_DISTANCE = (typeof PHYSICS !== 'undefined') ? PHYSICS.BALL_CONTROL_DISTANCE : 25;
+    const BALL_CONTROL_DISTANCE = PHYSICS?.BALL_CONTROL_DISTANCE ?? 25;
     const dist = distance(player, ball);
     const isSetPiece = ['GOAL_KICK', 'FREE_KICK', 'CORNER_KICK', 'THROW_IN', 'KICK_OFF', 'PENALTY'].includes(gameState.status);
     if (isSetPiece && gameState.setPiece && !gameState.setPiece.executed) {
@@ -93,7 +93,7 @@ export function canControlBall(player, ball) {
             player.setPieceRole.includes('THROWER') ||
             player.setPieceRole === 'CORNER_KICKER' ||
             player.setPieceRole === 'PRIMARY_KICKER');
-        const isGoalkeeper = player.role === 'GK' || player.role === 'goalkeeper';
+        const isGoalkeeper = player.role === 'GK';
         if (!isDesignatedTaker && !isGoalkeeper) {
             return false;
         }
@@ -108,7 +108,7 @@ export function action_attemptTackle(player, allPlayers) {
     const attacker = gameState.ballHolder;
     if (!attacker)
         return false;
-    if (attacker.role === 'GK' || attacker.role === 'goalkeeper') {
+    if (attacker.role === 'GK') {
         if (typeof SetPieceEnforcement !== 'undefined' && SetPieceEnforcement.protectGoalkeeper) {
             SetPieceEnforcement.protectGoalkeeper(player, attacker, gameState);
         }
@@ -168,8 +168,8 @@ export function handleBallInterception(progress) {
     const trajectory = gameState.ballTrajectory;
     if (!trajectory)
         return;
-    const HEADER_HEIGHT_THRESHOLD = (typeof PHYSICS !== 'undefined') ? PHYSICS.HEADER_HEIGHT_THRESHOLD : 0.6;
-    const PASS_INTERCEPT_DISTANCE = (typeof PHYSICS !== 'undefined') ? PHYSICS.PASS_INTERCEPT_DISTANCE : 25;
+    const HEADER_HEIGHT_THRESHOLD = PHYSICS?.HEADER_HEIGHT_THRESHOLD ?? 0.6;
+    const PASS_INTERCEPT_DISTANCE = PHYSICS?.PASS_INTERCEPT_DISTANCE ?? 25;
     const isAerial = trajectory.passType === 'aerial';
     const isHeaderOpportunity = isAerial && gameState.ballHeight > HEADER_HEIGHT_THRESHOLD;
     if (progress >= 1 || progress < 0.2)

@@ -556,7 +556,11 @@ export function handleShotAttempt(holder, goalX, allPlayers) {
 // ============================================================================
 export function updateMatchStats() {
     const now = Date.now();
-    const elapsed = (now - gameState.stats.lastPossessionUpdate) / 1000;
+    const lastUpdate = gameState.stats.lastPossessionUpdate ?? now;
+    const elapsed = (now - lastUpdate) / 1000;
+    if (!gameState.stats.possessionTimer) {
+        gameState.stats.possessionTimer = { home: 0, away: 0 };
+    }
     if (gameState.ballHolder) {
         if (gameState.ballHolder.isHome) {
             gameState.stats.possessionTimer.home += elapsed;
@@ -857,6 +861,36 @@ export function startMatch() {
         gameState.redCards = [];
         gameState.lastGoalScorer = null;
         gameState.lastTouchedBy = null;
+        gameState.goalEvents = [];
+        gameState.cardEvents = [];
+        // Reset stats
+        gameState.stats = {
+            home: {
+                possession: 0,
+                possessionTime: 0,
+                passesCompleted: 0,
+                passesAttempted: 0,
+                shotsOnTarget: 0,
+                shotsOffTarget: 0,
+                tackles: 0,
+                interceptions: 0,
+                xGTotal: 0
+            },
+            away: {
+                possession: 0,
+                possessionTime: 0,
+                passesCompleted: 0,
+                passesAttempted: 0,
+                shotsOnTarget: 0,
+                shotsOffTarget: 0,
+                tackles: 0,
+                interceptions: 0,
+                xGTotal: 0
+            },
+            possession: { home: 50, away: 50 },
+            possessionTimer: { home: 0, away: 0 },
+            lastPossessionUpdate: Date.now()
+        };
         gameState.setPieceExecuting = false;
         gameState.lastControlAttempt = 0;
         gameState.homeTeamState = 'BALANCED';

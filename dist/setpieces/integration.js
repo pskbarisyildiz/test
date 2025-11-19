@@ -169,7 +169,7 @@ export function positionForSetPiece_Legacy(player, allPlayers) {
     }
 }
 export function updatePlayerAI_V2_SetPieceEnhancement(player, allPlayers, gameState) {
-    if (!gameState?.setPiece || !gameState.setPiece?.type) {
+    if (!gameState?.setPiece || !gameState.setPiece.type) {
         if (gameState?.status && ['KICK_OFF', 'FREE_KICK', 'CORNER_KICK', 'THROW_IN', 'GOAL_KICK', 'PENALTY'].includes(gameState.status)) {
             console.warn(`⚠️ SET-PIECE AI: Set-piece status (${gameState.status}) active but no setPiece object for player ${player.name}`);
         }
@@ -280,7 +280,7 @@ export function executeSetPiece_PostExecution() {
     if (gameState.ballTrajectory) {
         const trajectory = gameState.ballTrajectory;
         const hasValidStartTime = typeof trajectory.startTime === 'number' && !isNaN(trajectory.startTime);
-        const executionTime = setPieceToClear?.executionTime;
+        const executionTime = setPieceToClear.executionTime;
         const shouldClearTrajectory = !hasValidStartTime ||
             (typeof executionTime === 'number' && trajectory.startTime < executionTime - 200);
         if (shouldClearTrajectory) {

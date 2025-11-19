@@ -108,6 +108,10 @@ export interface Player extends PlayerAttributes, PlayerGameState {
     composure?: number;
     wasOffsideWhenBallPlayed?: boolean;
     facingAngle?: number;
+    firstTouchQuality?: number;
+    firstTouchTime?: number;
+    ballSettleTime?: number;
+    setPieceRole?: string;
 }
 /** Ball trajectory for passes and shots */
 export interface BallTrajectory {
@@ -172,6 +176,14 @@ export interface TeamStateModifier {
     readonly riskTolerance: number;
     readonly pressTriggerDistance: number;
 }
+/** First touch statistics breakdown */
+export interface FirstTouchStats {
+    perfect: number;
+    good: number;
+    poor: number;
+    failed: number;
+    total: number;
+}
 /** Team match statistics */
 export interface TeamStats {
     possession: number;
@@ -184,6 +196,8 @@ export interface TeamStats {
     interceptions: number;
     xGTotal: number;
     saves?: number;
+    offsides?: number;
+    firstTouches?: FirstTouchStats;
 }
 /** Match statistics container */
 export interface MatchStats {
@@ -230,6 +244,8 @@ export interface SetPieceState {
     side?: string;
     configured?: boolean;
     isDangerous?: boolean;
+    routine?: string;
+    defensiveSystem?: string;
 }
 /** Penalty system state */
 export interface PenaltyState {

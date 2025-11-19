@@ -9,6 +9,7 @@
 import { gameState } from '../globalExports';
 import { TACTICS } from '../config';
 import { selectBestFormation, selectBestTactic } from '../gameSetup';
+import { attachSetupEventListeners } from '../main';
 // ============================================================================
 // GLOBAL DECLARATIONS
 // ============================================================================
@@ -270,7 +271,7 @@ export function renderSetupScreen(app) {
         </div>
     `; // <-- The closing `};` should be here
     setTimeout(() => {
-        // attachSetupEventListeners would be called here if needed
+        attachSetupEventListeners();
     }, 0);
 }
 // ============================================================================
