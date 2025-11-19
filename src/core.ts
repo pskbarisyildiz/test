@@ -77,9 +77,9 @@ class SpatialAwarenessSystem {
         for (let r = row - cellRadius; r <= row + cellRadius; r++) {
             for (let c = col - cellRadius; c <= col + cellRadius; c++) {
                 if (this.grid && r >= 0 && r < this.grid.length && this.grid[0] && c >= 0 && c < this.grid[0].length) {
-                    const row = this.grid[r];
-                    if (row) {
-                        const cell = row[c];
+                    const gridRow = this.grid[r];
+                    if (gridRow) {
+                        const cell = gridRow[c];
                         if (cell) {
                             nearby.push(...cell);
                         }

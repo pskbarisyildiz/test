@@ -6,7 +6,8 @@ import { executeSetPiece_PostExecution } from '../setpieces/integration';
 export const offsideTracker = {
     lastPassTime: 0,
     playersOffsideWhenBallPlayed: new Set(),
-    lastPassingTeam: null
+    lastPassingTeam: null,
+    pendingFreeKickTimeout: null
 };
 export function isPlayerInOffsidePosition(player, ball, opponents) {
     const opponentGoalX = getAttackingGoalX(player.isHome, gameState.currentHalf);
@@ -123,8 +124,14 @@ export function awardOffsideFreeKick(offsidePlayer) {
         offsideTracker.playersOffsideWhenBallPlayed.clear();
         return;
     }
+    // Clear any pending offside free kick timeout to prevent race conditions
+    if (offsideTracker.pendingFreeKickTimeout !== null) {
+        clearTimeout(offsideTracker.pendingFreeKickTimeout);
+        offsideTracker.pendingFreeKickTimeout = null;
+    }
     const offsideCallTime = Date.now();
-    setTimeout(() => {
+    offsideTracker.pendingFreeKickTimeout = window.setTimeout(() => {
+        offsideTracker.pendingFreeKickTimeout = null;
         // Validate game state hasn't changed significantly
         if (gameState.status === 'finished' || gameState.status === 'goal_scored') {
             return;
@@ -143,14 +150,12 @@ export function awardOffsideFreeKick(offsidePlayer) {
         offsideTracker.playersOffsideWhenBallPlayed.clear();
     }, 1000);
 }
-// IMPROVED: Frame counter for performance optimization
-let offsideDrawFrameCounter = 0;
 export function drawOffsideLines(ctx) {
     if (!gameState.contexts || !gameState.contexts.game)
         return;
     // PERFORMANCE: Only draw every 5th frame (12 FPS at 60 FPS) - still smooth but 5x less CPU
-    offsideDrawFrameCounter++;
-    if (offsideDrawFrameCounter % 5 !== 0)
+    // Use time-based approach to avoid unbounded counter memory leak
+    if (Math.floor(Date.now() / 16) % 5 !== 0)
         return;
     // Optional: Only draw if enabled in debug mode
     // Uncomment the following line to disable offside lines in production:

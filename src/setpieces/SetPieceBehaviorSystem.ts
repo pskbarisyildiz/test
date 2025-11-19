@@ -97,8 +97,8 @@ function calculateSetPiecePositionWithSafety(player: Player, gameState: GameStat
 
             case SET_PIECE_TYPES.CORNER_KICK:
                 return isAttacking ?
-                    CornerKickBehaviors.getAttackingCornerPosition(player, setPiecePos, opponentGoalX, teammates, null, (gameState.setPiece as any)?.routine, gameState) :
-                    CornerKickBehaviors.getDefendingCornerPosition(player, setPiecePos, ownGoalX, opponents, null, (gameState.setPiece as any)?.defensiveSystem, gameState, teammates);
+                    CornerKickBehaviors.getAttackingCornerPosition(player, setPiecePos, opponentGoalX, teammates, null, gameState.setPiece?.routine, gameState) :
+                    CornerKickBehaviors.getDefendingCornerPosition(player, setPiecePos, ownGoalX, opponents, null, gameState.setPiece?.defensiveSystem, gameState, teammates);
 
             case SET_PIECE_TYPES.THROW_IN:
                 return ThrowInBehaviors.getThrowInPosition(player, setPiecePos, ownGoalX, opponentGoalX, gameState, teammates, opponents);
@@ -111,7 +111,7 @@ function calculateSetPiecePositionWithSafety(player: Player, gameState: GameStat
 
             case SET_PIECE_TYPES.PENALTY:
                 if (isAttacking) {
-                    const isKicker = (gameState.setPiece as any).kicker && String((gameState.setPiece as any).kicker.id) === String(player.id);
+                    const isKicker = gameState.setPiece?.kicker && String(gameState.setPiece.kicker.id) === String(player.id);
                     if (isKicker) {
                         return PenaltyBehaviors.getKickerPosition(setPiecePos);
                     }
@@ -120,9 +120,9 @@ function calculateSetPiecePositionWithSafety(player: Player, gameState: GameStat
 
             case SET_PIECE_TYPES.KICK_OFF:
                 if (typeof KickoffBehaviors.getKickoffPosition !== 'undefined') {
-                    const kickingTeamIsHome = typeof (gameState.setPiece as any).team === 'boolean'
-                        ? (gameState.setPiece as any).team
-                        : (gameState.setPiece as any).team === 'home';
+                    const kickingTeamIsHome = typeof gameState.setPiece?.team === 'boolean'
+                        ? gameState.setPiece.team
+                        : gameState.setPiece?.team === 'home';
                     const isKickingTeam = player.isHome === kickingTeamIsHome;
                     return KickoffBehaviors.getKickoffPosition(player, setPiecePos, isKickingTeam, gameState);
                 }
@@ -182,11 +182,11 @@ function shouldLockSetPiecePosition(player: Player, gameState: GameState): boole
 
     const lockKeywords = ['kicker', 'thrower', 'wall'];
     if (lockKeywords.some(keyword => movementLower.includes(keyword))) {
-        return getDistance(player, (gameState.setPiece as any).position) < 15;
+        return getDistance(player, gameState.setPiece?.position) < 15;
     }
 
-    if (!(gameState.setPiece as any).executionTime) return false;
-    const timeUntilExecution = (gameState.setPiece as any).executionTime - Date.now();
+    if (!gameState.setPiece?.executionTime) return false;
+    const timeUntilExecution = gameState.setPiece.executionTime - Date.now();
     return timeUntilExecution < 1500 && timeUntilExecution > -500;
 }
 

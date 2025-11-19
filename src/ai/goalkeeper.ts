@@ -279,9 +279,9 @@ export function calculateOptimalGoalkeeperPosition(
 
   // IMPROVED CORNER POSITIONING
   if (gameState.status === 'CORNER_KICK' && gameState.setPiece) {
-    const cornerY = (gameState.setPiece as any).position.y;
+    const cornerY = gameState.setPiece.position.y;
 
-    const realStats = (goalkeeper as any).realStats || {};
+    const realStats = goalkeeper.realStats || {};
     const sweeperRating = realStats.gkKeeperSweeper || 5;
     const aggressionFactor = sweeperRating / 10; // 0.5 to 1.0
 
@@ -303,8 +303,8 @@ export function calculateOptimalGoalkeeperPosition(
     let targetY = goalCenterY + baseShift + (cornerY > goalCenterY ? postAdjustment : -postAdjustment);
 
     // FIXED: Ensure keeper stays within reasonable bounds
-    const minY = (GAME_CONFIG as any).GOAL_Y_TOP + 25;
-    const maxY = (GAME_CONFIG as any).GOAL_Y_BOTTOM - 25;
+    const minY = GAME_CONFIG.GOAL_Y_TOP + 25;
+    const maxY = GAME_CONFIG.GOAL_Y_BOTTOM - 25;
     targetY = Math.max(minY, Math.min(maxY, targetY));
 
     // FIXED: Slight forward positioning for corners
@@ -340,7 +340,7 @@ export function calculateOptimalGoalkeeperPosition(
   const normX = vectorX / vectorLength;
   const normY = vectorY / vectorLength;
 
-  const realStats = (goalkeeper as any).realStats || {};
+  const realStats = goalkeeper.realStats || {};
   const sweeperAbility = realStats.gkKeeperSweeper || 0;
   const sweeperModifier = sweeperAbility * 0.3;
 
@@ -367,8 +367,8 @@ export function calculateOptimalGoalkeeperPosition(
   const targetX = goalX + normX * advanceDistance;
   const targetY = goalCenterY + normY * (advanceDistance * 0.6);
 
-  const goalTop = (GAME_CONFIG as any).GOAL_Y_TOP;
-  const goalBottom = (GAME_CONFIG as any).GOAL_Y_BOTTOM;
+  const goalTop = GAME_CONFIG.GOAL_Y_TOP;
+  const goalBottom = GAME_CONFIG.GOAL_Y_BOTTOM;
 
   // FIXED: Better X constraint
   const isLeftGoal = goalX < 400;
@@ -433,7 +433,7 @@ export function shouldGoalkeeperSweep(
   ));
 
   // Sweeper ability affects decision
-  const realStats = (goalkeeper as any).realStats || {};
+  const realStats = goalkeeper.realStats || {};
   const sweeperConfidence = (realStats.gkKeeperSweeper || 0) / 10;
 
   // Keeper should sweep if they can get there first (with safety margin)
@@ -473,7 +473,7 @@ export function handleCrossSituation(
   // Can keeper claim it?
   const distToBall = getDistance(goalkeeper, { x: traj.endX, y: traj.endY });
 
-  const realStats = (goalkeeper as any).realStats || {};
+  const realStats = goalkeeper.realStats || {};
   const aerialAbility = realStats.aerialsWonPercent || 50;
 
   if (distToBall < GOALKEEPER_CONFIG.CROSS_CLAIM_RANGE) {
@@ -517,17 +517,17 @@ export function updateGoalkeeperAI_Advanced(
   const mainThreat = threats[0] || null;
 
   const stance = determineGoalkeeperStance(goalkeeper, mainThreat, threats, ball);
-  (goalkeeper as any).stance = stance.name;
-  (goalkeeper as any).stanceSaveBonus = stance.saveBonus;
-  (goalkeeper as any).stanceMobilityPenalty = stance.mobilityPenalty;
+  goalkeeper.stance = stance.name;
+  goalkeeper.stanceSaveBonus = stance.saveBonus;
+  goalkeeper.stanceMobilityPenalty = stance.mobilityPenalty;
 
   if (shouldGoalkeeperSweep(goalkeeper, ball, opponents)) {
     const traj = gameState.ballTrajectory;
     if (traj) {
       goalkeeper.targetX = traj.endX;
       goalkeeper.targetY = traj.endY;
-      (goalkeeper as any).speedBoost = 1.3;
-      (goalkeeper as any).isSweeping = true;
+      goalkeeper.speedBoost = 1.3;
+      goalkeeper.isSweeping = true;
       console.log(`🏃 ${goalkeeper.name} sweeping!`);
       return;
     }
@@ -537,9 +537,9 @@ export function updateGoalkeeperAI_Advanced(
   if (crossAction) {
     goalkeeper.targetX = crossAction.targetX;
     goalkeeper.targetY = crossAction.targetY;
-    (goalkeeper as any).speedBoost = 1.2;
-    (goalkeeper as any).isClaimingCross = true;
-    (goalkeeper as any).crossClaimStartTime = Date.now();
+    goalkeeper.speedBoost = 1.2;
+    goalkeeper.isClaimingCross = true;
+    goalkeeper.crossClaimStartTime = Date.now();
     console.log(`🙌 ${goalkeeper.name} going for cross!`);
 
     const claimStartTime = Date.now();
@@ -552,20 +552,20 @@ export function updateGoalkeeperAI_Advanced(
       }
 
       // Check if goalkeeper is still claiming and close enough
-      if ((goalkeeper as any).isClaimingCross &&
-          (goalkeeper as any).crossClaimStartTime === claimStartTime &&
+      if (goalkeeper.isClaimingCross &&
+          goalkeeper.crossClaimStartTime === claimStartTime &&
           getDistance(goalkeeper, gameState.ballPosition) < 40) {
         if (Math.random() < crossAction.successChance) {
           gameState.ballHolder = goalkeeper;
           goalkeeper.hasBallControl = true;
           gameState.ballTrajectory = null;
-          (goalkeeper as any).ballReceivedTime = Date.now();
+          goalkeeper.ballReceivedTime = Date.now();
           console.log(`✅ ${goalkeeper.name} claims the cross!`);
         } else {
           console.log(`❌ ${goalkeeper.name} missed the cross!`);
         }
       }
-      (goalkeeper as any).isClaimingCross = false;
+      goalkeeper.isClaimingCross = false;
     }, expectedDuration);
 
     return;
@@ -581,13 +581,13 @@ export function updateGoalkeeperAI_Advanced(
   goalkeeper.targetX = optimalPosition.x;
   goalkeeper.targetY = optimalPosition.y;
 
-  (goalkeeper as any).speedBoost = 1.0 - stance.mobilityPenalty;
+  goalkeeper.speedBoost = 1.0 - stance.mobilityPenalty;
 
-  (goalkeeper as any).currentMainThreat = mainThreat;
-  (goalkeeper as any).threatCount = threats.length;
+  goalkeeper.currentMainThreat = mainThreat?.player || null;
+  goalkeeper.threatCount = threats.length;
 
-  (goalkeeper as any).isSweeping = false;
-  (goalkeeper as any).isClaimingCross = false;
+  goalkeeper.isSweeping = false;
+  goalkeeper.isClaimingCross = false;
 }
 
 // ============================================================================
@@ -618,7 +618,7 @@ export function calculateSaveProbability_Advanced(
   const gkRatingNorm = (goalkeeper.rating - 6.0) / 4.0; // Normalize 6–10 → 0–1
   const baseAbility = (gkSkill * 0.7) + (gkRatingNorm * 0.3);
 
-  const realStats = (goalkeeper as any).realStats || {};
+  const realStats = goalkeeper.realStats || {};
   const savePercentBonus = realStats.gkSavePercent ? (realStats.gkSavePercent / 100) * 0.30 : 0;
   const reflexBonus = (goalkeeper.pace / 100) * 0.20;
   const consistencyBonus = (realStats.gkGoalsPrevented || 0) * 0.01; // each prevented goal = +1%
@@ -628,7 +628,7 @@ export function calculateSaveProbability_Advanced(
 
   let attackerEffect = 1.0; // Neutral by default
   if (shooter) {
-    const rs = (shooter as any).realStats || {};
+    const rs = shooter.realStats || {};
 
     // Key offensive metrics
     const finisherSkill = (shooter.shooting || 60) / 100; // base
@@ -659,8 +659,8 @@ export function calculateSaveProbability_Advanced(
   const maxReach = 120;
   const reachRatio = Math.max(0, 1 - (distanceToShot / maxReach));
 
-  const stanceBonus = (goalkeeper as any).stanceSaveBonus || 0;
-  const anticipationBonus = ((goalkeeper as any).stance === 'set' || (goalkeeper as any).stance === 'ready') ? 0.10 : 0;
+  const stanceBonus = goalkeeper.stanceSaveBonus || 0;
+  const anticipationBonus = (goalkeeper.stance === 'set' || goalkeeper.stance === 'ready') ? 0.10 : 0;
 
   // ============= SHOT DIFFICULTY =============
 
@@ -719,9 +719,9 @@ export function triggerGoalkeeperSave(
   const diveX = shotX - goalkeeper.x;
   const diveY = shotY - goalkeeper.y;
 
-  (goalkeeper as any).isDiving = true;
-  (goalkeeper as any).diveStartTime = Date.now();
-  (goalkeeper as any).diveDirection = { x: diveX, y: diveY };
+  goalkeeper.isDiving = true;
+  goalkeeper.diveStartTime = Date.now();
+  goalkeeper.diveDirection = { x: diveX, y: diveY };
 
   // --- IMPROVED: DYNAMIC TIMING & REACH ---
   const gkSkill = (goalkeeper.goalkeeping || 60) / 100;
@@ -732,15 +732,15 @@ export function triggerGoalkeeperSave(
   // Faster dive for tough shots and skilled GKs
   const baseDuration = 600 + (200 * (1 - gkSkill));
   const diveDuration = baseDuration * (1.0 - (saveProbability * 0.3));
-  (goalkeeper as any).diveDuration = diveDuration;
+  goalkeeper.diveDuration = diveDuration;
 
   // Apply limited reach so animation looks realistic
-  (goalkeeper as any).diveDirection.x *= reachFactor;
-  (goalkeeper as any).diveDirection.y *= reachFactor;
+  goalkeeper.diveDirection.x *= reachFactor;
+  goalkeeper.diveDirection.y *= reachFactor;
 
   // --- AUTO RESET ---
   setTimeout(() => {
-    (goalkeeper as any).isDiving = false;
+    goalkeeper.isDiving = false;
   }, diveDuration);
 
   // --- PARTICLES ---
@@ -774,7 +774,7 @@ export function drawGoalkeeperStanceIndicator(
   ctx: CanvasRenderingContext2D,
   goalkeeper: Player
 ): void {
-  if (!(goalkeeper as any).stance) return;
+  if (!goalkeeper.stance) return;
 
   const stanceColors: Record<string, string> = {
     comfortable: '#10b981',
@@ -784,7 +784,7 @@ export function drawGoalkeeperStanceIndicator(
     oneOnOne: '#ef4444'
   };
 
-  const color = stanceColors[(goalkeeper as any).stance] || '#6b7280';
+  const color = stanceColors[goalkeeper.stance] || '#6b7280';
 
   ctx.save();
   ctx.strokeStyle = color;
@@ -797,7 +797,7 @@ export function drawGoalkeeperStanceIndicator(
   ctx.fillStyle = color;
   ctx.font = 'bold 10px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText((goalkeeper as any).stance.toUpperCase(), goalkeeper.x, goalkeeper.y - 35);
+  ctx.fillText(goalkeeper.stance.toUpperCase(), goalkeeper.x, goalkeeper.y - 35);
 
   ctx.restore();
 }
@@ -819,8 +819,8 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
   }
 
   const teamStats = holder.isHome ? gameState.stats.home : gameState.stats.away;
-  const goalTop = (GAME_CONFIG as any).GOAL_Y_TOP;
-  const goalBottom = (GAME_CONFIG as any).GOAL_Y_BOTTOM;
+  const goalTop = GAME_CONFIG.GOAL_Y_TOP;
+  const goalBottom = GAME_CONFIG.GOAL_Y_BOTTOM;
 
   if (shotTargetY < goalTop || shotTargetY > goalBottom) {
     teamStats.shotsOffTarget++;
@@ -846,18 +846,18 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
 
     const scorerName = holder.name;
     const teamColors = holder.isHome
-      ? [(gameState as any).homeJerseyColor, '#ffffff']
-      : [(gameState as any).awayJerseyColor, '#ffffff'];
+      ? [gameState.homeJerseyColor, '#ffffff']
+      : [gameState.awayJerseyColor, '#ffffff'];
 
     // FIXED: isHome instead of team
     gameState.goalEvents.push({
       scorer: holder.name,
       time: Math.floor(gameState.timeElapsed),
       isHome: holder.isHome
-    } as any);
+    });
 
     createGoalExplosion(goalX, shotTargetY,
-      holder.isHome ? (gameState as any).homeJerseyColor : (gameState as any).awayJerseyColor);
+      holder.isHome ? gameState.homeJerseyColor : gameState.awayJerseyColor);
 
     const xGDisplay = (xG * 100).toFixed(0);
     gameState.commentary.push({
@@ -904,7 +904,7 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
 
     gameState.ballHolder = goalkeeper;
     goalkeeper.hasBallControl = true;
-    (goalkeeper as any).ballReceivedTime = Date.now();
+    goalkeeper.ballReceivedTime = Date.now();
   }
 
   gameState.commentary = gameState.commentary.slice(-6);

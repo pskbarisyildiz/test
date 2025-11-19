@@ -160,6 +160,15 @@ export interface Player extends PlayerAttributes, PlayerGameState {
   readonly realStats: PlayerRealStats;
   readonly isHome: boolean;
   composure?: number; // Optional, defaults to 60
+  // Dynamic game state properties
+  wasOffsideWhenBallPlayed?: boolean; // Tracks offside status when ball was played
+  facingAngle?: number; // Player's facing direction in radians
+  // First touch temporary properties
+  firstTouchQuality?: number; // Quality of last first touch (0-1)
+  firstTouchTime?: number; // Timestamp of first touch
+  ballSettleTime?: number; // Time needed to settle the ball
+  // Set piece properties
+  setPieceRole?: string; // Role in set piece (KICKER, THROWER, etc.)
 }
 
 // ============================================================================
@@ -258,6 +267,15 @@ export interface TeamStateModifier {
 // MATCH STATISTICS
 // ============================================================================
 
+/** First touch statistics breakdown */
+export interface FirstTouchStats {
+  perfect: number;
+  good: number;
+  poor: number;
+  failed: number;
+  total: number;
+}
+
 /** Team match statistics */
 export interface TeamStats {
   possession: number;
@@ -270,6 +288,8 @@ export interface TeamStats {
   interceptions: number;
   xGTotal: number;
   saves?: number;
+  offsides?: number;
+  firstTouches?: FirstTouchStats;
 }
 
 /** Match statistics container */
@@ -337,6 +357,9 @@ export interface SetPieceState {
   side?: string;
   configured?: boolean;
   isDangerous?: boolean;
+  // Corner kick specific properties
+  routine?: string;
+  defensiveSystem?: string;
 }
 
 /** Penalty system state */
@@ -411,6 +434,3 @@ export interface PositionConfig {
   readonly supportDistance: number;
   readonly maxSpeed: number;
 }
-
-/** Export all types */
-export type * from './core';

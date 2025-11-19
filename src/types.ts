@@ -174,10 +174,42 @@ export interface Player {
     currentBehavior: string;
     team: string;
     goalkeeper: any;
+    // Dynamic game state properties (added for type safety)
+    wasOffsideWhenBallPlayed?: boolean; // Tracks offside status when ball was played
+    facingAngle?: number; // Player's facing direction in radians
+    // First touch temporary properties
+    firstTouchQuality?: number; // Quality of last first touch (0-1)
+    firstTouchTime?: number; // Timestamp of first touch
+    ballSettleTime?: number; // Time needed to settle the ball
+    // Set piece properties
+    setPieceRole?: string; // Role in set piece (KICKER, THROWER, etc.)
+    setPieceLocked?: boolean; // Whether player is locked in set piece position
+    setPieceMovement?: string; // Type of movement for set piece
+    setPieceRunTarget?: { x: number; y: number } | null; // Run target after set piece execution
+    _setPieceWasClose?: boolean; // Internal tracking for hysteresis in set piece positioning
+    // Goalkeeper-specific properties
+    stance?: string; // Current goalkeeper stance
+    stanceSaveBonus?: number; // Save bonus from current stance
+    stanceMobilityPenalty?: number; // Mobility penalty from current stance
+    isSweeping?: boolean; // Whether goalkeeper is sweeping
+    isClaimingCross?: boolean; // Whether goalkeeper is claiming a cross
+    crossClaimStartTime?: number; // Timestamp when cross claim started
+    currentMainThreat?: Player | null; // Current main threat being tracked
+    threatCount?: number; // Number of threats being tracked
+    isDiving?: boolean; // Whether goalkeeper is currently diving
+    diveStartTime?: number; // Timestamp when dive started
+    diveDirection?: { x: number; y: number }; // Direction of the dive
+    diveDuration?: number; // Duration of the dive animation
 }
 
 export interface GameState {
-    stats: any;
+    stats: {
+        home: any; // TeamStats but need to avoid circular dependency
+        away: any;
+        possession?: { home: number; away: number };
+        possessionTimer?: { home: number; away: number };
+        lastPossessionUpdate?: number;
+    };
     canvases?: {
         background: HTMLCanvasElement | null;
         game: HTMLCanvasElement | null;

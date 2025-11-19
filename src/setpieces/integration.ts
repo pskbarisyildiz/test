@@ -55,7 +55,7 @@ export function ensureCorrectSetPiecePlacement(gameState: GameState): void {
         gameState.ballPosition = { x, y };
         gameState.ballVelocity = { x: 0, y: 0 };
 
-        const t = (sp as any).executionTime;
+        const t = sp.executionTime;
         const traj = gameState.ballTrajectory;
         const keep = !!(traj && typeof traj.startTime === "number" && typeof t === "number" && (t - traj.startTime) <= 200);
 
@@ -71,7 +71,7 @@ export function assignSetPieceKicker(player: Player | null): void {
         return;
     }
 
-    (gameState.setPiece as any).kicker = player || null;
+    gameState.setPiece.kicker = player || null;
 }
 
 export function getCornerKickPosition(isLeftCorner: boolean, isTopCorner: boolean): { x: number; y: number } {
@@ -123,7 +123,7 @@ export function positionForSetPiece_Unified(player: Player, allPlayers: Player[]
         SET_PIECE_TELEMETRY.invalidPosition++;
         console.error(`❌ getSetPiecePosition INVALID POSITION for ${player.name} (${player.role}) during ${gameState.setPiece.type}`);
         console.error(`   Returned position:`, position);
-        console.error(`   Expected: {x: number, y: number}, got: {x: ${typeof (position as any)?.x}, y: ${typeof (position as any)?.y}} (Count: ${SET_PIECE_TELEMETRY.invalidPosition})`);
+        console.error(`   Expected: {x: number, y: number}, got: {x: ${typeof position?.x}, y: ${typeof position?.y}} (Count: ${SET_PIECE_TELEMETRY.invalidPosition})`);
         return positionForSetPiece_Legacy(player, allPlayers);
     }
 
@@ -134,13 +134,13 @@ export function positionForSetPiece_Unified(player: Player, allPlayers: Player[]
 
     player.targetX = position.x;
     player.targetY = position.y;
-    (player as any).setPieceTarget = { x: position.x, y: position.y };
+    player.setPieceTarget = { x: position.x, y: position.y };
 
-    const timeUntilExecution = (gameState.setPiece as any).executionTime ?
-        (gameState.setPiece as any).executionTime - Date.now() : 3000;
+    const timeUntilExecution = gameState.setPiece.executionTime ?
+        gameState.setPiece.executionTime - Date.now() : 3000;
 
     const isUrgent = timeUntilExecution < 2000;
-    const movementTag = typeof (position as any).movement === 'string' ? (position as any).movement.toLowerCase() : '';
+    const movementTag = typeof position.movement === 'string' ? position.movement.toLowerCase() : '';
     const isKickerOrThrower =
         movementTag.includes('kicker') ||
         movementTag.includes('thrower') ||
@@ -148,22 +148,22 @@ export function positionForSetPiece_Unified(player: Player, allPlayers: Player[]
 
     if (isKickerOrThrower) {
         player.speedBoost = 2.0;
-        (player as any).setPieceLocked = getDistance(player, (gameState.setPiece as any).position) < 8;
+        player.setPieceLocked = getDistance(player, gameState.setPiece.position) < 8;
     } else if (isUrgent) {
         player.speedBoost = 1.8;
-        (player as any).setPieceLocked = false;
+        player.setPieceLocked = false;
     } else {
         player.speedBoost = 1.5;
-        (player as any).setPieceLocked = false;
+        player.setPieceLocked = false;
     }
 
-    (player as any).setPieceMovement = (position as any).movement;
-    (player as any).setPieceRole = (position as any).role;
+    player.setPieceMovement = position.movement;
+    player.setPieceRole = position.role;
 
-    if ((position as any).targetX && (position as any).targetY) {
-        (player as any).setPieceRunTarget = { x: (position as any).targetX, y: (position as any).targetY };
+    if (position.targetX && position.targetY) {
+        player.setPieceRunTarget = { x: position.targetX, y: position.targetY };
     } else {
-        (player as any).setPieceRunTarget = null;
+        player.setPieceRunTarget = null;
     }
 }
 
@@ -199,17 +199,17 @@ export function positionForSetPiece_Legacy(player: Player, allPlayers: Player[])
 }
 
 export function updatePlayerAI_V2_SetPieceEnhancement(player: Player, allPlayers: Player[], gameState: GameState): boolean {
-    if (!gameState?.setPiece || !(gameState.setPiece as any)?.type) {
+    if (!gameState?.setPiece || !gameState.setPiece.type) {
         if (gameState?.status && ['KICK_OFF', 'FREE_KICK', 'CORNER_KICK', 'THROW_IN', 'GOAL_KICK', 'PENALTY'].includes(gameState.status)) {
             console.warn(`⚠️ SET-PIECE AI: Set-piece status (${gameState.status}) active but no setPiece object for player ${player.name}`);
         }
         return false;
     }
 
-    if (!(player as any).setPieceTarget) {
+    if (!player.setPieceTarget) {
         positionForSetPiece_Unified(player, allPlayers);
 
-        if (!(player as any).setPieceTarget) {
+        if (!player.setPieceTarget) {
             console.error(`❌ SET-PIECE AI ERROR: positionForSetPiece_Unified FAILED for ${player.name} (${player.role}) during ${gameState.setPiece.type}`);
             console.error(`   Player:`, { id: player.id, isHome: player.isHome, x: player.x, y: player.y });
             console.error(`   SetPiece:`, gameState.setPiece);
@@ -217,38 +217,38 @@ export function updatePlayerAI_V2_SetPieceEnhancement(player: Player, allPlayers
     }
 
     const now = Date.now();
-    const executionTime = (gameState.setPiece as any).executionTime || now;
+    const executionTime = gameState.setPiece.executionTime || now;
     const timeUntilKick = executionTime - now;
 
-    if ((player as any).lockUntil && now < (player as any).lockUntil) {
-        if ((player as any).setPieceTarget) {
-            const isKickerLocked = (player as any).isKicker && timeUntilKick < 500;
+    if (player.lockUntil && now < player.lockUntil) {
+        if (player.setPieceTarget) {
+            const isKickerLocked = player.isKicker && timeUntilKick < 500;
             if (isKickerLocked) {
-                player.x = (player as any).setPieceTarget.x;
-                player.y = (player as any).setPieceTarget.y;
-                player.targetX = (player as any).setPieceTarget.x;
-                player.targetY = (player as any).setPieceTarget.y;
+                player.x = player.setPieceTarget.x;
+                player.y = player.setPieceTarget.y;
+                player.targetX = player.setPieceTarget.x;
+                player.targetY = player.setPieceTarget.y;
                 player.vx = 0;
                 player.vy = 0;
-                (player as any).intent = "SET_PIECE_HOLD";
+                player.intent = "SET_PIECE_HOLD";
                 return true;
             }
         }
     }
 
-    if ((player as any).lockUntil && now >= (player as any).lockUntil) {
-        (player as any).lockUntil = 0;
-        if ((gameState.setPiece as any).executed || gameState.status === 'playing') {
-            (player as any).setPieceTarget = null;
+    if (player.lockUntil && now >= player.lockUntil) {
+        player.lockUntil = 0;
+        if (gameState.setPiece.executed || gameState.status === 'playing') {
+            player.setPieceTarget = null;
         }
-        (player as any).isInWall = false;
-        (player as any).isDefCBLine = false;
-        (player as any).isMarker = false;
-        (player as any).isKicker = false;
+        player.isInWall = false;
+        player.isDefCBLine = false;
+        player.isMarker = false;
+        player.isKicker = false;
         return false;
     }
 
-    if ((player as any).isKicker && timeUntilKick <= 800 && timeUntilKick > -200) {
+    if (player.isKicker && timeUntilKick <= 800 && timeUntilKick > -200) {
         const bx = gameState.ballPosition.x;
         const by = gameState.ballPosition.y;
         const dx = player.x - bx;
@@ -259,7 +259,7 @@ export function updatePlayerAI_V2_SetPieceEnhancement(player: Player, allPlayers
             player.targetX = bx;
             player.targetY = by;
             player.speedBoost = 2.5;
-            (player as any).intent = "KICKER_APPROACHING";
+            player.intent = "KICKER_APPROACHING";
             return true;
         } else {
             player.x = bx;
@@ -268,29 +268,29 @@ export function updatePlayerAI_V2_SetPieceEnhancement(player: Player, allPlayers
             player.targetY = by;
             player.vx = 0;
             player.vy = 0;
-            (player as any).intent = "KICKER_READY";
+            player.intent = "KICKER_READY";
             return true;
         }
     }
 
-    if ((player as any).setPieceTarget) {
-        const dist = Math.hypot(player.x - (player as any).setPieceTarget.x, player.y - (player as any).setPieceTarget.y);
+    if (player.setPieceTarget) {
+        const dist = Math.hypot(player.x - player.setPieceTarget.x, player.y - player.setPieceTarget.y);
 
-        const wasCloseLastFrame = (player as any)._setPieceWasClose || false;
+        const wasCloseLastFrame = player._setPieceWasClose || false;
         const threshold = wasCloseLastFrame ? 3 : 8;
 
         if (dist > threshold) {
-            player.targetX = (player as any).setPieceTarget.x;
-            player.targetY = (player as any).setPieceTarget.y;
+            player.targetX = player.setPieceTarget.x;
+            player.targetY = player.setPieceTarget.y;
             player.speedBoost = dist > 50 ? 1.8 : 1.3;
-            (player as any).intent = "SET_PIECE_POSITIONING";
-            (player as any)._setPieceWasClose = false;
+            player.intent = "SET_PIECE_POSITIONING";
+            player._setPieceWasClose = false;
             return true;
         } else {
-            player.targetX = (player as any).setPieceTarget.x;
-            player.targetY = (player as any).setPieceTarget.y;
-            (player as any).intent = "SET_PIECE_READY";
-            (player as any)._setPieceWasClose = true;
+            player.targetX = player.setPieceTarget.x;
+            player.targetY = player.setPieceTarget.y;
+            player.intent = "SET_PIECE_READY";
+            player._setPieceWasClose = true;
             return true;
         }
     }
@@ -318,13 +318,13 @@ export function executeSetPiece_PostExecution(): void {
         return;
     }
 
-    (setPieceToClear as any).executed = true;
+    setPieceToClear.executed = true;
     (gameState as any).setPieceExecuting = false;
 
     if (gameState.ballTrajectory) {
         const trajectory = gameState.ballTrajectory;
         const hasValidStartTime = typeof trajectory.startTime === 'number' && !isNaN(trajectory.startTime);
-        const executionTime = (setPieceToClear as any)?.executionTime;
+        const executionTime = setPieceToClear.executionTime;
 
         const shouldClearTrajectory =
             !hasValidStartTime ||
@@ -353,18 +353,18 @@ export function executeSetPiece_PostExecution(): void {
         const allPlayers = [...(gameState.homePlayers || []), ...(gameState.awayPlayers || [])];
         allPlayers.forEach(player => {
             if (player) {
-                (player as any).setPieceLocked = false;
-                (player as any).setPieceMovement = null;
-                (player as any).setPieceRole = null;
-                (player as any).setPieceRunTarget = null;
-                (player as any).setPieceTarget = null;
-                (player as any)._setPieceWasClose = false;
+                player.setPieceLocked = false;
+                player.setPieceMovement = null;
+                player.setPieceRole = null;
+                player.setPieceRunTarget = null;
+                player.setPieceTarget = null;
+                player._setPieceWasClose = false;
                 player.speedBoost = 1.0;
-                (player as any).lockUntil = 0;
-                (player as any).isKicker = false;
-                (player as any).isInWall = false;
-                (player as any).isDefCBLine = false;
-                (player as any).isMarker = false;
+                player.lockUntil = 0;
+                player.isKicker = false;
+                player.isInWall = false;
+                player.isDefCBLine = false;
+                player.isMarker = false;
             }
         });
 

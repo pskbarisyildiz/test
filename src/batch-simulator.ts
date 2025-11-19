@@ -238,11 +238,11 @@ export const CustomFixtureSimulator = {
                 if (typeof originals.setupKickOff === 'function') {
                     originals.setupKickOff(teamWithBall);
                     if (gameState.setPiece) {
-                        (gameState.setPiece as any).executionTime = Date.now();
+                        gameState.setPiece.executionTime = Date.now();
                     }
                 } else {
                     gameState.status = 'KICK_OFF';
-                    gameState.setPiece = { type: 'KICK_OFF', team: teamWithBall === 'home', position: { x: 400, y: 300 }, executionTime: Date.now() } as any;
+                    gameState.setPiece = { type: 'KICK_OFF', team: teamWithBall === 'home', position: { x: 400, y: 300 }, executed: false, executionTime: Date.now() };
                 }
             };
 
@@ -315,8 +315,8 @@ export const CustomFixtureSimulator = {
                 gameState.ballPosition = { x: 400, y: 300 }; gameState.ballVelocity = { x: 0, y: 0 }; gameState.ballHeight = 0;
                 gameState.ballTrajectory = null; gameState.ballHolder = null; gameState.commentary = []; gameState.particles = [];
                 gameState.ballChasers = new Set(); gameState.shotInProgress = false; gameState.shooter = null;
-                (gameState as any).goalEvents = []; (gameState as any).cardEvents = []; gameState.fouls = 0; (gameState as any).yellowCards = []; (gameState as any).redCards = [];
-                (gameState as any).stats = { home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, possessionTimer: { home: 0, away: 0 }, lastPossessionUpdate: Date.now() };
+                gameState.goalEvents = []; gameState.cardEvents = []; gameState.fouls = 0; gameState.yellowCards = []; gameState.redCards = [];
+                gameState.stats = { home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, possessionTimer: { home: 0, away: 0 }, lastPossessionUpdate: Date.now() };
 
                 (window as any).setupKickOff('home');
 
@@ -437,19 +437,19 @@ export const CustomFixtureSimulator = {
                             console.log(`[BatchSim] Restored rendering functions for match ${matchId}`);
                         }
 
-                        const homePassAcc = ((gameState.stats.home as any).passesAttempted || 0) > 0 ? Math.round(((gameState.stats.home as any).passesCompleted / (gameState.stats.home as any).passesAttempted) * 100) : 0;
-                        const awayPassAcc = ((gameState.stats.away as any).passesAttempted || 0) > 0 ? Math.round(((gameState.stats.away as any).passesCompleted / (gameState.stats.away as any).passesAttempted) * 100) : 0;
+                        const homePassAcc = (gameState.stats.home?.passesAttempted || 0) > 0 ? Math.round((gameState.stats.home.passesCompleted / gameState.stats.home.passesAttempted) * 100) : 0;
+                        const awayPassAcc = (gameState.stats.away?.passesAttempted || 0) > 0 ? Math.round((gameState.stats.away.passesCompleted / gameState.stats.away.passesAttempted) * 100) : 0;
                         const result: MatchResult = {
                             matchId: matchId, homeTeam: homeTeam, awayTeam: awayTeam,
                             homeScore: gameState.homeScore ?? 0, awayScore: gameState.awayScore ?? 0,
-                            homeXG: ((gameState.stats.home as any).xGTotal || 0).toFixed(2), awayXG: ((gameState.stats.away as any).xGTotal || 0).toFixed(2),
-                            homePossession: (gameState.stats.home as any).possession || 0, awayPossession: (gameState.stats.away as any).possession || 0,
-                            homeShots: ((gameState.stats.home as any).shotsOnTarget || 0) + ((gameState.stats.home as any).shotsOffTarget || 0),
-                            awayShots: ((gameState.stats.away as any).shotsOnTarget || 0) + ((gameState.stats.away as any).shotsOffTarget || 0),
-                            homeShotsOnTarget: (gameState.stats.home as any).shotsOnTarget || 0, awayShotsOnTarget: (gameState.stats.away as any).shotsOnTarget || 0,
+                            homeXG: (gameState.stats.home?.xGTotal || 0).toFixed(2), awayXG: (gameState.stats.away?.xGTotal || 0).toFixed(2),
+                            homePossession: gameState.stats.home?.possession || 0, awayPossession: gameState.stats.away?.possession || 0,
+                            homeShots: (gameState.stats.home?.shotsOnTarget || 0) + (gameState.stats.home?.shotsOffTarget || 0),
+                            awayShots: (gameState.stats.away?.shotsOnTarget || 0) + (gameState.stats.away?.shotsOffTarget || 0),
+                            homeShotsOnTarget: gameState.stats.home?.shotsOnTarget || 0, awayShotsOnTarget: gameState.stats.away?.shotsOnTarget || 0,
                             homePassAccuracy: homePassAcc, awayPassAccuracy: awayPassAcc,
                             winner: (gameState.homeScore ?? 0) > (gameState.awayScore ?? 0) ? homeTeam : (gameState.awayScore ?? 0) > (gameState.homeScore ?? 0) ? awayTeam : 'Draw',
-                            goalEvents: [...((gameState as any).goalEvents || [])], cardEvents: [...((gameState as any).cardEvents || [])]
+                            goalEvents: [...(gameState.goalEvents || [])], cardEvents: [...(gameState.cardEvents || [])]
                         };
                         resolve(result);
                     }
@@ -522,7 +522,7 @@ export const CustomFixtureSimulator = {
             toggleBtn.style.transition = 'opacity 0.3s';
 
             if (typeof gameState !== 'undefined') {
-                toggleBtn.innerText = (gameState as any).isVertical ? 'View: Horizontal' : 'View: Vertical';
+                toggleBtn.innerText = gameState.isVertical ? 'View: Horizontal' : 'View: Vertical';
             } else {
                 toggleBtn.innerText = 'View: Vertical';
             }

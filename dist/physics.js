@@ -12,6 +12,8 @@ import { gameState } from './globalExports';
 import { handleBallInterception } from './rules/ballControl';
 // Debug flag (replaces window.DEBUG_PHYSICS)
 const DEBUG_PHYSICS = false;
+// Track last interception check time for trajectories using WeakMap for type safety
+const trajectoryInterceptionChecks = new WeakMap();
 // ============================================================================
 // BALL TRAJECTORY UPDATE
 // ============================================================================
@@ -49,9 +51,9 @@ export function updateBallTrajectory(_dt) {
     // IMPROVED: Only check every 100ms to reduce excessive interceptions
     if (!traj.isShot && progress > 0.2 && progress < 0.9) {
         const now = Date.now();
-        const lastInterceptCheck = traj.lastInterceptCheck || traj.startTime;
+        const lastInterceptCheck = trajectoryInterceptionChecks.get(traj) || traj.startTime;
         if (now - lastInterceptCheck > 100) { // Check every 100ms instead of every frame
-            traj.lastInterceptCheck = now;
+            trajectoryInterceptionChecks.set(traj, now);
             if (typeof handleBallInterception === 'function') {
                 handleBallInterception(progress);
             }

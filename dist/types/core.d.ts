@@ -106,6 +106,8 @@ export interface Player extends PlayerAttributes, PlayerGameState {
     readonly realStats: PlayerRealStats;
     readonly isHome: boolean;
     composure?: number;
+    wasOffsideWhenBallPlayed?: boolean;
+    facingAngle?: number;
 }
 /** Ball trajectory for passes and shots */
 export interface BallTrajectory {
@@ -284,6 +286,4 @@ export interface PositionConfig {
     readonly supportDistance: number;
     readonly maxSpeed: number;
 }
-/** Export all types */
-export type * from './core';
 //# sourceMappingURL=core.d.ts.map

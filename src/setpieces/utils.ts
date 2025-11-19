@@ -25,6 +25,8 @@ type Urgency = 'DESPERATE' | 'HIGH' | 'MODERATE' | 'BALANCED' | 'CONSERVATIVE';
 export interface PositionWithMovement extends Vector2D {
   movement?: string;
   role?: string;
+  targetX?: number;
+  targetY?: number;
 }
 
 interface SortedPlayerLists {

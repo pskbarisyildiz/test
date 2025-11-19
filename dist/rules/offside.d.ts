@@ -3,6 +3,7 @@ export declare const offsideTracker: {
     lastPassTime: number;
     playersOffsideWhenBallPlayed: Set<string>;
     lastPassingTeam: "home" | "away" | null;
+    pendingFreeKickTimeout: number | null;
 };
 export declare function isPlayerInOffsidePosition(player: Player, ball: {
     x: number;

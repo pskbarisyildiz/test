@@ -161,6 +161,8 @@ export interface Player {
     currentBehavior: string;
     team: string;
     goalkeeper: any;
+    wasOffsideWhenBallPlayed?: boolean;
+    facingAngle?: number;
 }
 export interface GameState {
     stats: any;
