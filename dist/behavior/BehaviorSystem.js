@@ -1,5 +1,7 @@
 import { getDistance } from '../utils/ui';
 import { SetPieceBehaviorSystem } from '../setpieces/SetPieceBehaviorSystem';
+// Import for future use if needed for more advanced offside checks
+// import { isPlayerInOffsidePosition } from '../rules/offside';
 export const BehaviorResult = {
     success(target, speedMultiplier = 1.0, description = '', shouldLock = false) {
         return {
@@ -298,16 +300,61 @@ const ForwardBehaviors = {
             shouldLock: false
         };
     },
-    invertedWingerCutInside(winger, opponentGoalX) {
+    invertedWingerCutInside(winger, opponentGoalX, opponents, _ball, holder) {
         if (!['RW', 'LW'].includes(winger.role))
             return null;
         const distToGoal = Math.abs(winger.x - opponentGoalX);
         const isWide = (winger.role === 'RW' && winger.y < 150) ||
             (winger.role === 'LW' && winger.y > 450);
         if (distToGoal < 280 && isWide) {
+            // Calculate desired target
+            const desiredTargetX = opponentGoalX - Math.sign(opponentGoalX - winger.x) * 100;
+            // OFFSIDE CHECK: Ball carrier can dribble anywhere - offside doesn't apply
+            // Only check offside for players WITHOUT the ball
+            const isBallCarrier = holder && holder.id === winger.id;
+            if (isBallCarrier) {
+                // Ball carrier - no offside restriction, go for goal!
+                return {
+                    target: {
+                        x: desiredTargetX,
+                        y: 300 + (Math.random() - 0.5) * 100
+                    },
+                    speedMultiplier: 1.4,
+                    description: 'inverted winger cutting inside',
+                    shouldLock: true
+                };
+            }
+            // NOT ball carrier - check offside: Find the last defender (excluding GK)
+            const oppDefenders = opponents.filter(o => o.role !== 'GK');
+            if (oppDefenders.length > 0) {
+                // Sort by distance to goal (closest to goal = last defender)
+                const sortedDefenders = oppDefenders.sort((a, b) => Math.abs(a.x - opponentGoalX) - Math.abs(b.x - opponentGoalX));
+                const lastDefender = sortedDefenders[0];
+                if (!lastDefender)
+                    return null;
+                // Don't go beyond the last defender (stay onside with 20px buffer)
+                const attackingDirection = Math.sign(opponentGoalX - winger.x);
+                const safeMaxX = lastDefender.x - attackingDirection * 20;
+                // Check if desired position would be offside
+                const wouldBeOffside = attackingDirection > 0 ?
+                    desiredTargetX > safeMaxX :
+                    desiredTargetX < safeMaxX;
+                // If would be offside, adjust target to stay onside
+                const targetX = wouldBeOffside ? safeMaxX : desiredTargetX;
+                return {
+                    target: {
+                        x: targetX,
+                        y: 300 + (Math.random() - 0.5) * 100
+                    },
+                    speedMultiplier: 1.4,
+                    description: 'inverted winger cutting inside',
+                    shouldLock: true
+                };
+            }
+            // Fallback if no defenders (shouldn't happen in normal play)
             return {
                 target: {
-                    x: opponentGoalX - Math.sign(opponentGoalX - winger.x) * 100,
+                    x: desiredTargetX,
                     y: 300 + (Math.random() - 0.5) * 100
                 },
                 speedMultiplier: 1.4,
@@ -317,7 +364,7 @@ const ForwardBehaviors = {
         }
         return null;
     },
-    strikerRunsInBehind(striker, holder, opponents, opponentGoalX) {
+    strikerRunsInBehind(striker, holder, opponents, opponentGoalX, _ball) {
         if (!['ST', 'CF'].includes(striker.role))
             return null;
         if (!holder || holder.isHome !== striker.isHome)
@@ -328,7 +375,11 @@ const ForwardBehaviors = {
         const lastDefender = oppDefenders.sort((a, b) => Math.abs(b.x - opponentGoalX) - Math.abs(a.x - opponentGoalX))[0];
         if (!lastDefender)
             return null;
-        const runTargetX = lastDefender.x + Math.sign(opponentGoalX - lastDefender.x) * 30;
+        // OFFSIDE FIX: Instead of running 30px PAST the defender (which is offside),
+        // run to align with the defender (shoulder to shoulder) with a small buffer to stay onside
+        const attackingDirection = Math.sign(opponentGoalX - lastDefender.x);
+        // Stay 10px BEHIND the defender to avoid offside (negative direction)
+        const runTargetX = lastDefender.x - attackingDirection * 10;
         const distToLastDefender = Math.abs(striker.x - lastDefender.x);
         if (distToLastDefender < 20 || getDistance(holder, striker) > 250)
             return null;
@@ -404,16 +455,50 @@ const ForwardBehaviors = {
     }
 };
 const TransitionBehaviors = {
-    counterAttackRun(player, opponentGoalX, justWonPossession) {
+    counterAttackRun(player, opponentGoalX, justWonPossession, opponents, _ball, holder) {
         if (!justWonPossession)
             return null;
         if (!['ST', 'RW', 'LW', 'CAM', 'CM'].includes(player.role))
             return null;
         const spaceAhead = Math.abs(player.x - opponentGoalX);
         if (['ST', 'RW', 'LW'].includes(player.role) && spaceAhead > 150) {
+            // Calculate desired target
+            const desiredTargetX = opponentGoalX - Math.sign(opponentGoalX - player.x) * 80;
+            // OFFSIDE CHECK: Ball carrier can dribble anywhere - offside doesn't apply
+            const isBallCarrier = holder && holder.id === player.id;
+            if (isBallCarrier) {
+                // Ball carrier on counter-attack - no offside restriction!
+                return {
+                    target: {
+                        x: desiredTargetX,
+                        y: player.role === 'ST' ? 300 : player.y
+                    },
+                    speedMultiplier: 2.0,
+                    description: 'counter-attack sprint',
+                    shouldLock: true,
+                    duration: 3000
+                };
+            }
+            // NOT ball carrier - check offside: Find the last defender
+            const oppDefenders = opponents.filter(o => o.role !== 'GK');
+            let targetX = desiredTargetX;
+            if (oppDefenders.length > 0) {
+                const sortedDefenders = oppDefenders.sort((a, b) => Math.abs(a.x - opponentGoalX) - Math.abs(b.x - opponentGoalX));
+                const lastDefender = sortedDefenders[0];
+                if (lastDefender) {
+                    const attackingDirection = Math.sign(opponentGoalX - player.x);
+                    const safeMaxX = lastDefender.x - attackingDirection * 15;
+                    // Check if desired position would be offside
+                    const wouldBeOffside = attackingDirection > 0 ?
+                        desiredTargetX > safeMaxX :
+                        desiredTargetX < safeMaxX;
+                    // If would be offside, adjust target to stay onside
+                    targetX = wouldBeOffside ? safeMaxX : desiredTargetX;
+                }
+            }
             return {
                 target: {
-                    x: opponentGoalX - Math.sign(opponentGoalX - player.x) * 80,
+                    x: targetX,
                     y: player.role === 'ST' ? 300 : player.y
                 },
                 speedMultiplier: 2.0,
@@ -543,7 +628,7 @@ export function selectPlayerBehavior(player, gameState, phase, tacticalSystem) {
     }
     const behaviors = [];
     if (phase === PHASES.TRANSITION_TO_ATTACK || justWonPossession) {
-        behaviors.push(TransitionBehaviors.counterAttackRun(player, opponentGoalX, justWonPossession));
+        behaviors.push(TransitionBehaviors.counterAttackRun(player, opponentGoalX, justWonPossession, opponents, ball, holder));
     }
     if (phase === PHASES.TRANSITION_TO_DEFENSE || justLostPossession) {
         behaviors.push(TransitionBehaviors.counterPress(player, ball, justLostPossession), TransitionBehaviors.recoveryRun(player, ball, ownGoalX, justLostPossession));
@@ -562,7 +647,7 @@ export function selectPlayerBehavior(player, gameState, phase, tacticalSystem) {
         }
         behaviors.push(DefensiveBehaviors.invertedFullBack(player, holder, teammates, ownGoalX));
         behaviors.push(MidfieldBehaviors.boxToBoxLateRun(player, ball, holder, teammates, opponentGoalX), MidfieldBehaviors.registaTempoDictation(player, holder, ownGoalX), MidfieldBehaviors.camBetweenLines(player, opponents, opponentGoalX));
-        behaviors.push(ForwardBehaviors.wingerWidthProviding(player, holder), ForwardBehaviors.invertedWingerCutInside(player, opponentGoalX), ForwardBehaviors.strikerRunsInBehind(player, holder, opponents, opponentGoalX), ForwardBehaviors.false9DropDeep(player, holder, teammates, opponentGoalX), ForwardBehaviors.targetStrikerHoldUp(player, opponents, ball));
+        behaviors.push(ForwardBehaviors.wingerWidthProviding(player, holder), ForwardBehaviors.invertedWingerCutInside(player, opponentGoalX, opponents, ball, holder), ForwardBehaviors.strikerRunsInBehind(player, holder, opponents, opponentGoalX, ball), ForwardBehaviors.false9DropDeep(player, holder, teammates, opponentGoalX), ForwardBehaviors.targetStrikerHoldUp(player, opponents, ball));
     }
     if (tacticalSystem === 'possession') {
         behaviors.push(TacticalSystemModifiers.possessionSystem(player, holder, teammates));
