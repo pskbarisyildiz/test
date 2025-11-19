@@ -187,6 +187,19 @@ export interface Player {
     setPieceMovement?: string; // Type of movement for set piece
     setPieceRunTarget?: { x: number; y: number } | null; // Run target after set piece execution
     _setPieceWasClose?: boolean; // Internal tracking for hysteresis in set piece positioning
+    // Goalkeeper-specific properties
+    stance?: string; // Current goalkeeper stance
+    stanceSaveBonus?: number; // Save bonus from current stance
+    stanceMobilityPenalty?: number; // Mobility penalty from current stance
+    isSweeping?: boolean; // Whether goalkeeper is sweeping
+    isClaimingCross?: boolean; // Whether goalkeeper is claiming a cross
+    crossClaimStartTime?: number; // Timestamp when cross claim started
+    currentMainThreat?: Player | null; // Current main threat being tracked
+    threatCount?: number; // Number of threats being tracked
+    isDiving?: boolean; // Whether goalkeeper is currently diving
+    diveStartTime?: number; // Timestamp when dive started
+    diveDirection?: { x: number; y: number }; // Direction of the dive
+    diveDuration?: number; // Duration of the dive animation
 }
 
 export interface GameState {
