@@ -25,6 +25,7 @@ export function setPossession(gs: GameState, homePct: number, awayPct: number): 
     s.home.possession = Math.max(0, Math.min(100, homePct));
     s.away.possession = Math.max(0, Math.min(100, awayPct));
     // update legacy mirror
+    if (!s.possession) s.possession = { home: 0, away: 0 };
     s.possession.home = s.home.possession;
     s.possession.away = s.away.possession;
 }

@@ -177,10 +177,22 @@ export interface Player {
     // Dynamic game state properties (added for type safety)
     wasOffsideWhenBallPlayed?: boolean; // Tracks offside status when ball was played
     facingAngle?: number; // Player's facing direction in radians
+    // First touch temporary properties
+    firstTouchQuality?: number; // Quality of last first touch (0-1)
+    firstTouchTime?: number; // Timestamp of first touch
+    ballSettleTime?: number; // Time needed to settle the ball
+    // Set piece properties
+    setPieceRole?: string; // Role in set piece (KICKER, THROWER, etc.)
 }
 
 export interface GameState {
-    stats: any;
+    stats: {
+        home: any; // TeamStats but need to avoid circular dependency
+        away: any;
+        possession?: { home: number; away: number };
+        possessionTimer?: { home: number; away: number };
+        lastPossessionUpdate?: number;
+    };
     canvases?: {
         background: HTMLCanvasElement | null;
         game: HTMLCanvasElement | null;

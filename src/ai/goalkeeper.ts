@@ -279,7 +279,7 @@ export function calculateOptimalGoalkeeperPosition(
 
   // IMPROVED CORNER POSITIONING
   if (gameState.status === 'CORNER_KICK' && gameState.setPiece) {
-    const cornerY = (gameState.setPiece as any).position.y;
+    const cornerY = gameState.setPiece.position.y;
 
     const realStats = (goalkeeper as any).realStats || {};
     const sweeperRating = realStats.gkKeeperSweeper || 5;

@@ -272,11 +272,14 @@ export function shouldAvoidOffside(player: Player, ball: { x: number; y: number 
 }
 
 export function initOffsideStats(): void {
-    (gameState.stats.home as any).offsides = 0;
-    (gameState.stats.away as any).offsides = 0;
+    if (!gameState.stats.home) gameState.stats.home = {} as any;
+    if (!gameState.stats.away) gameState.stats.away = {} as any;
+    gameState.stats.home.offsides = 0;
+    gameState.stats.away.offsides = 0;
 }
 
 export function recordOffsideStatistic(player: Player): void {
     const teamStats = player.isHome ? gameState.stats.home : gameState.stats.away;
-    (teamStats as any).offsides++;
+    if (!teamStats) return;
+    teamStats.offsides = (teamStats.offsides || 0) + 1;
 }

@@ -120,9 +120,9 @@ export function applyFirstTouch(player: Player, trajectory: BallTrajectory | nul
         speedMultiplier = 0;
     }
 
-    (player as any).firstTouchQuality = touchQuality;
-    (player as any).firstTouchTime = Date.now();
-    (player as any).ballSettleTime = settleTime;
+    player.firstTouchQuality = touchQuality;
+    player.firstTouchTime = Date.now();
+    player.ballSettleTime = settleTime;
     player.speedBoost = speedMultiplier;
 
     console.log(`¯ ${player.name} first touch: ${outcome} (${(touchQuality * 100).toFixed(0)}%)`);
@@ -178,7 +178,7 @@ export function handlePoorFirstTouch(player: Player, touchResult: { outcome: str
     gameState.ballTrajectory = null;
     gameState.ballHolder = player;
     player.hasBallControl = true;
-    (player as any).ballReceivedTime = Date.now();
+    player.ballReceivedTime = Date.now();
     gameState.ballChasers.clear();
 
     player.speedBoost = touchResult.speedMultiplier;
@@ -186,7 +186,7 @@ export function handlePoorFirstTouch(player: Player, touchResult: { outcome: str
     setTimeout(() => {
         if (player.hasBallControl) {
             player.speedBoost = 1.0;
-            delete (player as any).ballSettleTime;
+            delete player.ballSettleTime;
         }
     }, touchResult.settleTime);
 }
@@ -215,7 +215,7 @@ export function handleSuccessfulFirstTouch(player: Player, touchResult: { outcom
     gameState.ballTrajectory = null;
     gameState.ballHolder = player;
     player.hasBallControl = true;
-    (player as any).ballReceivedTime = Date.now();
+    player.ballReceivedTime = Date.now();
     gameState.ballChasers.clear();
     gameState.currentPassReceiver = null;
 
@@ -224,7 +224,7 @@ export function handleSuccessfulFirstTouch(player: Player, touchResult: { outcom
     allPlayers.forEach(p => {
         if (p.id !== player.id) {
             p.isChasingBall = false;
-            (p as any).chaseStartTime = null;
+            p.chaseStartTime = null;
         }
     });
 
@@ -243,8 +243,8 @@ export function handleSuccessfulFirstTouch(player: Player, touchResult: { outcom
         setTimeout(() => {
             if (player.hasBallControl && gameState.ballHolder === player) {
                 player.speedBoost = 1.0;
-                delete (player as any).ballSettleTime;
-                delete (player as any).firstTouchTime;
+                delete player.ballSettleTime;
+                delete player.firstTouchTime;
             }
         }, touchResult.settleTime);
     }
@@ -254,9 +254,9 @@ export function canPlayerActOnBall(player: Player): boolean {
     if (!player.hasBallControl) return false;
 
     // Still settling the ball?
-    if ((player as any).ballSettleTime && (player as any).firstTouchTime) {
-        const timeSinceTouch = Date.now() - (player as any).firstTouchTime;
-        if (timeSinceTouch < (player as any).ballSettleTime) {
+    if (player.ballSettleTime && player.firstTouchTime) {
+        const timeSinceTouch = Date.now() - player.firstTouchTime;
+        if (timeSinceTouch < player.ballSettleTime) {
             return false; // Still controlling, can't pass/shoot yet
         }
     }
@@ -265,18 +265,18 @@ export function canPlayerActOnBall(player: Player): boolean {
 }
 
 export function drawFirstTouchIndicator(ctx: CanvasRenderingContext2D, player: Player): void {
-    if (!(player as any).firstTouchTime) return;
+    if (!player.firstTouchTime) return;
 
-    const timeSinceTouch = Date.now() - (player as any).firstTouchTime;
+    const timeSinceTouch = Date.now() - player.firstTouchTime;
     const maxDisplayTime = 1000; // Show for 1 second
 
     if (timeSinceTouch > maxDisplayTime) {
-        delete (player as any).firstTouchTime;
-        delete (player as any).firstTouchQuality;
+        delete player.firstTouchTime;
+        delete player.firstTouchQuality;
         return;
     }
 
-    const quality = (player as any).firstTouchQuality || 0;
+    const quality = player.firstTouchQuality || 0;
     const alpha = 1 - (timeSinceTouch / maxDisplayTime);
 
     // Color based on quality
@@ -301,14 +301,17 @@ export function drawFirstTouchIndicator(ctx: CanvasRenderingContext2D, player: P
 }
 
 export function initFirstTouchStats(): void {
-    (gameState.stats.home as any).firstTouches = {
+    if (!gameState.stats.home) gameState.stats.home = {} as any;
+    if (!gameState.stats.away) gameState.stats.away = {} as any;
+
+    gameState.stats.home.firstTouches = {
         perfect: 0,
         good: 0,
         poor: 0,
         failed: 0,
         total: 0
     };
-    (gameState.stats.away as any).firstTouches = {
+    gameState.stats.away.firstTouches = {
         perfect: 0,
         good: 0,
         poor: 0,
@@ -319,6 +322,10 @@ export function initFirstTouchStats(): void {
 
 export function recordFirstTouchStatistic(player: Player, outcome: string): void {
     const teamStats = player.isHome ? gameState.stats.home : gameState.stats.away;
-    (teamStats as any).firstTouches[outcome]++;
-    (teamStats as any).firstTouches.total++;
+    if (!teamStats || !teamStats.firstTouches) return;
+
+    if (outcome === 'perfect' || outcome === 'good' || outcome === 'poor' || outcome === 'failed') {
+        teamStats.firstTouches[outcome]++;
+    }
+    teamStats.firstTouches.total++;
 }

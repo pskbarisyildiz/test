@@ -98,13 +98,13 @@ export function canControlBall(player: Player, ball: { x: number, y: number }): 
 
     const isSetPiece = ['GOAL_KICK', 'FREE_KICK', 'CORNER_KICK', 'THROW_IN', 'KICK_OFF', 'PENALTY'].includes(gameState.status);
     if (isSetPiece && gameState.setPiece && !(gameState.setPiece as any).executed) {
-        const isDesignatedTaker = (player as any).setPieceRole && (
-            (player as any).setPieceRole.includes('KICKER') ||
-            (player as any).setPieceRole.includes('THROWER') ||
-            (player as any).setPieceRole === 'CORNER_KICKER' ||
-            (player as any).setPieceRole === 'PRIMARY_KICKER'
+        const isDesignatedTaker = player.setPieceRole && (
+            player.setPieceRole.includes('KICKER') ||
+            player.setPieceRole.includes('THROWER') ||
+            player.setPieceRole === 'CORNER_KICKER' ||
+            player.setPieceRole === 'PRIMARY_KICKER'
         );
-        const isGoalkeeper = player.role === 'GK' || (player as any).role === 'goalkeeper';
+        const isGoalkeeper = player.role === 'GK';
 
         if (!isDesignatedTaker && !isGoalkeeper) {
             return false;
@@ -122,7 +122,7 @@ export function action_attemptTackle(player: Player, allPlayers: Player[]): bool
     const attacker = gameState.ballHolder;
     if (!attacker) return false;
 
-    if (attacker.role === 'GK' || (attacker as any).role === 'goalkeeper') {
+    if (attacker.role === 'GK') {
         if (typeof SetPieceEnforcement !== 'undefined' && SetPieceEnforcement.protectGoalkeeper) {
             SetPieceEnforcement.protectGoalkeeper(player, attacker, gameState);
         } else {
