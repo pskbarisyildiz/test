@@ -1,6 +1,7 @@
 import type { GameState, Player } from '../types';
 import { GAME_CONFIG } from '../config';
 import { gameState } from '../globalExports';
+import { distance } from './math';
 
 export function ensureStatsShape(gs: GameState): void {
   gs.stats = gs.stats || {};
@@ -42,11 +43,9 @@ export function isSetPieceStatus(status: string): boolean {
     return SET_PIECE_STATUSES.includes(status);
 }
 
-export function getDistance(a: { x: number; y: number }, b: { x: number; y: number }): number {
-    const ax = Number(a?.x) || 0, ay = Number(a?.y) || 0;
-    const bx = Number(b?.x) || 0, by = Number(b?.y) || 0;
-    return Math.hypot(ax - bx, ay - by);
-}
+// Re-export distance function from math.ts as getDistance for backward compatibility
+// This consolidates duplicate implementations and uses the safer version
+export { distance as getDistance };
 
 export function getAttackingGoalX(isHome: boolean, currentHalf: number): number {
     const GOAL_X_LEFT_DEFAULT = 50;
@@ -92,7 +91,7 @@ export function calculateXG(shooter: Player, goalX: number, goalY: number, oppon
     const normalizedDistance = Math.min(distToGoal / 400, 1);
     const distanceQuality = Math.pow(1 - normalizedDistance, 1.5);
 
-    const nearbyDefenders = opponents.filter(opp => getDistance(shooter, opp) < 30);
+    const nearbyDefenders = opponents.filter(opp => distance(shooter, opp) < 30);
     const pressureMultiplier = Math.max(0.4, 1 - (nearbyDefenders.length * 0.18));
 
     const shooterAbility = 0.2 + (shooter.shooting / 100) * 0.8;

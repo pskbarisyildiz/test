@@ -23,10 +23,10 @@ export function resolveBallControl(allPlayers: Player[]): void {
         return;
     }
 
-    const eligiblePlayers = allPlayers.filter(p => !((p as any).stunnedUntil && Date.now() < (p as any).stunnedUntil));
+    const eligiblePlayers = allPlayers.filter(p => !(p.stunnedUntil && Date.now() < p.stunnedUntil));
     if (eligiblePlayers.length === 0) return;
 
-    const BALL_CONTROL_DISTANCE = (typeof PHYSICS !== 'undefined') ? PHYSICS.BALL_CONTROL_DISTANCE : 25;
+    const BALL_CONTROL_DISTANCE = PHYSICS?.BALL_CONTROL_DISTANCE ?? 25;
 
     const controlCandidates = eligiblePlayers.map(player => {
         const distToBall = distance(player, gameState.ballPosition);
@@ -58,10 +58,10 @@ export function resolveBallControl(allPlayers: Player[]): void {
 
         if (p1_strength >= p2_strength) {
             controllingPlayer = contender1;
-            (contender2 as any).stunnedUntil = Date.now() + 250;
+            contender2.stunnedUntil = Date.now() + 250;
         } else {
             controllingPlayer = contender2;
-            (contender1 as any).stunnedUntil = Date.now() + 250;
+            contender1.stunnedUntil = Date.now() + 250;
         }
     } else if (controlCandidates.length > 0) {
         controllingPlayer = controlCandidates[0]!.player;
@@ -93,7 +93,7 @@ export function resolveBallControl(allPlayers: Player[]): void {
 }
 
 export function canControlBall(player: Player, ball: { x: number, y: number }): boolean {
-    const BALL_CONTROL_DISTANCE = (typeof PHYSICS !== 'undefined') ? PHYSICS.BALL_CONTROL_DISTANCE : 25;
+    const BALL_CONTROL_DISTANCE = PHYSICS?.BALL_CONTROL_DISTANCE ?? 25;
     const dist = distance(player, ball);
 
     const isSetPiece = ['GOAL_KICK', 'FREE_KICK', 'CORNER_KICK', 'THROW_IN', 'KICK_OFF', 'PENALTY'].includes(gameState.status);
@@ -161,7 +161,7 @@ export function action_attemptTackle(player: Player, allPlayers: Player[]): bool
             teamStats.tackles++;
         }
     } else {
-        (player as any).stunnedUntil = Date.now() + 750;
+        player.stunnedUntil = Date.now() + 750;
         attacker.speedBoost = 1.2;
 
         if (Math.random() < 0.15) {
@@ -182,8 +182,8 @@ export function handleBallInterception(progress: number): void {
     const trajectory = gameState.ballTrajectory;
     if (!trajectory) return;
 
-    const HEADER_HEIGHT_THRESHOLD = (typeof PHYSICS !== 'undefined') ? PHYSICS.HEADER_HEIGHT_THRESHOLD : 0.6;
-    const PASS_INTERCEPT_DISTANCE = (typeof PHYSICS !== 'undefined') ? PHYSICS.PASS_INTERCEPT_DISTANCE : 25;
+    const HEADER_HEIGHT_THRESHOLD = PHYSICS?.HEADER_HEIGHT_THRESHOLD ?? 0.6;
+    const PASS_INTERCEPT_DISTANCE = PHYSICS?.PASS_INTERCEPT_DISTANCE ?? 25;
 
     const isAerial = trajectory.passType === 'aerial';
     const isHeaderOpportunity = isAerial && gameState.ballHeight > HEADER_HEIGHT_THRESHOLD;
@@ -192,7 +192,7 @@ export function handleBallInterception(progress: number): void {
 
     if (isHeaderOpportunity) {
         const contenders = allPlayers.filter(player =>
-            !((player as any).stunnedUntil && Date.now() < (player as any).stunnedUntil)
+            !(player.stunnedUntil && Date.now() < player.stunnedUntil)
         ).map(player => ({
             player,
             dist: distance(player, gameState.ballPosition)
@@ -212,7 +212,7 @@ export function handleBallInterception(progress: number): void {
                 handleWonHeader(winner);
             }
             if (loser) {
-                (loser as any).stunnedUntil = Date.now() + 500;
+                loser.stunnedUntil = Date.now() + 500;
             }
 
             if (winner && loser) {
@@ -225,7 +225,7 @@ export function handleBallInterception(progress: number): void {
     }
 
     for (const player of allPlayers) {
-        if ((player as any).stunnedUntil && Date.now() < (player as any).stunnedUntil) continue;
+        if (player.stunnedUntil && Date.now() < player.stunnedUntil) continue;
         if (gameState.currentPassReceiver && player.id === gameState.currentPassReceiver.id) continue;
 
         const distToBall = distance(player, gameState.ballPosition);
@@ -258,7 +258,7 @@ function handleInterception(player: Player): void {
     gameState.ballTrajectory = null;
     gameState.ballHolder = player;
     player.hasBallControl = true;
-    (player as any).ballReceivedTime = Date.now();
+    player.ballReceivedTime = Date.now();
     if (gameState.ballChasers) {
         gameState.ballChasers.clear();
     }

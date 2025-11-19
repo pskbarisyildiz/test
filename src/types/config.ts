@@ -63,6 +63,8 @@ export interface GameConfig {
   readonly AVERAGE_SPRINT_TIME_TO_GOAL: number;
   readonly REACTION_TIME_MIN: number;
   readonly REACTION_TIME_MAX: number;
+  readonly GOAL_X_LEFT: number; // Left goal X position
+  readonly GOAL_X_RIGHT: number; // Right goal X position
   GAME_SPEED?: number; // Mutable for simulation speed changes
 }
 
