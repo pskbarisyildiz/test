@@ -8,7 +8,8 @@ import { executeSetPiece_PostExecution } from '../setpieces/integration';
 export const offsideTracker = {
     lastPassTime: 0,
     playersOffsideWhenBallPlayed: new Set<string>(),
-    lastPassingTeam: null as 'home' | 'away' | null
+    lastPassingTeam: null as 'home' | 'away' | null,
+    pendingFreeKickTimeout: null as number | null
 };
 
 export function isPlayerInOffsidePosition(player: Player, ball: { x: number; y: number }, opponents: Player[]): boolean {
@@ -54,8 +55,8 @@ export function recordOffsidePositions(passingPlayer: Player, allPlayers: Player
     }
 
     allPlayers.forEach(p => {
-        if ((p as any).wasOffsideWhenBallPlayed) {
-            delete (p as any).wasOffsideWhenBallPlayed;
+        if (p.wasOffsideWhenBallPlayed) {
+            delete p.wasOffsideWhenBallPlayed;
         }
     });
 
@@ -76,7 +77,7 @@ export function recordOffsidePositions(passingPlayer: Player, allPlayers: Player
     teammates.forEach(teammate => {
         if (isPlayerInOffsidePosition(teammate, gameState.ballPosition, opponents)) {
             offsideTracker.playersOffsideWhenBallPlayed.add(String(teammate.id));
-            (teammate as any).wasOffsideWhenBallPlayed = true;
+            teammate.wasOffsideWhenBallPlayed = true;
         }
     });
 }
@@ -160,8 +161,16 @@ export function awardOffsideFreeKick(offsidePlayer: Player): void {
         return;
     }
 
+    // Clear any pending offside free kick timeout to prevent race conditions
+    if (offsideTracker.pendingFreeKickTimeout !== null) {
+        clearTimeout(offsideTracker.pendingFreeKickTimeout);
+        offsideTracker.pendingFreeKickTimeout = null;
+    }
+
     const offsideCallTime = Date.now();
-    setTimeout(() => {
+    offsideTracker.pendingFreeKickTimeout = window.setTimeout(() => {
+        offsideTracker.pendingFreeKickTimeout = null;
+
         // Validate game state hasn't changed significantly
         if (gameState.status === 'finished' || gameState.status === 'goal_scored') {
             return;
@@ -178,20 +187,17 @@ export function awardOffsideFreeKick(offsidePlayer: Player): void {
         gameState.ballVelocity.y = 0;
         gameState.ballHolder = freeKickTaker;
         freeKickTaker.hasBallControl = true;
-        (freeKickTaker as any).ballReceivedTime = offsideCallTime;
+        freeKickTaker.ballReceivedTime = offsideCallTime;
         offsideTracker.playersOffsideWhenBallPlayed.clear();
     }, 1000);
 }
-
-// IMPROVED: Frame counter for performance optimization
-let offsideDrawFrameCounter = 0;
 
 export function drawOffsideLines(ctx: CanvasRenderingContext2D): void {
     if (!gameState.contexts || !gameState.contexts.game) return;
 
     // PERFORMANCE: Only draw every 5th frame (12 FPS at 60 FPS) - still smooth but 5x less CPU
-    offsideDrawFrameCounter++;
-    if (offsideDrawFrameCounter % 5 !== 0) return;
+    // Use time-based approach to avoid unbounded counter memory leak
+    if (Math.floor(Date.now() / 16) % 5 !== 0) return;
 
     // Optional: Only draw if enabled in debug mode
     // Uncomment the following line to disable offside lines in production:
@@ -236,7 +242,7 @@ export function drawOffsideLines(ctx: CanvasRenderingContext2D): void {
     }
 
     allPlayers.forEach(player => {
-        if ((player as any).wasOffsideWhenBallPlayed) {
+        if (player.wasOffsideWhenBallPlayed) {
             ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
             ctx.lineWidth = 3;
             ctx.setLineDash([3, 3]);

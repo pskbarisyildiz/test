@@ -33,8 +33,11 @@ function calculateFirstTouchQuality(player, ballSpeed, nearbyOpponents) {
     const realStats = player.realStats || {};
     const ballControlBonus = realStats.dribblesSucceeded ?
         (realStats.dribblesSucceeded / 90) * 0.15 : 0;
-    const speedDifficulty = Math.min((ballSpeed - FIRST_TOUCH_CONFIG.SLOW_PASS_SPEED) /
-        (FIRST_TOUCH_CONFIG.FAST_PASS_SPEED - FIRST_TOUCH_CONFIG.SLOW_PASS_SPEED), 1.0);
+    // Calculate speed difficulty with safe division to prevent division by zero
+    const denominator = FIRST_TOUCH_CONFIG.FAST_PASS_SPEED - FIRST_TOUCH_CONFIG.SLOW_PASS_SPEED;
+    const speedDifficulty = denominator > 0
+        ? Math.min((ballSpeed - FIRST_TOUCH_CONFIG.SLOW_PASS_SPEED) / denominator, 1.0)
+        : 0;
     const speedPenalty = speedDifficulty * 0.25; // Up to 25% harder
     const opponentsInRange = nearbyOpponents.filter(opp => getDistance(player, opp) < FIRST_TOUCH_CONFIG.PRESSURE_DISTANCE);
     const pressurePenalty = opponentsInRange.length *

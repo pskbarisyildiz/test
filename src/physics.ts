@@ -7,7 +7,7 @@
  * ✅ NaN-safe calculations throughout
  */
 
-import type { Player, GameState } from './types';
+import type { Player, GameState, BallTrajectory } from './types';
 import { distance as getDistance, safeSqrt, safeDiv } from './utils/math';
 import { getAttackingGoalX, isSetPieceStatus } from './utils/ui';
 import { gameState } from './globalExports';
@@ -15,6 +15,9 @@ import { handleBallInterception } from './rules/ballControl';
 
 // Debug flag (replaces window.DEBUG_PHYSICS)
 const DEBUG_PHYSICS = false;
+
+// Track last interception check time for trajectories using WeakMap for type safety
+const trajectoryInterceptionChecks = new WeakMap<BallTrajectory, number>();
 
 // ============================================================================
 // GLOBAL DECLARATIONS
@@ -91,10 +94,10 @@ export function updateBallTrajectory(_dt: number): void {
   // IMPROVED: Only check every 100ms to reduce excessive interceptions
   if (!traj.isShot && progress > 0.2 && progress < 0.9) {
     const now = Date.now();
-    const lastInterceptCheck = (traj as any).lastInterceptCheck || traj.startTime;
+    const lastInterceptCheck = trajectoryInterceptionChecks.get(traj) || traj.startTime;
 
     if (now - lastInterceptCheck > 100) {  // Check every 100ms instead of every frame
-      (traj as any).lastInterceptCheck = now;
+      trajectoryInterceptionChecks.set(traj, now);
 
       if (typeof handleBallInterception === 'function') {
         handleBallInterception(progress);

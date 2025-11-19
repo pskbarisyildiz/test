@@ -160,6 +160,9 @@ export interface Player extends PlayerAttributes, PlayerGameState {
   readonly realStats: PlayerRealStats;
   readonly isHome: boolean;
   composure?: number; // Optional, defaults to 60
+  // Dynamic game state properties
+  wasOffsideWhenBallPlayed?: boolean; // Tracks offside status when ball was played
+  facingAngle?: number; // Player's facing direction in radians
 }
 
 // ============================================================================
@@ -411,6 +414,3 @@ export interface PositionConfig {
   readonly supportDistance: number;
   readonly maxSpeed: number;
 }
-
-/** Export all types */
-export type * from './core';

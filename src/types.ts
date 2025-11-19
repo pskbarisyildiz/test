@@ -174,6 +174,9 @@ export interface Player {
     currentBehavior: string;
     team: string;
     goalkeeper: any;
+    // Dynamic game state properties (added for type safety)
+    wasOffsideWhenBallPlayed?: boolean; // Tracks offside status when ball was played
+    facingAngle?: number; // Player's facing direction in radians
 }
 
 export interface GameState {

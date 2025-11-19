@@ -43,11 +43,11 @@ function calculateFirstTouchQuality(player: Player, ballSpeed: number, nearbyOpp
     const ballControlBonus = realStats.dribblesSucceeded ?
         (realStats.dribblesSucceeded / 90) * 0.15 : 0;
 
-    const speedDifficulty = Math.min(
-        (ballSpeed - FIRST_TOUCH_CONFIG.SLOW_PASS_SPEED) /
-        (FIRST_TOUCH_CONFIG.FAST_PASS_SPEED - FIRST_TOUCH_CONFIG.SLOW_PASS_SPEED),
-        1.0
-    );
+    // Calculate speed difficulty with safe division to prevent division by zero
+    const denominator = FIRST_TOUCH_CONFIG.FAST_PASS_SPEED - FIRST_TOUCH_CONFIG.SLOW_PASS_SPEED;
+    const speedDifficulty = denominator > 0
+        ? Math.min((ballSpeed - FIRST_TOUCH_CONFIG.SLOW_PASS_SPEED) / denominator, 1.0)
+        : 0;
     const speedPenalty = speedDifficulty * 0.25; // Up to 25% harder
 
     const opponentsInRange = nearbyOpponents.filter(opp =>
@@ -56,13 +56,13 @@ function calculateFirstTouchQuality(player: Player, ballSpeed: number, nearbyOpp
     const pressurePenalty = opponentsInRange.length *
         FIRST_TOUCH_CONFIG.PRESSURE_PENALTY_PER_OPP;
 
-    const fatiguePenalty = (100 - (player as any).stamina) / 90 * 0.15;
+    const fatiguePenalty = (100 - player.stamina) / 90 * 0.15;
 
     const ballAngle = Math.atan2(
         gameState.ballPosition.y - player.y,
         gameState.ballPosition.x - player.x
     );
-    const facingAngle = (player as any).facingAngle || getPlayerFacingDirection(player);
+    const facingAngle = player.facingAngle || getPlayerFacingDirection(player);
     let angleDiff = Math.abs(ballAngle - facingAngle);
     if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
 
@@ -168,7 +168,7 @@ export function handleFailedFirstTouch(player: Player, allPlayers: Player[]): vo
 export function handlePoorFirstTouch(player: Player, touchResult: { outcome: string; quality: number; settleTime: number; speedMultiplier: number; }): void {
     console.log(` ${player.name} heavy touch`);
 
-    const movementAngle = (player as any).facingAngle || getPlayerFacingDirection(player);
+    const movementAngle = player.facingAngle || getPlayerFacingDirection(player);
     const pushDistance = 40 + Math.random() * 30;
 
     gameState.ballPosition.x = player.x + Math.cos(movementAngle) * pushDistance;
@@ -235,7 +235,7 @@ export function handleSuccessfulFirstTouch(player: Player, touchResult: { outcom
     if (wasPerfect) {
         player.speedBoost = 1.0; // No penalty
         // Bonus: Slightly ahead of original position (takes ball in stride)
-        const moveAngle = (player as any).facingAngle || getPlayerFacingDirection(player);
+        const moveAngle = player.facingAngle || getPlayerFacingDirection(player);
         gameState.ballPosition.x = player.x + Math.cos(moveAngle) * 15;
         gameState.ballPosition.y = player.y + Math.sin(moveAngle) * 15;
     } else {
