@@ -3,7 +3,7 @@
  * Handles team composition, tactical selection, and player positioning
  */
 
-import type { Player, GameState, PlayerRole, MutableVector2D } from './types';
+import type { Player, GameState, PlayerRole, MutableVector2D, TeamStats } from './types';
 import { FORMATIONS, GAME_CONFIG } from './config';
 import { gameState } from './globalExports';
 
@@ -11,8 +11,26 @@ import { gameState } from './globalExports';
 // HELPER FUNCTIONS
 // ============================================================================
 
-function initIfUndef<T>(obj: Record<string, unknown>, key: string, value: T): void {
-  if (obj[key] === undefined) obj[key] = value;
+function initIfUndef<T extends object, K extends string>(obj: T, key: K, value: unknown): void {
+  if ((obj as any)[key] === undefined) (obj as any)[key] = value;
+}
+
+function createEmptyTeamStats(): TeamStats {
+  return {
+    possession: 0,
+    passesCompleted: 0,
+    passesAttempted: 0,
+    shots: 0,
+    shotsOnTarget: 0,
+    shotsOffTarget: 0,
+    tackles: 0,
+    fouls: 0,
+    xGTotal: 0,
+    interceptions: 0,
+    firstTouches: 0,
+    possessionTime: 0,
+    saves: 0
+  };
 }
 
 // ============================================================================
@@ -394,26 +412,23 @@ export function selectBestTeam(teamName: string): { players: Player[]; formation
  * Initialize game state with proper defaults
  */
 export function initializeGameSetup(gameState: GameState): void {
-  initIfUndef(gameState as unknown as Record<string, unknown>, 'stats', {});
-  const s = gameState.stats as Record<string, unknown>;
-
-  // Canonical containers
-  if (!s.home || typeof s.home !== 'object') s.home = {};
-  if (!s.away || typeof s.away !== 'object') s.away = {};
-
-  if (typeof s.home.possession !== 'number') s.home.possession = 0;
-  if (typeof s.away.possession !== 'number') s.away.possession = 0;
-
-  if (typeof s.home.passesCompleted !== 'number') s.home.passesCompleted = 0;
-  if (typeof s.home.passesAttempted !== 'number') s.home.passesAttempted = 0;
-  if (typeof s.away.passesCompleted !== 'number') s.away.passesCompleted = 0;
-  if (typeof s.away.passesAttempted !== 'number') s.away.passesAttempted = 0;
-
-  // Possession tracking
-  if (!s.possessionTimer || typeof s.possessionTimer !== 'object') {
-    s.possessionTimer = { home: 0, away: 0 };
+  // Initialize stats with default TeamStats
+  if (!gameState.stats) {
+    gameState.stats = {
+      home: createEmptyTeamStats(),
+      away: createEmptyTeamStats(),
+      possession: { home: 50, away: 50 },
+      possessionTimer: { home: 0, away: 0 },
+      lastPossessionUpdate: Date.now()
+    };
   }
-  if (typeof s.lastPossessionUpdate !== 'number') s.lastPossessionUpdate = Date.now();
+
+  // Ensure all required properties exist
+  if (!gameState.stats.home) gameState.stats.home = createEmptyTeamStats();
+  if (!gameState.stats.away) gameState.stats.away = createEmptyTeamStats();
+  if (!gameState.stats.possession) gameState.stats.possession = { home: 50, away: 50 };
+  if (!gameState.stats.possessionTimer) gameState.stats.possessionTimer = { home: 0, away: 0 };
+  if (!gameState.stats.lastPossessionUpdate) gameState.stats.lastPossessionUpdate = Date.now();
 
   // Basic state initialization
   initIfUndef(gameState, 'status', 'upload');

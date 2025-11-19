@@ -133,17 +133,7 @@ export interface Player {
     defending: number;
     rating: number;
     ballReceivedTime: number | null;
-    realStats: {
-        gkKeeperSweeper?: number;
-        aerialsWonPercent?: number;
-        gkSavePercent?: number;
-        gkGoalsPrevented?: number;
-        xGOT?: number;
-        shotsOnTarget?: number;
-        shots?: number;
-        dribblesSucceeded?: number;
-        [key: string]: number | undefined;
-    };
+    realStats: Partial<PlayerRealStats>;
     stamina: number;
     passing: number;
     effectivePace: number;
@@ -200,7 +190,7 @@ export interface Player {
     };
     diveDuration?: number;
 }
-interface TeamStats {
+export interface TeamStats {
     possession: number;
     passesCompleted: number;
     passesAttempted: number;
@@ -220,13 +210,43 @@ interface TeamStats {
     };
     possessionTime: number;
     saves: number;
-    [key: string]: number | {
-        perfect: number;
-        good: number;
-        poor: number;
-        failed: number;
-        total: number;
-    } | undefined;
+    offsides?: number;
+    corners?: number;
+    freeKicks?: number;
+    throwIns?: number;
+    goalKicks?: number;
+}
+export interface PlayerRealStats {
+    gkKeeperSweeper: number;
+    aerialsWonPercent: number;
+    gkSavePercent: number;
+    gkGoalsPrevented: number;
+    xGOT: number;
+    shotsOnTarget: number;
+    shots: number;
+    dribblesSucceeded: number;
+    chancesCreated?: number;
+    crossesAccuracy?: number;
+    dispossessed?: number;
+    penaltyWon?: number;
+    foulsWon?: number;
+    duelWonPercent?: number;
+    interceptions?: number;
+    fouls?: number;
+    recoveries?: number;
+    goals?: number;
+    assists?: number;
+    xG?: number;
+    xA?: number;
+    passAccuracy?: number;
+    longBallAccuracy?: number;
+    wonContest?: number;
+    touchesOppBox?: number;
+    gkSaves?: number;
+    gkGoalsConceded?: number;
+    gkErrorLedToGoal?: number;
+    yellowCards?: number;
+    redCards?: number;
 }
 export interface GameState {
     stats: {
@@ -473,5 +493,4 @@ export interface Foul {
     fouled: Player;
     severity: number;
 }
-export {};
 //# sourceMappingURL=types.d.ts.map

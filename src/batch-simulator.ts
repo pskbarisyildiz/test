@@ -327,8 +327,8 @@ export const CustomFixtureSimulator = {
                 gameState.ballChasers = new Set(); gameState.shotInProgress = false; gameState.shooter = null;
                 gameState.goalEvents = []; gameState.cardEvents = []; gameState.fouls = 0; gameState.yellowCards = []; gameState.redCards = [];
                 gameState.stats = {
-                    home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, offsides: 0 },
-                    away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, offsides: 0 },
+                    home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, possessionTime: 0, offsides: 0 },
+                    away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, possessionTime: 0, offsides: 0 },
                     possessionTimer: { home: 0, away: 0 },
                     lastPossessionUpdate: Date.now()
                 };

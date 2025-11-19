@@ -136,7 +136,7 @@ export function passBall(passingPlayer, fromX, fromY, toX, toY, passQuality = 0.
  * @returns Success probability (0-1)
  */
 export function calculateDribbleSuccess(player, opponents) {
-    const realStats = player.realStats || {};
+    const realStats = player.realStats;
     // 1. Base skill (exponential calculation amplifies skill differences)
     // E.g: (0.95^0.8) = 0.96 | (0.80^0.8) = 0.84 | (0.60^0.8) = 0.67
     const baseDribbling = Math.pow(player.dribbling / 100, 0.8);
@@ -176,7 +176,7 @@ export function calculateDribbleSuccess(player, opponents) {
  * @returns Success probability (0-1)
  */
 export function calculatePassSuccess(passer, _receiver, distance, isUnderPressure) {
-    const realStats = passer.realStats || {};
+    const realStats = passer.realStats;
     // 1. Base skill (exponential calculation amplifies skill differences)
     // E.g: (0.90^0.7) = 0.93 | (0.70^0.7) = 0.79
     const basePassing = Math.pow(passer.passing / 100, 0.7);
