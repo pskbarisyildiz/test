@@ -12,7 +12,7 @@
  * @migrated-from js/ai/aimovement.js
  */
 
-import type { Player, Vector2D } from '../types';
+import type { Player, Vector2D, PlayerRole } from '../types';
 import { distance, pointToLineDistance } from '../utils/math';
 import { getAttackingGoalX } from '../utils/ui';
 import { shouldAvoidOffside } from '../rules/offside';
@@ -84,7 +84,8 @@ function getDistance(p1: Vector2D | Player, p2: Vector2D | Player): number {
  */
 export function getPositionConfig(role: string): PositionConfig {
   // Using imported POSITION_CONFIGS from config
-  return (POSITION_CONFIGS as any)[role.toUpperCase()] || {
+  const normalizedRole = role.toUpperCase() as PlayerRole;
+  return POSITION_CONFIGS[normalizedRole] || {
     defensiveness: 0.5,
     attackRange: 0.5,
     ballChasePriority: 0.5,
@@ -110,10 +111,10 @@ export function getPlayerActivePosition(player: Player, currentHalf: number): Ve
   // Using imported GAME_CONFIG from config
 
   // 1. STEP: Get base "home" position
-  let homeX = (player as any).homeX ?? 400;
-  let homeY = (player as any).homeY ?? 300;
-  const pitchWidth = (GAME_CONFIG as any).PITCH_WIDTH;
-  const pitchHeight = (GAME_CONFIG as any).PITCH_HEIGHT;
+  let homeX = player.homeX ?? 400;
+  let homeY = player.homeY ?? 300;
+  const pitchWidth = GAME_CONFIG.PITCH_WIDTH;
+  const pitchHeight = GAME_CONFIG.PITCH_HEIGHT;
 
   // 2. STEP: APPLY HALF-TIME FLIP IMMEDIATELY
   // 'activeX' and 'activeY' are now the player's base position in this half
@@ -514,12 +515,12 @@ export function updateTacticalPosition(
   if (gameState.status !== 'playing') {
     player.targetX = player.x;
     player.targetY = player.y;
-    (player as any).speedBoost = 1.0;
+    player.speedBoost = 1.0;
     return; // Don't run tactical AI
   }
 
   // Using imported TACTICS from config
-  const tactic = (TACTICS as any)[player.isHome ? gameState.homeTactic : gameState.awayTactic] || {};
+  const tactic = TACTICS[player.isHome ? gameState.homeTactic : gameState.awayTactic] || {};
   const teamState = player.isHome ? gameState.homeTeamState : gameState.awayTeamState;
   const activePosition = getPlayerActivePosition(player, gameState.currentHalf);
   const teamHasBall = gameState.ballHolder && gameState.ballHolder.isHome === player.isHome;
@@ -534,11 +535,11 @@ export function updateTacticalPosition(
   }
 
   // Ball chasers go straight to ball
-  if (gameState.ballChasers.has(player.id as any)) {
+  if (gameState.ballChasers.has(player)) {
     player.targetX = ball.x;
     player.targetY = ball.y;
-    (player as any).targetLocked = true;
-    (player as any).targetLockTime = Date.now();
+    player.targetLocked = true;
+    player.targetLockTime = Date.now();
     return;
   }
 
@@ -549,7 +550,7 @@ export function updateTacticalPosition(
     Math.pow(player.targetY - player.y, 2)
   );
 
-  if ((player as any).targetLocked && now - ((player as any).targetLockTime || 0) < 1500) {
+  if (player.targetLocked && now - (player.targetLockTime || 0) < 1500) {
     if (distToTarget > 20) {
       return;
     }
@@ -566,12 +567,12 @@ export function updateTacticalPosition(
     if (markingResult.shouldMark) {
       targetX = markingResult.x;
       targetY = markingResult.y;
-      (player as any).speedBoost = 1.2;
+      player.speedBoost = 1.2;
       shouldLockTarget = true;
     } else if (markingResult.shouldPress) {
       targetX = markingResult.x;
       targetY = markingResult.y;
-      (player as any).speedBoost = teamState === 'HIGH_PRESS' ? 1.4 : 1.3;
+      player.speedBoost = teamState === 'HIGH_PRESS' ? 1.4 : 1.3;
       shouldLockTarget = true;
     } else {
       ({ x: targetX, y: targetY } = applyDefensivePositioning(player, ball, tactic, activePosition, ownGoalX, teamState));
@@ -595,21 +596,21 @@ export function updateTacticalPosition(
       if (advancedBehavior) {
         targetX = advancedBehavior.target.x;
         targetY = advancedBehavior.target.y;
-        (player as any).speedBoost = advancedBehavior.speedMultiplier;
+        player.speedBoost = advancedBehavior.speedMultiplier;
         shouldLockTarget = advancedBehavior.shouldLock;
-        (player as any).currentBehavior = advancedBehavior.description;
+        player.currentBehavior = advancedBehavior.description;
       } else {
         // No behavior from system, return to formation
         targetX = activePosition.x;
         targetY = activePosition.y;
-        (player as any).speedBoost = 1.0;
-        (player as any).currentBehavior = 'holding_shape';
+        player.speedBoost = 1.0;
+        player.currentBehavior = 'holding_shape';
       }
     } else {
       // Fallback if BehaviorSystem not available
       targetX = activePosition.x;
       targetY = activePosition.y;
-      (player as any).speedBoost = 1.0;
+      player.speedBoost = 1.0;
     }
 
   } else {
@@ -617,7 +618,7 @@ export function updateTacticalPosition(
     const verticalInfluence = (ball.y - 300) * 0.15;
     targetX = activePosition.x;
     targetY = activePosition.y + verticalInfluence;
-    (player as any).speedBoost = 1.0;
+    player.speedBoost = 1.0;
   }
 
   // Apply soft anti-clustering if not locked
@@ -649,11 +650,11 @@ export function updateTacticalPosition(
   player.targetY = targetY;
 
   if (shouldLockTarget) {
-    (player as any).targetLocked = true;
-    (player as any).targetLockTime = now;
+    player.targetLocked = true;
+    player.targetLockTime = now;
   } else {
     if (distToTarget < 15) {
-      (player as any).targetLocked = false;
+      player.targetLocked = false;
     }
   }
 }
@@ -767,7 +768,7 @@ export function applyDefensivePositioning(
         targetX = cbHomeX + (isRB ? -30 : 30);
         targetY = 300 + (isRB ? -60 : 60);
 
-        (player as any).speedBoost = 1.3;
+        player.speedBoost = 1.3;
         return { x: targetX, y: targetY };
       }
     }
