@@ -2379,7 +2379,12 @@ var FootballSim = (() => {
       maxHeight = 0.6;
       passType = "shot";
     } else if (dist > LONG_PASS_THRESHOLD) {
-      maxHeight = 0.7 + dist / 300 * 0.3;
+      const passingSkill = passingPlayer ? passingPlayer.passing / 100 : 0.7;
+      const baseHeight = 0.4 + dist / 400 * 0.4;
+      const skillModifier = 1 - passingSkill * 0.3;
+      const qualityVariance = (1 - passQuality) * 0.15;
+      maxHeight = baseHeight * skillModifier + qualityVariance;
+      maxHeight = Math.max(0.3, Math.min(1, maxHeight));
       passType = "aerial";
     }
     gameState.ballTrajectory = {
@@ -4482,7 +4487,7 @@ var FootballSim = (() => {
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < personalSpace && dist > 0) {
           const strength = (personalSpace - dist) / personalSpace;
-          const force = strength * 2.5;
+          const force = strength * 1;
           forceX += dx / dist * force;
           forceY += dy / dist * force;
         }
@@ -4886,10 +4891,25 @@ var FootballSim = (() => {
       return;
     }
     const ballCarrier = gameState2.ballHolder;
-    if (distance(player, ballCarrier) < 50 && (!player.stunnedUntil || now > player.stunnedUntil)) {
-      if (distance(player, ballCarrier) < 35 && (!player.stunnedUntil || now > player.stunnedUntil)) {
-        action_attemptTackle(player, allPlayers);
-      } else {
+    if (ballCarrier && distance(player, ballCarrier) < 50 && (!player.stunnedUntil || now > player.stunnedUntil)) {
+      const distToCarrier = distance(player, ballCarrier);
+      const shouldAttemptTackle = distToCarrier < 25 && (!player.stunnedUntil || now > player.stunnedUntil);
+      if (shouldAttemptTackle) {
+        const dx = ballCarrier.x - player.x;
+        const dy = ballCarrier.y - player.y;
+        const approachAngle = Math.atan2(dy, dx);
+        const carrierVx = ballCarrier.vx || 0;
+        const carrierVy = ballCarrier.vy || 0;
+        const carrierAngle = Math.atan2(carrierVy, carrierVx);
+        let angleDiff = Math.abs(approachAngle - carrierAngle);
+        if (angleDiff > Math.PI)
+          angleDiff = 2 * Math.PI - angleDiff;
+        const isGoodAngle = angleDiff < Math.PI * 0.75;
+        const hasDefendingAdvantage = player.defending > ballCarrier.dribbling + 15;
+        if (isGoodAngle || hasDefendingAdvantage) {
+          action_attemptTackle(player, allPlayers);
+        }
+      } else if (distToCarrier < 50) {
         const markingResult = applyMarkingAndPressing(
           player,
           ball,
@@ -11987,8 +12007,12 @@ var FootballSim = (() => {
       offsideTracker.playersOffsideWhenBallPlayed.clear();
     }, 1e3);
   }
+  var offsideDrawFrameCounter = 0;
   function drawOffsideLines(ctx) {
     if (!gameState.contexts || !gameState.contexts.game)
+      return;
+    offsideDrawFrameCounter++;
+    if (offsideDrawFrameCounter % 5 !== 0)
       return;
     const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
     const awayDefenders = gameState.awayPlayers.filter((p) => p.role !== "GK").sort((a, b) => a.x - b.x);
@@ -12324,8 +12348,13 @@ var FootballSim = (() => {
       }
     }
     if (!traj.isShot && progress > 0.2 && progress < 0.9) {
-      if (typeof handleBallInterception === "function") {
-        handleBallInterception(progress);
+      const now = Date.now();
+      const lastInterceptCheck = traj.lastInterceptCheck || traj.startTime;
+      if (now - lastInterceptCheck > 100) {
+        traj.lastInterceptCheck = now;
+        if (typeof handleBallInterception === "function") {
+          handleBallInterception(progress);
+        }
       }
     }
     if (progress >= 1) {

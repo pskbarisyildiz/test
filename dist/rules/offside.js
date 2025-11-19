@@ -143,9 +143,18 @@ export function awardOffsideFreeKick(offsidePlayer) {
         offsideTracker.playersOffsideWhenBallPlayed.clear();
     }, 1000);
 }
+// IMPROVED: Frame counter for performance optimization
+let offsideDrawFrameCounter = 0;
 export function drawOffsideLines(ctx) {
     if (!gameState.contexts || !gameState.contexts.game)
         return;
+    // PERFORMANCE: Only draw every 5th frame (12 FPS at 60 FPS) - still smooth but 5x less CPU
+    offsideDrawFrameCounter++;
+    if (offsideDrawFrameCounter % 5 !== 0)
+        return;
+    // Optional: Only draw if enabled in debug mode
+    // Uncomment the following line to disable offside lines in production:
+    // if (!(window as any).DEBUG_OFFSIDE) return;
     const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
     const awayDefenders = gameState.awayPlayers
         .filter(p => p.role !== 'GK')

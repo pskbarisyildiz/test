@@ -110,7 +110,9 @@ class SpatialAwarenessSystem {
 
             if (dist < personalSpace && dist > 0) {
                 const strength = (personalSpace - dist) / personalSpace;
-                const force = strength * 2.5;
+                // IMPROVED: Reduced from 2.5 to 1.0 - less aggressive spacing
+                // Players will still avoid overlap but won't create unnatural gaps
+                const force = strength * 1.0;
                 forceX += (dx / dist) * force;
                 forceY += (dy / dist) * force;
             }
@@ -667,10 +669,35 @@ export function updatePlayerAI_V2(player: Player, ball: { x: number; y: number }
     const ballCarrier = gameState.ballHolder;
 
     // DEFENDING
-    if (distance(player, ballCarrier) < 50 && (!player.stunnedUntil || now > player.stunnedUntil)) {
-        if (distance(player, ballCarrier) < 35 && (!player.stunnedUntil || now > player.stunnedUntil)) {
-            action_attemptTackle(player, allPlayers);
-        } else {
+    if (ballCarrier && distance(player, ballCarrier) < 50 && (!player.stunnedUntil || now > player.stunnedUntil)) {
+        // IMPROVED: More realistic tackle conditions - check distance, angle, and timing
+        const distToCarrier = distance(player, ballCarrier);
+        const shouldAttemptTackle = distToCarrier < 25 && (!player.stunnedUntil || now > player.stunnedUntil);
+
+        if (shouldAttemptTackle) {
+            // Check if defender is approaching from good angle
+            const dx = ballCarrier.x - player.x;
+            const dy = ballCarrier.y - player.y;
+            const approachAngle = Math.atan2(dy, dx);
+
+            // Check ball carrier's movement direction
+            const carrierVx = ballCarrier.vx || 0;
+            const carrierVy = ballCarrier.vy || 0;
+            const carrierAngle = Math.atan2(carrierVy, carrierVx);
+
+            // Calculate angle difference (0 = head-on, PI = from behind)
+            let angleDiff = Math.abs(approachAngle - carrierAngle);
+            if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+
+            // Only tackle if approaching from front or side (not from behind)
+            // Or if defender has much better defending stats
+            const isGoodAngle = angleDiff < Math.PI * 0.75; // Within 135 degrees
+            const hasDefendingAdvantage = player.defending > ballCarrier.dribbling + 15;
+
+            if (isGoodAngle || hasDefendingAdvantage) {
+                action_attemptTackle(player, allPlayers);
+            }
+        } else if (distToCarrier < 50) {
             const markingResult = applyMarkingAndPressing(
                 player,
                 ball,

@@ -88,9 +88,17 @@ export function updateBallTrajectory(_dt: number): void {
   }
 
   // Handle interception during pass
+  // IMPROVED: Only check every 100ms to reduce excessive interceptions
   if (!traj.isShot && progress > 0.2 && progress < 0.9) {
-    if (typeof handleBallInterception === 'function') {
-      handleBallInterception(progress);
+    const now = Date.now();
+    const lastInterceptCheck = (traj as any).lastInterceptCheck || traj.startTime;
+
+    if (now - lastInterceptCheck > 100) {  // Check every 100ms instead of every frame
+      (traj as any).lastInterceptCheck = now;
+
+      if (typeof handleBallInterception === 'function') {
+        handleBallInterception(progress);
+      }
     }
   }
 
