@@ -26,11 +26,11 @@ interface PendingGameEvent {
     type: string;
     resolveTime: number;
     data: {
-        holder?: Player;
-        xG?: number;
-        goalkeeper?: Player;
-        goalX?: number;
-        shotTargetY?: number;
+        holder: Player;
+        xG: number;
+        goalkeeper: Player;
+        goalX: number;
+        shotTargetY: number;
     };
 }
 export declare let pendingGameEvents: PendingGameEvent[];

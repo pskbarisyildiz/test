@@ -179,7 +179,7 @@ export function action_attemptTackle(player: Player, allPlayers: Player[]): bool
 
 export function handleBallInterception(progress: number): void {
     const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
-    const trajectory = gameState.ballTrajectory;
+    const trajectory = gameState.ballTrajectory as any;
     if (!trajectory) return;
 
     const HEADER_HEIGHT_THRESHOLD = PHYSICS?.HEADER_HEIGHT_THRESHOLD ?? 0.6;

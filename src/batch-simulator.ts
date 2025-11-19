@@ -9,7 +9,7 @@ import { selectBestTeam, selectBestTactic, initializePlayers } from './gameSetup
 import { isSetPieceStatus } from './utils/ui';
 
 interface SpatialSystem {
-    buildGrid?: () => void;
+    buildGrid?: (allPlayers: unknown[], width: number, height: number) => void;
     update?: () => void;
     [key: string]: unknown;
 }
