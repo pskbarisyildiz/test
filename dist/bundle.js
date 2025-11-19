@@ -5031,15 +5031,47 @@ var FootballSim = (() => {
     if (alreadyBooked && severity > 0.8) {
       console.log(`\u{1F7E5} \u0130K\u0130NC\u0130 SARI KART! ${fouler.name} oyundan at\u0131ld\u0131.`);
       removePlayerFromMatch(fouler);
-      gameState.cardEvents.push({ player: fouler.name, time: Math.floor(gameState.timeElapsed), type: "second_yellow" });
+      gameState.redCards.push({
+        player: fouler.name,
+        time: Math.floor(gameState.timeElapsed),
+        type: "second_yellow"
+      });
+      gameState.cardEvents.push({
+        player: fouler.name,
+        time: Math.floor(gameState.timeElapsed),
+        type: "second_yellow",
+        isHome: fouler.isHome,
+        card: "red"
+      });
     } else if (severity > 0.85) {
       if (severity > 0.97) {
         console.log(`\u{1F7E5} D\u0130REKT KIRMIZI KART! ${fouler.name} oyundan at\u0131ld\u0131.`);
         removePlayerFromMatch(fouler);
-        gameState.cardEvents.push({ player: fouler.name, time: Math.floor(gameState.timeElapsed), type: "direct_red" });
+        gameState.redCards.push({
+          player: fouler.name,
+          time: Math.floor(gameState.timeElapsed),
+          type: "direct_red"
+        });
+        gameState.cardEvents.push({
+          player: fouler.name,
+          time: Math.floor(gameState.timeElapsed),
+          type: "direct_red",
+          isHome: fouler.isHome,
+          card: "red"
+        });
       } else if (!alreadyBooked) {
         console.log(`\u{1F7E8} SARI KART! ${fouler.name}`);
-        gameState.cardEvents.push({ player: fouler.name, time: Math.floor(gameState.timeElapsed), type: "yellow" });
+        gameState.yellowCards.push({
+          player: fouler.name,
+          time: Math.floor(gameState.timeElapsed)
+        });
+        gameState.cardEvents.push({
+          player: fouler.name,
+          time: Math.floor(gameState.timeElapsed),
+          type: "yellow",
+          isHome: fouler.isHome,
+          card: "yellow"
+        });
       }
     }
     const penaltyCheck = tackleSystem.checkForPenalty(
