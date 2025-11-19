@@ -870,7 +870,6 @@ export function updateParticlesWithCleanup(gameState: GameState): void {
 
     if (gameState.particles.length > MAX_PARTICLES) {
         gameState.particles = gameState.particles.slice(-MAX_PARTICLES);
-        console.log(`⚠️ Particle count capped at ${MAX_PARTICLES} (performance protection)`);
     }
 }
 

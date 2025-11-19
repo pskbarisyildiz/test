@@ -5100,7 +5100,6 @@ var FootballSim = (() => {
     });
     if (gameState2.particles.length > MAX_PARTICLES) {
       gameState2.particles = gameState2.particles.slice(-MAX_PARTICLES);
-      console.log(`\u26A0\uFE0F Particle count capped at ${MAX_PARTICLES} (performance protection)`);
     }
   }
   var lastFrameTime = 0;
@@ -13983,6 +13982,7 @@ var FootballSim = (() => {
     window.switchSummaryTab = switchSummaryTab;
     window.switchSimulationMode = switchSimulationMode;
     window.addMatchToBatch = addMatchToBatch;
+    window.render = render;
     window.CustomFixtureSimulator = CustomFixtureSimulator;
     window.startMatch = startMatch;
     window.resetMatch = resetMatch;

@@ -32,6 +32,7 @@ import { processPendingEvents, updateMatchStats, switchSides, resetAfterGoal, ha
 // Phase 10: UI Components and Main Functions (for dynamic onclick handlers)
 import { switchSummaryTab } from './ui/uiComponents';
 import { switchSimulationMode, addMatchToBatch } from './ui/uiScreens';
+import { render } from './ui/uiManager';
 import { CustomFixtureSimulator } from './batch-simulator';
 import { startMatch, resetMatch, handleFileUpload, handleBallOutOfBounds, handleThrowIn } from './main';
 // ============================================================================
@@ -227,6 +228,7 @@ export function exportToWindow() {
     window.switchSummaryTab = switchSummaryTab;
     window.switchSimulationMode = switchSimulationMode;
     window.addMatchToBatch = addMatchToBatch;
+    window.render = render;
     window.CustomFixtureSimulator = CustomFixtureSimulator;
     window.startMatch = startMatch;
     window.resetMatch = resetMatch;

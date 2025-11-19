@@ -22,6 +22,7 @@ import { getAttackingGoalX } from './utils/ui';
 import { processPendingEvents, updateMatchStats, switchSides, resetAfterGoal, handleShotAttempt } from './main';
 import { switchSummaryTab } from './ui/uiComponents';
 import { switchSimulationMode, addMatchToBatch } from './ui/uiScreens';
+import { render } from './ui/uiManager';
 import { CustomFixtureSimulator } from './batch-simulator';
 import { startMatch, resetMatch, handleFileUpload, handleBallOutOfBounds, handleThrowIn } from './main';
 declare global {
@@ -85,6 +86,7 @@ declare global {
         switchSummaryTab: typeof switchSummaryTab;
         switchSimulationMode: typeof switchSimulationMode;
         addMatchToBatch: typeof addMatchToBatch;
+        render?: typeof render;
         CustomFixtureSimulator: typeof CustomFixtureSimulator;
         startMatch: typeof startMatch;
         resetMatch: typeof resetMatch;

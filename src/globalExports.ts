@@ -117,6 +117,9 @@ import {
   addMatchToBatch
 } from './ui/uiScreens';
 import {
+  render
+} from './ui/uiManager';
+import {
   CustomFixtureSimulator
 } from './batch-simulator';
 import {
@@ -199,6 +202,7 @@ declare global {
     switchSummaryTab: typeof switchSummaryTab;
     switchSimulationMode: typeof switchSimulationMode;
     addMatchToBatch: typeof addMatchToBatch;
+    render?: typeof render;
     CustomFixtureSimulator: typeof CustomFixtureSimulator;
     startMatch: typeof startMatch;
     resetMatch: typeof resetMatch;
@@ -418,6 +422,7 @@ export function exportToWindow(): void {
   window.switchSummaryTab = switchSummaryTab;
   window.switchSimulationMode = switchSimulationMode;
   window.addMatchToBatch = addMatchToBatch;
+  window.render = render;
   window.CustomFixtureSimulator = CustomFixtureSimulator;
   window.startMatch = startMatch;
   window.resetMatch = resetMatch;
