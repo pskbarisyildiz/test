@@ -365,7 +365,7 @@ const ForwardBehaviors = {
         };
     },
 
-    invertedWingerCutInside(winger: Player, opponentGoalX: number, opponents: Player[], _ball: { x: number; y: number }) {
+    invertedWingerCutInside(winger: Player, opponentGoalX: number, opponents: Player[], _ball: { x: number; y: number }, holder: Player | null) {
         if (!['RW', 'LW'].includes(winger.role)) return null;
 
         const distToGoal = Math.abs(winger.x - opponentGoalX);
@@ -376,7 +376,24 @@ const ForwardBehaviors = {
             // Calculate desired target
             const desiredTargetX = opponentGoalX - Math.sign(opponentGoalX - winger.x) * 100;
 
-            // OFFSIDE CHECK: Find the last defender (excluding GK)
+            // OFFSIDE CHECK: Ball carrier can dribble anywhere - offside doesn't apply
+            // Only check offside for players WITHOUT the ball
+            const isBallCarrier = holder && holder.id === winger.id;
+
+            if (isBallCarrier) {
+                // Ball carrier - no offside restriction, go for goal!
+                return {
+                    target: {
+                        x: desiredTargetX,
+                        y: 300 + (Math.random() - 0.5) * 100
+                    },
+                    speedMultiplier: 1.4,
+                    description: 'inverted winger cutting inside',
+                    shouldLock: true
+                };
+            }
+
+            // NOT ball carrier - check offside: Find the last defender (excluding GK)
             const oppDefenders = opponents.filter(o => o.role !== 'GK');
             if (oppDefenders.length > 0) {
                 // Sort by distance to goal (closest to goal = last defender)
@@ -542,7 +559,7 @@ const ForwardBehaviors = {
 };
 
 const TransitionBehaviors = {
-    counterAttackRun(player: Player, opponentGoalX: number, justWonPossession: boolean, opponents: Player[], _ball: { x: number; y: number }) {
+    counterAttackRun(player: Player, opponentGoalX: number, justWonPossession: boolean, opponents: Player[], _ball: { x: number; y: number }, holder: Player | null) {
         if (!justWonPossession) return null;
         if (!['ST', 'RW', 'LW', 'CAM', 'CM'].includes(player.role)) return null;
 
@@ -552,7 +569,24 @@ const TransitionBehaviors = {
             // Calculate desired target
             const desiredTargetX = opponentGoalX - Math.sign(opponentGoalX - player.x) * 80;
 
-            // OFFSIDE CHECK: Find the last defender
+            // OFFSIDE CHECK: Ball carrier can dribble anywhere - offside doesn't apply
+            const isBallCarrier = holder && holder.id === player.id;
+
+            if (isBallCarrier) {
+                // Ball carrier on counter-attack - no offside restriction!
+                return {
+                    target: {
+                        x: desiredTargetX,
+                        y: player.role === 'ST' ? 300 : player.y
+                    },
+                    speedMultiplier: 2.0,
+                    description: 'counter-attack sprint',
+                    shouldLock: true,
+                    duration: 3000
+                };
+            }
+
+            // NOT ball carrier - check offside: Find the last defender
             const oppDefenders = opponents.filter(o => o.role !== 'GK');
             let targetX = desiredTargetX;
 
@@ -732,7 +766,7 @@ export function selectPlayerBehavior(player: Player, gameState: GameState, phase
 
     if (phase === PHASES.TRANSITION_TO_ATTACK || justWonPossession) {
         behaviors.push(
-            TransitionBehaviors.counterAttackRun(player, opponentGoalX, justWonPossession, opponents, ball)
+            TransitionBehaviors.counterAttackRun(player, opponentGoalX, justWonPossession, opponents, ball, holder)
         );
     }
 
@@ -786,7 +820,7 @@ export function selectPlayerBehavior(player: Player, gameState: GameState, phase
 
         behaviors.push(
             ForwardBehaviors.wingerWidthProviding(player, holder),
-            ForwardBehaviors.invertedWingerCutInside(player, opponentGoalX, opponents, ball),
+            ForwardBehaviors.invertedWingerCutInside(player, opponentGoalX, opponents, ball, holder),
             ForwardBehaviors.strikerRunsInBehind(player, holder, opponents, opponentGoalX, ball),
             ForwardBehaviors.false9DropDeep(player, holder, teammates, opponentGoalX),
             ForwardBehaviors.targetStrikerHoldUp(player, opponents, ball)
