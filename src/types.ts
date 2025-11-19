@@ -149,7 +149,17 @@ export interface Player {
     defending: number;
     rating: number;
     ballReceivedTime: number | null;
-    realStats: Record<string, number>;
+    realStats: {
+        gkKeeperSweeper?: number;
+        aerialsWonPercent?: number;
+        gkSavePercent?: number;
+        gkGoalsPrevented?: number;
+        xGOT?: number;
+        shotsOnTarget?: number;
+        shots?: number;
+        dribblesSucceeded?: number;
+        [key: string]: number | undefined;
+    };
     stamina: number;
     passing: number;
     effectivePace: number;
@@ -203,18 +213,20 @@ export interface Player {
 }
 
 interface TeamStats {
-    possession?: number;
-    passesCompleted?: number;
-    passesAttempted?: number;
-    shots?: number;
-    shotsOnTarget?: number;
-    shotsOffTarget?: number;
-    tackles?: number;
-    fouls?: number;
-    xGTotal?: number;
-    interceptions?: number;
-    firstTouches?: number;
-    [key: string]: number | undefined;
+    possession: number;
+    passesCompleted: number;
+    passesAttempted: number;
+    shots: number;
+    shotsOnTarget: number;
+    shotsOffTarget: number;
+    tackles: number;
+    fouls: number;
+    xGTotal: number;
+    interceptions: number;
+    firstTouches: number | { perfect: number; good: number; poor: number; failed: number; total: number };
+    possessionTime: number;
+    saves: number;
+    [key: string]: number | { perfect: number; good: number; poor: number; failed: number; total: number } | undefined;
 }
 
 export interface GameState {
@@ -246,16 +258,35 @@ export interface GameState {
     timeElapsed: number;
     currentHalf: number;
     commentary: (string | { text: string; type: string; [key: string]: unknown })[];
-    goalEvents: { player?: string; scorer?: string; time: number; team?: string; isHome?: boolean; [key: string]: unknown }[];
-    cardEvents: { player: string; time: number; team: string; type: string; [key: string]: unknown }[];
+    goalEvents: { player?: string; scorer?: string; time: number; team: string; isHome?: boolean; [key: string]: unknown }[];
+    cardEvents: { player: string; time: number; team: string; type?: string; card?: string; isHome?: boolean; [key: string]: unknown }[];
     players: Player[];
     homePlayers: Player[];
     awayPlayers: Player[];
-    setPiece: { type: string; team: string | boolean; position: Vector2D; [key: string]: unknown } | null;
+    setPiece: {
+        type: string;
+        team: string | boolean;
+        position: Vector2D;
+        routine?: unknown;
+        defensiveSystem?: string;
+        kicker?: { id?: string; [key: string]: unknown };
+        executionTime?: number;
+        executed?: boolean;
+        [key: string]: unknown
+    } | null;
     teamLogos: Record<string, string>;
     homeTactic: string;
     awayTactic: string;
-    ballTrajectory: { startX: number; startY: number; endX: number; endY: number; startTime: number; duration: number; [key: string]: unknown } | null;
+    ballTrajectory: {
+        startX: number;
+        startY: number;
+        endX: number;
+        endY: number;
+        startTime: number;
+        duration: number;
+        isShot?: boolean;
+        [key: string]: unknown
+    } | null;
     ballPosition: Vector2D;
     ballVelocity: Vector2D;
     ballHolder: Player | null;

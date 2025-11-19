@@ -21,7 +21,7 @@ export declare const ProfessionalCornerBehaviors: {
         opponents?: {
             mostDangerous?: Player[];
         };
-    }, _routine: unknown, gameState: GameState): import("../utils").PositionWithMovement;
+    } | null, _routine: unknown, gameState: GameState): import("../utils").PositionWithMovement;
     getDefendingCornerPosition(player: Player, cornerPos: Vector2D, ownGoalX: number, opponents: Player[], sortedLists: {
         teammates?: {
             bestHeaders?: Player[];
@@ -30,6 +30,6 @@ export declare const ProfessionalCornerBehaviors: {
         opponents?: {
             mostDangerous?: Player[];
         };
-    }, system: string, gameState: GameState, teammates: Player[]): import("../utils").PositionWithMovement;
+    } | null, system: string, gameState: GameState, teammates: Player[]): import("../utils").PositionWithMovement;
 };
 //# sourceMappingURL=cornerKick.d.ts.map

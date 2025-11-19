@@ -45,7 +45,7 @@ export declare const SetPieceBehaviorSystem: {
             opponents?: {
                 mostDangerous?: Player[];
             };
-        }, _routine: unknown, gameState: GameState): PositionWithMovement;
+        } | null, _routine: unknown, gameState: GameState): PositionWithMovement;
         getDefendingCornerPosition(player: Player, cornerPos: Vector2D, ownGoalX: number, opponents: Player[], sortedLists: {
             teammates?: {
                 bestHeaders?: Player[];
@@ -54,7 +54,7 @@ export declare const SetPieceBehaviorSystem: {
             opponents?: {
                 mostDangerous?: Player[];
             };
-        }, system: string, gameState: GameState, teammates: Player[]): PositionWithMovement;
+        } | null, system: string, gameState: GameState, teammates: Player[]): PositionWithMovement;
     };
     ProfessionalFreeKickBehaviors: {
         getAttackingFreeKickPosition(player: Player, fkPos: Vector2D, opponentGoalX: number, distToGoal: number, sortedLists: import("../setpieces/behaviors/freeKick").SortedLists | null, gameState: GameState, teammates: Player[]): PositionWithMovement | {

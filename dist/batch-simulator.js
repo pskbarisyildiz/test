@@ -266,7 +266,12 @@ export const CustomFixtureSimulator = {
                 gameState.fouls = 0;
                 gameState.yellowCards = [];
                 gameState.redCards = [];
-                gameState.stats = { home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, possessionTimer: { home: 0, away: 0 }, lastPossessionUpdate: Date.now() };
+                gameState.stats = {
+                    home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, offsides: 0 },
+                    away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, offsides: 0 },
+                    possessionTimer: { home: 0, away: 0 },
+                    lastPossessionUpdate: Date.now()
+                };
                 window.setupKickOff('home');
                 let lastFrameTimeSim = performance.now();
                 let physicsAccumulatorSim = 0;
@@ -699,22 +704,30 @@ export const CustomFixtureSimulator = {
                     possessionTime: 0,
                     passesCompleted: 0,
                     passesAttempted: 0,
+                    shots: 0,
                     shotsOnTarget: 0,
                     shotsOffTarget: 0,
                     tackles: 0,
+                    fouls: 0,
                     interceptions: 0,
-                    xGTotal: 0
+                    xGTotal: 0,
+                    firstTouches: 0,
+                    saves: 0
                 },
                 away: {
                     possession: 0,
                     possessionTime: 0,
                     passesCompleted: 0,
                     passesAttempted: 0,
+                    shots: 0,
                     shotsOnTarget: 0,
                     shotsOffTarget: 0,
                     tackles: 0,
+                    fouls: 0,
                     interceptions: 0,
-                    xGTotal: 0
+                    xGTotal: 0,
+                    firstTouches: 0,
+                    saves: 0
                 },
                 possession: { home: 50, away: 50 },
                 possessionTimer: { home: 0, away: 0 },

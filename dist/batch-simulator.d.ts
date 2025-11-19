@@ -21,16 +21,20 @@ interface MatchResult {
     awayPassAccuracy: number;
     winner: string;
     goalEvents: {
-        player: string;
+        player?: string;
+        scorer?: string;
         time: number;
         team: string;
+        isHome?: boolean;
         [key: string]: unknown;
     }[];
     cardEvents: {
         player: string;
         time: number;
         team: string;
-        type: string;
+        type?: string;
+        card?: string;
+        isHome?: boolean;
         [key: string]: unknown;
     }[];
 }

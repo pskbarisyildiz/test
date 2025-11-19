@@ -606,6 +606,7 @@ export function resolveShot_WithAdvancedGK(params) {
         gameState.goalEvents.push({
             scorer: holder.name,
             time: Math.floor(gameState.timeElapsed),
+            team: holder.isHome ? gameState.homeTeam : gameState.awayTeam,
             isHome: holder.isHome
         });
         createGoalExplosion(goalX, shotTargetY, holder.isHome ? gameState.homeJerseyColor : gameState.awayJerseyColor);

@@ -12,7 +12,7 @@
  * @migrated-from js/ai/aimovement.js
  */
 
-import type { Player, Vector2D, PlayerRole } from '../types';
+import type { Player, Vector2D, PlayerRole, Tactic } from '../types';
 import { distance, pointToLineDistance } from '../utils/math';
 import { getAttackingGoalX } from '../utils/ui';
 import { shouldAvoidOffside } from '../rules/offside';
@@ -668,7 +668,7 @@ export function applyMarkingAndPressing(
   opponents: Player[],
   activePosition: Vector2D,
   ownGoalX: number,
-  tactic: string,
+  tactic: Partial<Tactic>,
   teamState: TeamState
 ): MarkingResult {
   // Using imported gameState from globalExports
@@ -722,7 +722,7 @@ export function applyMarkingAndPressing(
 export function applyDefensivePositioning(
   player: Player,
   ball: Vector2D,
-  _tactic: string,
+  _tactic: Partial<Tactic>,
   activePosition: Vector2D,
   ownGoalX: number,
   teamState: TeamState

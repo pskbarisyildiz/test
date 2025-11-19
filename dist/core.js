@@ -421,6 +421,7 @@ class PenaltySystem {
             gameState.goalEvents.push({
                 time: Math.floor(gameState.timeElapsed),
                 scorer: state.shooter.name,
+                team: state.shooter.isHome ? gameState.homeTeam : gameState.awayTeam,
                 isHome: state.shooter.isHome,
                 xG: PENALTY_XG
             });
@@ -565,7 +566,7 @@ export function updatePlayerAI_V2(player, ball, allPlayers, gameState) {
             }
         }
         else if (distToCarrier < 50) {
-            const markingResult = applyMarkingAndPressing(player, ball, opponents, getPlayerActivePosition(player, gameState.currentHalf), getAttackingGoalX(!player.isHome, gameState.currentHalf), TACTICS[player.isHome ? gameState.homeTactic : gameState.awayTactic], player.isHome ? gameState.homeTeamState : gameState.awayTeamState);
+            const markingResult = applyMarkingAndPressing(player, ball, opponents, getPlayerActivePosition(player, gameState.currentHalf), getAttackingGoalX(!player.isHome, gameState.currentHalf), TACTICS[player.isHome ? gameState.homeTactic : gameState.awayTactic] || {}, player.isHome ? gameState.homeTeamState : gameState.awayTeamState);
             player.targetX = markingResult.x + spacingForce.x;
             player.targetY = markingResult.y + spacingForce.y;
             player.speedBoost = markingResult.shouldPress ? 1.3 : 1.1;
@@ -617,11 +618,13 @@ export function handleFoul_V2(fouler, fouled) {
         gameState.redCards.push({
             player: fouler.name,
             time: Math.floor(gameState.timeElapsed),
+            team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam,
             type: 'second_yellow'
         });
         gameState.cardEvents.push({
             player: fouler.name,
             time: Math.floor(gameState.timeElapsed),
+            team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam,
             type: 'second_yellow',
             isHome: fouler.isHome,
             card: 'red'
@@ -635,11 +638,13 @@ export function handleFoul_V2(fouler, fouled) {
             gameState.redCards.push({
                 player: fouler.name,
                 time: Math.floor(gameState.timeElapsed),
+                team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam,
                 type: 'direct_red'
             });
             gameState.cardEvents.push({
                 player: fouler.name,
                 time: Math.floor(gameState.timeElapsed),
+                team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam,
                 type: 'direct_red',
                 isHome: fouler.isHome,
                 card: 'red'
@@ -649,11 +654,13 @@ export function handleFoul_V2(fouler, fouled) {
             console.log(`🟨 SARI KART! ${fouler.name}`);
             gameState.yellowCards.push({
                 player: fouler.name,
-                time: Math.floor(gameState.timeElapsed)
+                time: Math.floor(gameState.timeElapsed),
+                team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam
             });
             gameState.cardEvents.push({
                 player: fouler.name,
                 time: Math.floor(gameState.timeElapsed),
+                team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam,
                 type: 'yellow',
                 isHome: fouler.isHome,
                 card: 'yellow'
