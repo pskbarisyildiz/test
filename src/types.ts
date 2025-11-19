@@ -183,6 +183,10 @@ export interface Player {
     ballSettleTime?: number; // Time needed to settle the ball
     // Set piece properties
     setPieceRole?: string; // Role in set piece (KICKER, THROWER, etc.)
+    setPieceLocked?: boolean; // Whether player is locked in set piece position
+    setPieceMovement?: string; // Type of movement for set piece
+    setPieceRunTarget?: { x: number; y: number } | null; // Run target after set piece execution
+    _setPieceWasClose?: boolean; // Internal tracking for hysteresis in set piece positioning
 }
 
 export interface GameState {

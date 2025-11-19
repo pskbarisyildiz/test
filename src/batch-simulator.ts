@@ -315,8 +315,8 @@ export const CustomFixtureSimulator = {
                 gameState.ballPosition = { x: 400, y: 300 }; gameState.ballVelocity = { x: 0, y: 0 }; gameState.ballHeight = 0;
                 gameState.ballTrajectory = null; gameState.ballHolder = null; gameState.commentary = []; gameState.particles = [];
                 gameState.ballChasers = new Set(); gameState.shotInProgress = false; gameState.shooter = null;
-                (gameState as any).goalEvents = []; (gameState as any).cardEvents = []; gameState.fouls = 0; (gameState as any).yellowCards = []; (gameState as any).redCards = [];
-                (gameState as any).stats = { home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, possessionTimer: { home: 0, away: 0 }, lastPossessionUpdate: Date.now() };
+                gameState.goalEvents = []; gameState.cardEvents = []; gameState.fouls = 0; gameState.yellowCards = []; gameState.redCards = [];
+                gameState.stats = { home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, possessionTimer: { home: 0, away: 0 }, lastPossessionUpdate: Date.now() };
 
                 (window as any).setupKickOff('home');
 
@@ -449,7 +449,7 @@ export const CustomFixtureSimulator = {
                             homeShotsOnTarget: gameState.stats.home?.shotsOnTarget || 0, awayShotsOnTarget: gameState.stats.away?.shotsOnTarget || 0,
                             homePassAccuracy: homePassAcc, awayPassAccuracy: awayPassAcc,
                             winner: (gameState.homeScore ?? 0) > (gameState.awayScore ?? 0) ? homeTeam : (gameState.awayScore ?? 0) > (gameState.homeScore ?? 0) ? awayTeam : 'Draw',
-                            goalEvents: [...((gameState as any).goalEvents || [])], cardEvents: [...((gameState as any).cardEvents || [])]
+                            goalEvents: [...(gameState.goalEvents || [])], cardEvents: [...(gameState.cardEvents || [])]
                         };
                         resolve(result);
                     }
@@ -522,7 +522,7 @@ export const CustomFixtureSimulator = {
             toggleBtn.style.transition = 'opacity 0.3s';
 
             if (typeof gameState !== 'undefined') {
-                toggleBtn.innerText = (gameState as any).isVertical ? 'View: Horizontal' : 'View: Vertical';
+                toggleBtn.innerText = gameState.isVertical ? 'View: Horizontal' : 'View: Vertical';
             } else {
                 toggleBtn.innerText = 'View: Vertical';
             }
