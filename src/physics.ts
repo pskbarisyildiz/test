@@ -64,7 +64,7 @@ export function updateBallTrajectory(_dt: number): void {
     return;
   }
 
-  const traj = gameState.ballTrajectory;
+  const traj = gameState.ballTrajectory as any;
   const elapsed = Date.now() - traj.startTime;
   const progress = Math.min(elapsed / traj.duration, 1);
 

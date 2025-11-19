@@ -15,6 +15,7 @@
  * @migrated-from js/setpieces/behaviors/freeKick.js
  */
 import type { Player, GameState, Vector2D } from '../../types';
+import { type PositionWithMovement } from '../utils';
 export interface PlayerJobAssignment extends Vector2D {
     movement: string;
     role: string;
@@ -37,29 +38,9 @@ export interface SortedLists {
     };
 }
 export declare const ProfessionalFreeKickBehaviors: {
-    getAttackingFreeKickPosition(player: Player, fkPos: Vector2D, opponentGoalX: number, distToGoal: number, sortedLists: SortedLists | null, gameState: GameState, teammates: Player[]): import("../utils").PositionWithMovement | {
-        x: number;
-        y: number;
-        movement: string;
-        role: string;
-    };
-    getDefendingFreeKickPosition(player: Player, fkPos: Vector2D, ownGoalX: number, distToGoal: number, sortedLists: SortedLists | null, opponents: Player[], gameState: GameState, teammates: Player[]): import("../utils").PositionWithMovement | {
-        x: number;
-        y: number;
-        movement: string;
-        role: string;
-    };
-    calculateWallPosition(positionData: PlayerJobAssignment, wallSize: number, fkPos: Vector2D, ownGoalX: number, direction: number, player: Player, gameState: GameState): import("../utils").PositionWithMovement | {
-        x: number;
-        y: number;
-        movement: string;
-        role: string;
-    };
-    calculateMarkingPosition(positionData: PlayerJobAssignment, direction: number, opponentMap: Map<string, Player> | undefined, player: Player, gameState: GameState, ownGoalX: number): import("../utils").PositionWithMovement | {
-        x: number;
-        y: number;
-        movement: string;
-        role: string;
-    };
+    getAttackingFreeKickPosition(player: Player, fkPos: Vector2D, opponentGoalX: number, distToGoal: number, sortedLists: SortedLists | null, gameState: GameState, teammates: Player[]): PositionWithMovement;
+    getDefendingFreeKickPosition(player: Player, fkPos: Vector2D, ownGoalX: number, distToGoal: number, sortedLists: SortedLists | null, opponents: Player[], gameState: GameState, teammates: Player[]): PositionWithMovement;
+    calculateWallPosition(positionData: PlayerJobAssignment, wallSize: number, fkPos: Vector2D, ownGoalX: number, direction: number, player: Player, gameState: GameState): PositionWithMovement;
+    calculateMarkingPosition(positionData: PlayerJobAssignment, direction: number, opponentMap: Map<string, Player> | undefined, player: Player, gameState: GameState, ownGoalX: number): PositionWithMovement;
 };
 //# sourceMappingURL=freeKick.d.ts.map

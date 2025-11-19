@@ -71,7 +71,7 @@ export function assignSetPieceKicker(player: Player | null): void {
         return;
     }
 
-    gameState.setPiece.kicker = player || null;
+    gameState.setPiece.kicker = player as any || undefined;
 }
 
 export function getCornerKickPosition(isLeftCorner: boolean, isTopCorner: boolean): { x: number; y: number } {
@@ -354,8 +354,8 @@ export function executeSetPiece_PostExecution(): void {
         allPlayers.forEach(player => {
             if (player) {
                 player.setPieceLocked = false;
-                player.setPieceMovement = null;
-                player.setPieceRole = null;
+                player.setPieceMovement = undefined;
+                player.setPieceRole = undefined;
                 player.setPieceRunTarget = null;
                 player.setPieceTarget = null;
                 player._setPieceWasClose = false;

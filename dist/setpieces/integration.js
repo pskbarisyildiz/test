@@ -53,7 +53,7 @@ export function assignSetPieceKicker(player) {
     if (typeof gameState === 'undefined' || !gameState || !gameState.setPiece) {
         return;
     }
-    gameState.setPiece.kicker = player || null;
+    gameState.setPiece.kicker = player || undefined;
 }
 export function getCornerKickPosition(isLeftCorner, isTopCorner) {
     const CORNER_MARGIN = 5;
@@ -302,8 +302,8 @@ export function executeSetPiece_PostExecution() {
         allPlayers.forEach(player => {
             if (player) {
                 player.setPieceLocked = false;
-                player.setPieceMovement = null;
-                player.setPieceRole = null;
+                player.setPieceMovement = undefined;
+                player.setPieceRole = undefined;
                 player.setPieceRunTarget = null;
                 player.setPieceTarget = null;
                 player._setPieceWasClose = false;

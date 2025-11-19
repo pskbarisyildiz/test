@@ -72,14 +72,16 @@ export function handleFileUpload(event) {
             const fotmobId = row[11];
             const rating = row[12];
             if (position.toLowerCase() === 'coach') {
-                const teamName = row[2].toString().trim();
-                const coachName = row[0].toString().trim();
-                gameState.teamCoaches[teamName] = coachName;
+                const teamName = row[2] ? row[2].toString().trim() : '';
+                const coachName = row[0] ? row[0].toString().trim() : '';
+                if (teamName) {
+                    gameState.teamCoaches[teamName] = coachName;
+                }
                 return false;
             }
             const hasValidId = fotmobId && fotmobId.toString().trim() && fotmobId.toString().trim().toLowerCase() !== 'n/a';
             return hasName && hasTeam && hasValidId &&
-                rating && !isNaN(parseFloat(rating));
+                rating && !isNaN(parseFloat(String(rating)));
         })
             .map((row, index) => {
             const positionString = row[3]?.toString().trim() || '';
@@ -91,7 +93,7 @@ export function handleFileUpload(event) {
                 id: playerId,
                 name: String(row[0] ?? '').trim(),
                 team: String(row[2] ?? '').trim(),
-                position: positionString.split(',')[0].trim(),
+                position: positionString ? (positionString.split(',')[0] || '').trim() : '',
                 role: playerRole,
                 pace: parseInt(String(row[4] ?? '60')) || 60,
                 shooting: parseInt(String(row[5] ?? '60')) || 60,
@@ -513,6 +515,10 @@ export function removePlayerFromMatch(playerToRemove) {
 export function handleShotAttempt(holder, goalX, allPlayers) {
     const goalkeeper = allPlayers.find(p => p.role === 'GK' && p.isHome !== holder.isHome);
     const opponents = allPlayers.filter(p => p.isHome !== holder.isHome);
+    if (!goalkeeper) {
+        console.warn('No goalkeeper found for shot attempt');
+        return;
+    }
     const xG = calculateXG(holder, goalX, holder.y, opponents);
     const teamStats = holder.isHome ? gameState.stats.home : gameState.stats.away;
     teamStats.xGTotal += xG;

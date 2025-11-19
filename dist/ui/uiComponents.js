@@ -159,15 +159,16 @@ export function renderCommentary() {
     const commentaryHTML = recentComments.map(c => {
         let accentColor = '#6366f1';
         let emoji = '⚽';
-        if (c.type === 'goal') {
+        const commentObj = typeof c === 'string' ? { text: c, type: 'default' } : c;
+        if (commentObj.type === 'goal') {
             accentColor = '#00ff88';
             emoji = '⚽';
         }
-        else if (c.type === 'save') {
+        else if (commentObj.type === 'save') {
             accentColor = '#00d4ff';
             emoji = '🧤';
         }
-        else if (c.type === 'attack') {
+        else if (commentObj.type === 'attack') {
             accentColor = '#ffd700';
             emoji = '⚡';
         }
@@ -198,7 +199,7 @@ export function renderCommentary() {
                     margin-right: 8px;
                     filter: drop-shadow(0 0 4px ${accentColor});
                 ">${emoji}</span>
-                ${c.text}
+                ${commentObj.text}
 
                 <!-- Subtle glow effect -->
                 <div style="
@@ -314,15 +315,15 @@ export function renderMatchSummary() {
     const groupEvents = (events) => {
         const grouped = {};
         events.forEach(e => {
-            const key = e.type === 'goal' ? e.scorer : e.player;
+            const key = e.type === 'goal' ? (e.scorer || 'Unknown') : (e.player || 'Unknown');
             if (!grouped[key]) {
                 grouped[key] = { name: key, goals: [], cards: [] };
             }
             if (e.type === 'goal') {
-                grouped[key].goals.push(e.time);
+                grouped[key].goals.push(e.time || 0);
             }
             else {
-                grouped[key].cards.push({ time: e.time, card: e.card });
+                grouped[key].cards.push({ time: e.time || 0, card: e.card || 'yellow' });
             }
         });
         return Object.values(grouped);

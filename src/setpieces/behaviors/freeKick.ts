@@ -22,7 +22,8 @@ import {
   PositionManager,
   getValidPlayers,
   getSortedLists,
-  checkAndAdjustOffsidePosition
+  checkAndAdjustOffsidePosition,
+  type PositionWithMovement
 } from '../utils';
 import { GAME_CONFIG } from '../../config';
 import { getAttackingGoalX } from '../../utils/ui';
@@ -96,7 +97,7 @@ function getSafeStat(stats: Record<string, unknown>, key: string, defaultValue: 
   return typeof val === 'number' && isFinite(val) ? val : defaultValue;
 }
 
-function getRoleBasedFallbackPosition(role: string | undefined, context: { player?: Player; gameState?: GameState } = {}): { x: number; y: number; movement: string; role: string } {
+function getRoleBasedFallbackPosition(role: string | undefined, context: { player?: Player; gameState?: GameState } = {}): PositionWithMovement {
   const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
   const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
