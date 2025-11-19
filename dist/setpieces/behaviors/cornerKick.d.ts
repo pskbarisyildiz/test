@@ -18,6 +18,7 @@ export declare const ProfessionalCornerBehaviors: {
             bestHeaders?: Player[];
             fastest?: Player[];
             bestKickers?: Player[];
+            bestDefenders?: Player[];
         };
         opponents?: {
             mostDangerous?: Player[];
@@ -29,6 +30,7 @@ export declare const ProfessionalCornerBehaviors: {
             bestHeaders?: Player[];
             fastest?: Player[];
             bestKickers?: Player[];
+            bestDefenders?: Player[];
         };
         opponents?: {
             mostDangerous?: Player[];

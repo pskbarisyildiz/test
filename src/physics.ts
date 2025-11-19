@@ -72,7 +72,7 @@ export function updateBallTrajectory(_dt: number): void {
   gameState.ballPosition.y = traj.startY + (traj.endY - traj.startY) * progress;
 
   const heightProgress = Math.sin(progress * Math.PI);
-  gameState.ballHeight = heightProgress * traj.maxHeight;
+  gameState.ballHeight = heightProgress * (traj.maxHeight ?? 0);
 
   // Check for out of bounds during aerial passes
   if (traj['passType'] === 'aerial' && gameState.ballHeight > 0.5) {
@@ -108,13 +108,13 @@ export function updateBallTrajectory(_dt: number): void {
   // Trajectory complete
   if (progress >= 1) {
     const direction = Math.atan2(traj.endY - traj.startY, traj.endX - traj.startX);
-    const landingSpeed = traj.speed * 0.3;
+    const landingSpeed = (traj.speed ?? 0) * 0.3;
 
     gameState.ballVelocity.x = Math.cos(direction) * landingSpeed;
     gameState.ballVelocity.y = Math.sin(direction) * landingSpeed;
 
     if (DEBUG_PHYSICS) {
-      console.log(`[Physics] Ball trajectory complete (${traj.passType}): landed at (${gameState.ballPosition.x.toFixed(1)}, ${gameState.ballPosition.y.toFixed(1)}), velocity=(${gameState.ballVelocity.x.toFixed(1)}, ${gameState.ballVelocity.y.toFixed(1)})`);
+      console.log(`[Physics] Ball trajectory complete (${traj['passType']}): landed at (${gameState.ballPosition.x.toFixed(1)}, ${gameState.ballPosition.y.toFixed(1)}), velocity=(${gameState.ballVelocity.x.toFixed(1)}, ${gameState.ballVelocity.y.toFixed(1)})`);
     }
 
     gameState.ballTrajectory = null;

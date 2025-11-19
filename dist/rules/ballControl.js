@@ -170,7 +170,7 @@ export function handleBallInterception(progress) {
         return;
     const HEADER_HEIGHT_THRESHOLD = PHYSICS?.HEADER_HEIGHT_THRESHOLD ?? 0.6;
     const PASS_INTERCEPT_DISTANCE = PHYSICS?.PASS_INTERCEPT_DISTANCE ?? 25;
-    const isAerial = trajectory.passType === 'aerial';
+    const isAerial = trajectory['passType'] === 'aerial';
     const isHeaderOpportunity = isAerial && gameState.ballHeight > HEADER_HEIGHT_THRESHOLD;
     if (progress >= 1 || progress < 0.2)
         return;

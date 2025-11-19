@@ -182,8 +182,8 @@ export function sanitizePosition(pos, context = {}) {
         ...posObj,
         x,
         y,
-        movement: posObj.movement || context.movement || 'standard_position',
-        role: posObj.role || context.role || 'UNKNOWN_ROLE'
+        movement: posObj['movement'] || context.movement || 'standard_position',
+        role: posObj['role'] || context.role || 'UNKNOWN_ROLE'
     };
 }
 export function getValidPlayers(playersArray) {

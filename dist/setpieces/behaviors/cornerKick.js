@@ -368,7 +368,7 @@ export const ProfessionalCornerBehaviors = {
                 });
             }
             // Short corner presser - fast player
-            const fastPlayer = sortedLists.teammates.fastest.find((p) => !assigned.has(String(p.id)));
+            const fastPlayer = sortedLists?.teammates?.fastest?.find((p) => !assigned.has(String(p.id)));
             if (fastPlayer) {
                 const finalPos = posManager.findValidPosition(ZONES.shortCornerPress);
                 playerJobs.set(String(fastPlayer.id), {

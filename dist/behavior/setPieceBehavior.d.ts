@@ -42,6 +42,7 @@ export declare const SetPieceBehaviorSystem: {
                 bestHeaders?: Player[];
                 fastest?: Player[];
                 bestKickers?: Player[];
+                bestDefenders?: Player[];
             };
             opponents?: {
                 mostDangerous?: Player[];
@@ -53,6 +54,7 @@ export declare const SetPieceBehaviorSystem: {
                 bestHeaders?: Player[];
                 fastest?: Player[];
                 bestKickers?: Player[];
+                bestDefenders?: Player[];
             };
             opponents?: {
                 mostDangerous?: Player[];

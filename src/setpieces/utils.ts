@@ -267,8 +267,8 @@ export function sanitizePosition(pos: unknown, context: { player?: Player; gameS
     ...posObj,
     x,
     y,
-    movement: (posObj.movement as string | undefined) || context.movement || 'standard_position',
-    role: (posObj.role as string | undefined) || context.role || 'UNKNOWN_ROLE'
+    movement: (posObj['movement'] as string | undefined) || context.movement || 'standard_position',
+    role: (posObj['role'] as string | undefined) || context.role || 'UNKNOWN_ROLE'
   };
 }
 
