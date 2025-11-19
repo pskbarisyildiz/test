@@ -173,13 +173,7 @@ export function sanitizePosition(pos, context = {}) {
     }
     const minX = 10, minY = 10;
     const maxX = PITCH_WIDTH - 10, maxY = PITCH_HEIGHT - 10;
-    // Warn if clamping is needed (position was out of bounds)
-    const wasOutOfBounds = x < minX || x > maxX || y < minY || y > maxY;
-    if (wasOutOfBounds) {
-        console.warn(`⚠️ sanitizePosition: Position OUT OF BOUNDS for ${context.player?.name || 'unknown player'}, clamping`);
-        console.warn(`   Original: (${x.toFixed(1)}, ${y.toFixed(1)}), Bounds: X[${minX}-${maxX}], Y[${minY}-${maxY}]`);
-        console.warn(`   Behavior: ${context.behavior}, Movement: ${pos.movement}`);
-    }
+    // Silently clamp positions to bounds (no logging to reduce console noise)
     x = Math.max(minX, Math.min(maxX, x));
     y = Math.max(minY, Math.min(maxY, y));
     return {

@@ -8975,12 +8975,6 @@ var FootballSim = (() => {
     }
     const minX = 10, minY = 10;
     const maxX = PITCH_WIDTH3 - 10, maxY = PITCH_HEIGHT3 - 10;
-    const wasOutOfBounds = x < minX || x > maxX || y < minY || y > maxY;
-    if (wasOutOfBounds) {
-      console.warn(`\u26A0\uFE0F sanitizePosition: Position OUT OF BOUNDS for ${context.player?.name || "unknown player"}, clamping`);
-      console.warn(`   Original: (${x.toFixed(1)}, ${y.toFixed(1)}), Bounds: X[${minX}-${maxX}], Y[${minY}-${maxY}]`);
-      console.warn(`   Behavior: ${context.behavior}, Movement: ${pos.movement}`);
-    }
     x = Math.max(minX, Math.min(maxX, x));
     y = Math.max(minY, Math.min(maxY, y));
     return {
