@@ -11,7 +11,7 @@ import { gameState } from './globalExports';
 // HELPER FUNCTIONS
 // ============================================================================
 
-function initIfUndef<T>(obj: any, key: string, value: T): void {
+function initIfUndef<T>(obj: Record<string, unknown>, key: string, value: T): void {
   if (obj[key] === undefined) obj[key] = value;
 }
 
@@ -353,12 +353,12 @@ export function selectBestTeam(teamName: string): { players: Player[]; formation
   if (gkPosition) {
     const goalkeepers = teamPlayers
       .filter(p => {
-        const pos = (p as any).position?.toLowerCase() || '';
+        const pos = p.position?.toLowerCase() || '';
         return pos.includes('keeper') || pos.includes('gk');
       })
       .sort((a, b) => {
-        const scoreA = ((a as any).goalkeeping * 0.7 + (a as any).rating * 30);
-        const scoreB = ((b as any).goalkeeping * 0.7 + (b as any).rating * 30);
+        const scoreA = (a.goalkeeping * 0.7 + a.rating * 30);
+        const scoreB = (b.goalkeeping * 0.7 + b.rating * 30);
         return scoreB - scoreA;
       });
 
@@ -371,7 +371,7 @@ export function selectBestTeam(teamName: string): { players: Player[]; formation
     if (pos.role === 'GK') return;
 
     const candidates = teamPlayers
-      .filter(p => !selected.includes(p) && (p as any).position?.toLowerCase() !== 'coach')
+      .filter(p => !selected.includes(p) && p.position?.toLowerCase() !== 'coach')
       .map(p => ({
         player: p,
         fitness: getPositionFitness(p, pos.role)
@@ -394,8 +394,8 @@ export function selectBestTeam(teamName: string): { players: Player[]; formation
  * Initialize game state with proper defaults
  */
 export function initializeGameSetup(gameState: GameState): void {
-  initIfUndef(gameState, 'stats', {});
-  const s = gameState.stats as any;
+  initIfUndef(gameState as unknown as Record<string, unknown>, 'stats', {});
+  const s = gameState.stats as Record<string, unknown>;
 
   // Canonical containers
   if (!s.home || typeof s.home !== 'object') s.home = {};

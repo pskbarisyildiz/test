@@ -36,7 +36,20 @@ import { renderGame } from './rendering/gameRenderer';
 import { initializeCanvasLayers } from './rendering/canvasSetup';
 import { drawPitchBackground } from './rendering/drawPitch';
 
-declare const XLSX: any;
+interface XLSXWorkbook {
+    Sheets: { [key: string]: unknown };
+}
+
+interface XLSXUtils {
+    sheet_to_json(sheet: unknown, options: { header: number }): unknown[][];
+}
+
+interface XLSX {
+    read(data: Uint8Array, options: { type: string }): XLSXWorkbook;
+    utils: XLSXUtils;
+}
+
+declare const XLSX: XLSX;
 
 // ============================================================================
 // FILE UPLOAD AND DATA PROCESSING
@@ -59,7 +72,7 @@ export function handleFileUpload(event: Event): void {
         gameState.teamCoaches = {};
         gameState.teamLogos = gameState.teamLogos || {};
 
-        sayfa1Data.slice(1).forEach((row: any[]) => {
+        sayfa1Data.slice(1).forEach((row: unknown[]) => {
             if (row[0] && row[0].toString().trim()) {
                 const teamName = row[0].toString().trim();
                 gameState.teams.push(teamName);
@@ -75,7 +88,7 @@ export function handleFileUpload(event: Event): void {
         const oyuncularData = XLSX.utils.sheet_to_json(oyuncular, { header: 1 });
 
         gameState.players = oyuncularData.slice(1)
-            .filter((row: any[]) => {
+            .filter((row: unknown[]) => {
                 const hasName = row[0] && row[0].toString().trim();
                 const hasTeam = row[2] && row[2].toString().trim();
                 const position = row[3] ? row[3].toString().trim() : '';
@@ -94,7 +107,7 @@ export function handleFileUpload(event: Event): void {
                 return hasName && hasTeam && hasValidId &&
                        rating && !isNaN(parseFloat(rating));
             })
-            .map((row: any[], index: number) => {
+            .map((row: unknown[], index: number) => {
                 const positionString = row[3]?.toString().trim() || '';
                 const isGK = positionString.toLowerCase().includes('keeper') ||
                              positionString.toLowerCase().includes('gk');
@@ -213,7 +226,19 @@ export let physicsAccumulator = 0;
 export let animationFrameId: number | null = null;
 export let gameIntervalId: number | null = null;
 
-export let pendingGameEvents: any[] = [];
+interface PendingGameEvent {
+    type: string;
+    resolveTime: number;
+    data: {
+        holder?: Player;
+        xG?: number;
+        goalkeeper?: Player;
+        goalX?: number;
+        shotTargetY?: number;
+    };
+}
+
+export let pendingGameEvents: PendingGameEvent[] = [];
 
 // ============================================================================
 // SET PIECE HANDLERS

@@ -311,7 +311,6 @@ export function renderMatchSummary() {
         ...gameState.cardEvents.map(e => ({ ...e, type: 'card', team: e.isHome ? 'home' : 'away' }))
     ];
     allEvents.sort((a, b) => a.time - b.time);
-    // Group events by player
     const groupEvents = (events) => {
         const grouped = {};
         events.forEach(e => {

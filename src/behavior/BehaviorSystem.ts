@@ -27,8 +27,8 @@ export const BehaviorResult = {
         };
     },
 
-    isValid(result: any): boolean {
-        return result && typeof result === 'object' && result.available === true;
+    isValid(result: unknown): boolean {
+        return result !== null && typeof result === 'object' && 'available' in result && (result as { available: boolean }).available === true;
     }
 };
 

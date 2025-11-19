@@ -95,11 +95,11 @@ export declare function updateTacticalPosition(player: Player, ball: Vector2D, _
 /**
  * Apply marking and pressing logic
  */
-export declare function applyMarkingAndPressing(player: Player, _ball: Vector2D, opponents: Player[], activePosition: Vector2D, ownGoalX: number, tactic: any, teamState: TeamState): MarkingResult;
+export declare function applyMarkingAndPressing(player: Player, _ball: Vector2D, opponents: Player[], activePosition: Vector2D, ownGoalX: number, tactic: string, teamState: TeamState): MarkingResult;
 /**
  * Apply defensive positioning logic
  */
-export declare function applyDefensivePositioning(player: Player, ball: Vector2D, _tactic: any, activePosition: Vector2D, ownGoalX: number, teamState: TeamState): MovementResult;
+export declare function applyDefensivePositioning(player: Player, ball: Vector2D, _tactic: string, activePosition: Vector2D, ownGoalX: number, teamState: TeamState): MovementResult;
 /**
  * Apply attacking movement patterns
  */

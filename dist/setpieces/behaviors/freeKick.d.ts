@@ -37,9 +37,29 @@ export interface SortedLists {
     };
 }
 export declare const ProfessionalFreeKickBehaviors: {
-    getAttackingFreeKickPosition(player: Player, fkPos: Vector2D, opponentGoalX: number, distToGoal: number, sortedLists: SortedLists | null, gameState: GameState, teammates: Player[]): any;
-    getDefendingFreeKickPosition(player: Player, fkPos: Vector2D, ownGoalX: number, distToGoal: number, sortedLists: SortedLists | null, opponents: Player[], gameState: GameState, teammates: Player[]): any;
-    calculateWallPosition(positionData: PlayerJobAssignment, wallSize: number, fkPos: Vector2D, ownGoalX: number, direction: number, player: Player, gameState: GameState): any;
-    calculateMarkingPosition(positionData: PlayerJobAssignment, direction: number, opponentMap: Map<string, Player> | undefined, player: Player, gameState: GameState, ownGoalX: number): any;
+    getAttackingFreeKickPosition(player: Player, fkPos: Vector2D, opponentGoalX: number, distToGoal: number, sortedLists: SortedLists | null, gameState: GameState, teammates: Player[]): import("../utils").PositionWithMovement | {
+        x: number;
+        y: number;
+        movement: string;
+        role: string;
+    };
+    getDefendingFreeKickPosition(player: Player, fkPos: Vector2D, ownGoalX: number, distToGoal: number, sortedLists: SortedLists | null, opponents: Player[], gameState: GameState, teammates: Player[]): import("../utils").PositionWithMovement | {
+        x: number;
+        y: number;
+        movement: string;
+        role: string;
+    };
+    calculateWallPosition(positionData: PlayerJobAssignment, wallSize: number, fkPos: Vector2D, ownGoalX: number, direction: number, player: Player, gameState: GameState): import("../utils").PositionWithMovement | {
+        x: number;
+        y: number;
+        movement: string;
+        role: string;
+    };
+    calculateMarkingPosition(positionData: PlayerJobAssignment, direction: number, opponentMap: Map<string, Player> | undefined, player: Player, gameState: GameState, ownGoalX: number): import("../utils").PositionWithMovement | {
+        x: number;
+        y: number;
+        movement: string;
+        role: string;
+    };
 };
 //# sourceMappingURL=freeKick.d.ts.map

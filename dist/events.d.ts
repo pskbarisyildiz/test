@@ -2,7 +2,7 @@ import type { GoalEventPayload, ShotEventPayload, FoulEventPayload } from './typ
 interface LogEntry {
     timestamp: number;
     event: string;
-    data: any;
+    data: unknown;
 }
 export declare const EventLogger: {
     enabled: boolean;
@@ -10,7 +10,7 @@ export declare const EventLogger: {
     maxLogs: number;
     enable(): void;
     disable(): void;
-    log(eventName: string, data: any): void;
+    log(eventName: string, data: unknown): void;
     getLogs(eventName?: string | null): LogEntry[];
     clear(): void;
     exportToJSON(): string;

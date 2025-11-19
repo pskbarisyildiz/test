@@ -373,8 +373,14 @@ export function renderMatchSummary(): string {
     allEvents.sort((a, b) => a.time - b.time);
 
     // Group events by player
-    const groupEvents = (events: any[]) => {
-        const grouped: Record<string, any> = {};
+    interface GroupedEvent {
+        name: string;
+        goals: number[];
+        cards: { time: number; card: string }[];
+    }
+
+    const groupEvents = (events: { type?: string; scorer?: string; player?: string; team?: string; time?: number; card?: string }[]) => {
+        const grouped: Record<string, GroupedEvent> = {};
         events.forEach(e => {
             const key = e.type === 'goal' ? e.scorer : e.player;
             if (!grouped[key]) {
@@ -393,7 +399,7 @@ export function renderMatchSummary(): string {
     const awayGroupedEvents = groupEvents(allEvents.filter(e => e.team === 'away'));
 
     // Generate events HTML with compact design
-    const generateEventsHTML = (groupedEvents: any[], isHome: boolean): string => {
+    const generateEventsHTML = (groupedEvents: GroupedEvent[], isHome: boolean): string => {
         if (groupedEvents.length === 0) {
             return `
                 <div style="
@@ -447,7 +453,7 @@ export function renderMatchSummary(): string {
             }
 
             // Cards
-            group.cards.forEach((cardEvent: any) => {
+            group.cards.forEach((cardEvent: { time: number; card: string }) => {
                 const cardSymbol = cardEvent.card === 'yellow' ? '🟨' : '🟥';
                 const cardColor = cardEvent.card === 'yellow' ? '#fde047' : '#ef4444';
                 content.push(`

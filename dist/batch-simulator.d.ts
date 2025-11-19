@@ -20,8 +20,19 @@ interface MatchResult {
     homePassAccuracy: number;
     awayPassAccuracy: number;
     winner: string;
-    goalEvents: any[];
-    cardEvents: any[];
+    goalEvents: {
+        player: string;
+        time: number;
+        team: string;
+        [key: string]: unknown;
+    }[];
+    cardEvents: {
+        player: string;
+        time: number;
+        team: string;
+        type: string;
+        [key: string]: unknown;
+    }[];
 }
 export declare const CustomFixtureSimulator: {
     matchList: Match[];
@@ -37,7 +48,11 @@ export declare const CustomFixtureSimulator: {
     showSimulationScreen(): void;
     renderMatchCard(match: Match): string;
     updateMatchCard(result: MatchResult): void;
-    _groupEventsByPlayer(allEvents: any[], teamName: string): string;
+    _groupEventsByPlayer(allEvents: {
+        isHome?: boolean;
+        player?: string;
+        [key: string]: unknown;
+    }[], teamName: string): string;
     highlightMatchCard(matchId: number, state: "playing" | "finished" | "error"): void;
     updateProgressIndicator(): void;
     showCompletionControls(): void;

@@ -40,7 +40,7 @@ interface RealStats {
   longBallAccuracy?: number;
   chancesCreated?: number;
   xA?: number;
-  [key: string]: any;
+  [key: string]: number | undefined;
 }
 
 // ============================================================================

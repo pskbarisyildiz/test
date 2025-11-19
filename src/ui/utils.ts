@@ -15,15 +15,15 @@ import { gameState } from '../globalExports';
 // CONFIG HELPERS
 // ============================================================================
 
-export function CFG(): any {
+export function CFG(): typeof GAME_CONFIG {
     return GAME_CONFIG;
 }
 
 export function ensureStatsShape(gs: GameState): void {
-  gs.stats = gs.stats || {} as any;
+  gs.stats = gs.stats || { home: {}, away: {} };
   const s = gs.stats;
-  s.home = s.home || {} as any;
-  s.away = s.away || {} as any;
+  s.home = s.home || {};
+  s.away = s.away || {};
   if (typeof s.home.possession !== 'number') s.home.possession = 0;
   if (typeof s.away.possession !== 'number') s.away.possession = 0;
 
@@ -31,9 +31,9 @@ export function ensureStatsShape(gs: GameState): void {
   if (typeof s.lastPossessionUpdate !== 'number') s.lastPossessionUpdate = Date.now();
 
   // keep legacy mirror in sync
-  (s as any).possession = (s as any).possession || { home: 0, away: 0 };
-  (s as any).possession.home = s.home.possession;
-  (s as any).possession.away = s.away.possession;
+  s.possession = s.possession || { home: 0, away: 0 };
+  s.possession.home = s.home.possession;
+  s.possession.away = s.away.possession;
 }
 
 export function setPossession(gs: GameState, homePct: number, awayPct: number): void {
@@ -41,8 +41,10 @@ export function setPossession(gs: GameState, homePct: number, awayPct: number): 
   s.home.possession = Math.max(0, Math.min(100, homePct));
   s.away.possession = Math.max(0, Math.min(100, awayPct));
   // update legacy mirror
-  (s as any).possession.home = s.home.possession;
-  (s as any).possession.away = s.away.possession;
+  if (s.possession) {
+    s.possession.home = s.home.possession;
+    s.possession.away = s.away.possession;
+  }
 }
 
 // ============================================================================
@@ -67,7 +69,7 @@ export function isSetPieceStatus(status: string | undefined | null): boolean {
 // GEOMETRY AND CALCULATION HELPERS
 // ============================================================================
 
-export function getDistance(a: any, b: any): number {
+export function getDistance(a: { x?: number; y?: number } | null | undefined, b: { x?: number; y?: number } | null | undefined): number {
   const ax = Number(a?.x) || 0, ay = Number(a?.y) || 0;
   const bx = Number(b?.x) || 0, by = Number(b?.y) || 0;
   return Math.hypot(ax - bx, ay - by);
@@ -170,8 +172,8 @@ export function pointToLineDistance(point: { x: number; y: number }, lineStart: 
     return Math.sqrt(dx * dx + dy * dy);
 }
 
-export function getValidStat(statValue: any, defaultValue: number = 0): number {
-    const num = parseFloat(statValue);
+export function getValidStat(statValue: unknown, defaultValue: number = 0): number {
+    const num = parseFloat(statValue as string);
     return isNaN(num) ? defaultValue : num;
 }
 
@@ -179,7 +181,7 @@ export function getValidStat(statValue: any, defaultValue: number = 0): number {
 // TEAM SIDE HELPERS
 // ============================================================================
 
-export function resolveSide(value: any): 'home' | 'away' | null {
+export function resolveSide(value: unknown): 'home' | 'away' | null {
   try {
     if (value === true || value === 'home') return 'home';
     if (value === false || value === 'away') return 'away';

@@ -7,8 +7,16 @@ import { processPendingEvents, switchSides, updateMatchStats } from './main';
 import { selectBestTeam, selectBestTactic, initializePlayers } from './gameSetup';
 import { isSetPieceStatus } from './utils/ui';
 
-declare const spatialSystem: any;
-declare const penaltySystem: any;
+interface SpatialSystem {
+    [key: string]: unknown;
+}
+
+interface PenaltySystem {
+    [key: string]: unknown;
+}
+
+declare const spatialSystem: SpatialSystem;
+declare const penaltySystem: PenaltySystem;
 
 interface Match {
     id: number;
@@ -33,8 +41,8 @@ interface MatchResult {
     homePassAccuracy: number;
     awayPassAccuracy: number;
     winner: string;
-    goalEvents: any[];
-    cardEvents: any[];
+    goalEvents: { player: string; time: number; team: string; [key: string]: unknown }[];
+    cardEvents: { player: string; time: number; team: string; type: string; [key: string]: unknown }[];
 }
 
 export const CustomFixtureSimulator = {
@@ -615,7 +623,7 @@ export const CustomFixtureSimulator = {
         this.updateProgressIndicator();
     },
 
-    _groupEventsByPlayer(allEvents: any[], teamName: string) {
+    _groupEventsByPlayer(allEvents: { isHome?: boolean; player?: string; [key: string]: unknown }[], teamName: string) {
         if (!Array.isArray(allEvents)) return '';
         const playerMap: { [key: string]: { time: number; icon: string }[] } = {};
 

@@ -762,7 +762,7 @@ export function handleFoul_V2(fouler: Player, fouled: Player): void {
     eventBus.publish(EVENT_TYPES.FOUL_COMMITTED, { fouler: fouler, fouled: fouled });
 
     const severity = Math.random();
-    const alreadyBooked = gameState.yellowCards.some((card: any) => card.player === fouler.name);
+    const alreadyBooked = gameState.yellowCards.some((card) => card.player === fouler.name);
 
     // Second yellow -> red
     if (alreadyBooked && severity > 0.80) {

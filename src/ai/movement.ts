@@ -668,7 +668,7 @@ export function applyMarkingAndPressing(
   opponents: Player[],
   activePosition: Vector2D,
   ownGoalX: number,
-  tactic: any,
+  tactic: string,
   teamState: TeamState
 ): MarkingResult {
   // Using imported gameState from globalExports
@@ -722,7 +722,7 @@ export function applyMarkingAndPressing(
 export function applyDefensivePositioning(
   player: Player,
   ball: Vector2D,
-  _tactic: any,
+  _tactic: string,
   activePosition: Vector2D,
   ownGoalX: number,
   teamState: TeamState

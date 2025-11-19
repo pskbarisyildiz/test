@@ -200,7 +200,7 @@ export class PositionManager {
 //   }
 // }
 
-export function getSafeStat(stats: any, key: string, defaultValue: number = 0): number {
+export function getSafeStat(stats: Record<string, unknown>, key: string, defaultValue: number = 0): number {
   if (stats && typeof stats[key] === 'number' && !isNaN(stats[key])) {
     return stats[key];
   }
@@ -211,7 +211,7 @@ export function getSafeStat(stats: any, key: string, defaultValue: number = 0): 
   return defaultValue;
 }
 
-function getRoleBasedFallbackPosition(role: string | undefined, context: any = {}): PositionWithMovement {
+function getRoleBasedFallbackPosition(role: string | undefined, context: { player?: Player; gameState?: GameState } = {}): PositionWithMovement {
   const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
   const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
@@ -230,7 +230,7 @@ function getRoleBasedFallbackPosition(role: string | undefined, context: any = {
   return { x: fallbackX, y: fallbackY, movement: 'role_fallback', role: role || 'FALLBACK_ROLE' };
 }
 
-export function sanitizePosition(pos: any, context: any = {}): PositionWithMovement {
+export function sanitizePosition(pos: unknown, context: { player?: Player; gameState?: GameState; role?: string; behavior?: string; movement?: string; [key: string]: unknown } = {}): PositionWithMovement {
   const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
   const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
@@ -410,12 +410,12 @@ export function getFormationAwarePosition(
  * Attacking player cannot be ahead of last defender (excluding goalkeeper)
  */
 export function checkAndAdjustOffsidePosition(
-  position: any,
+  position: { x: number; y: number; [key: string]: unknown },
   _player: Player,
   opponentGoalX: number,
   opponents: Player[],
   _gameState: GameState
-): any {
+): { x: number; y: number; [key: string]: unknown } {
   if (!position || !opponents || opponents.length === 0) return position;
 
   const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
@@ -463,7 +463,7 @@ export function checkAndAdjustOffsidePosition(
  * Check and adjust for offside with detailed audit trail for debugging
  */
 export const checkAndAdjustOffsidePositionWithAudit = (
-  position: any,
+  position: { x: number; y: number; [key: string]: unknown },
   isHome: boolean,
   gameState: GameState | null | undefined
 ): OffsideAudit => {

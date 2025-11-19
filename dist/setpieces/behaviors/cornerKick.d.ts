@@ -13,7 +13,23 @@
  */
 import type { Player, GameState, Vector2D } from '../../types';
 export declare const ProfessionalCornerBehaviors: {
-    getAttackingCornerPosition(player: Player, cornerPos: Vector2D, opponentGoalX: number, teammates: Player[], sortedLists: any, _routine: any, gameState: GameState): import("../utils").PositionWithMovement;
-    getDefendingCornerPosition(player: Player, cornerPos: Vector2D, ownGoalX: number, opponents: Player[], sortedLists: any, system: string, gameState: GameState, teammates: Player[]): import("../utils").PositionWithMovement;
+    getAttackingCornerPosition(player: Player, cornerPos: Vector2D, opponentGoalX: number, teammates: Player[], sortedLists: {
+        teammates?: {
+            bestHeaders?: Player[];
+            fastest?: Player[];
+        };
+        opponents?: {
+            mostDangerous?: Player[];
+        };
+    }, _routine: unknown, gameState: GameState): import("../utils").PositionWithMovement;
+    getDefendingCornerPosition(player: Player, cornerPos: Vector2D, ownGoalX: number, opponents: Player[], sortedLists: {
+        teammates?: {
+            bestHeaders?: Player[];
+            fastest?: Player[];
+        };
+        opponents?: {
+            mostDangerous?: Player[];
+        };
+    }, system: string, gameState: GameState, teammates: Player[]): import("../utils").PositionWithMovement;
 };
 //# sourceMappingURL=cornerKick.d.ts.map

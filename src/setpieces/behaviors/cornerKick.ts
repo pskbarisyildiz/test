@@ -82,8 +82,8 @@ export const ProfessionalCornerBehaviors = {
     cornerPos: Vector2D,
     opponentGoalX: number,
     teammates: Player[],
-    sortedLists: any,
-    _routine: any,
+    sortedLists: { teammates?: { bestHeaders?: Player[]; fastest?: Player[] }; opponents?: { mostDangerous?: Player[] } },
+    _routine: unknown,
     gameState: GameState
   ) {
     if (!gameState || !player || !cornerPos) {
@@ -377,7 +377,7 @@ export const ProfessionalCornerBehaviors = {
     cornerPos: Vector2D,
     ownGoalX: number,
     opponents: Player[],
-    sortedLists: any,
+    sortedLists: { teammates?: { bestHeaders?: Player[]; fastest?: Player[] }; opponents?: { mostDangerous?: Player[] } },
     system: string,
     gameState: GameState,
     teammates: Player[]

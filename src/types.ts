@@ -149,7 +149,7 @@ export interface Player {
     defending: number;
     rating: number;
     ballReceivedTime: number | null;
-    realStats: any;
+    realStats: Record<string, number>;
     stamina: number;
     passing: number;
     effectivePace: number;
@@ -173,7 +173,7 @@ export interface Player {
     homeY: number;
     currentBehavior: string;
     team: string;
-    goalkeeper: any;
+    goalkeeper: Player | null;
     // Dynamic game state properties (added for type safety)
     wasOffsideWhenBallPlayed?: boolean; // Tracks offside status when ball was played
     facingAngle?: number; // Player's facing direction in radians
@@ -202,10 +202,25 @@ export interface Player {
     diveDuration?: number; // Duration of the dive animation
 }
 
+interface TeamStats {
+    possession?: number;
+    passesCompleted?: number;
+    passesAttempted?: number;
+    shots?: number;
+    shotsOnTarget?: number;
+    shotsOffTarget?: number;
+    tackles?: number;
+    fouls?: number;
+    xGTotal?: number;
+    interceptions?: number;
+    firstTouches?: number;
+    [key: string]: number | undefined;
+}
+
 export interface GameState {
     stats: {
-        home: any; // TeamStats but need to avoid circular dependency
-        away: any;
+        home: TeamStats;
+        away: TeamStats;
         possession?: { home: number; away: number };
         possessionTimer?: { home: number; away: number };
         lastPossessionUpdate?: number;
@@ -230,23 +245,23 @@ export interface GameState {
     awayScore: number;
     timeElapsed: number;
     currentHalf: number;
-    commentary: any[];
-    goalEvents: any[];
-    cardEvents: any[];
-    players: any[];
-    homePlayers: any[];
-    awayPlayers: any[];
-    setPiece: any;
+    commentary: (string | { text: string; type: string; [key: string]: unknown })[];
+    goalEvents: { player?: string; scorer?: string; time: number; team?: string; isHome?: boolean; [key: string]: unknown }[];
+    cardEvents: { player: string; time: number; team: string; type: string; [key: string]: unknown }[];
+    players: Player[];
+    homePlayers: Player[];
+    awayPlayers: Player[];
+    setPiece: { type: string; team: string | boolean; position: Vector2D; [key: string]: unknown } | null;
     teamLogos: Record<string, string>;
     homeTactic: string;
     awayTactic: string;
-    ballTrajectory: any;
+    ballTrajectory: { startX: number; startY: number; endX: number; endY: number; startTime: number; duration: number; [key: string]: unknown } | null;
     ballPosition: Vector2D;
     ballVelocity: Vector2D;
     ballHolder: Player | null;
     homeTeamState: TeamState;
     awayTeamState: TeamState;
-    lastTouchedBy: any;
+    lastTouchedBy: Player | null;
     ballHeight: number;
     currentPassReceiver: Player | null;
     ballChasers: Set<Player>;
@@ -255,8 +270,8 @@ export interface GameState {
     shooter: Player | null;
     homeJerseyColor: string;
     awayJerseyColor: string;
-    offscreenPitch: any;
-    cameraShake: any;
+    offscreenPitch: HTMLCanvasElement | null;
+    cameraShake: number;
     particles: Particle[];
     lastTeamStateUpdate: number;
     postKickOffCalmPeriod: boolean;
@@ -273,8 +288,8 @@ export interface GameState {
     totalPasses: number;
     totalShots: number;
     fouls: number;
-    yellowCards: any[];
-    redCards: any[];
+    yellowCards: { player: string; time: number; team: string; [key: string]: unknown }[];
+    redCards: { player: string; time: number; team: string; [key: string]: unknown }[];
     setPieceExecuting: boolean;
     lastControlAttempt: number;
     possessionChanges: number;
@@ -284,7 +299,7 @@ export interface GameState {
     teamJerseys: Record<string, { jersey1: string; jersey2: string; }>;
     teamCoaches: Record<string, string>;
     totalTackles: number;
-    commentaryFadeTimeout: any;
+    commentaryFadeTimeout: number | null;
     _teamCacheVersion: number;
 }
 

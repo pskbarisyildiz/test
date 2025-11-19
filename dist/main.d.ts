@@ -22,7 +22,18 @@ export declare let gameTime: number;
 export declare let physicsAccumulator: number;
 export declare let animationFrameId: number | null;
 export declare let gameIntervalId: number | null;
-export declare let pendingGameEvents: any[];
+interface PendingGameEvent {
+    type: string;
+    resolveTime: number;
+    data: {
+        holder?: Player;
+        xG?: number;
+        goalkeeper?: Player;
+        goalX?: number;
+        shotTargetY?: number;
+    };
+}
+export declare let pendingGameEvents: PendingGameEvent[];
 export declare function handleFreeKick(foulLocation: {
     x: number;
     y: number;
@@ -62,4 +73,5 @@ export declare function introRenderLoop(_timestamp: number): void;
 export declare function handleHalfTime(): void;
 export declare function handleFullTime(): void;
 export declare function resetMatch(): void;
+export {};
 //# sourceMappingURL=main.d.ts.map

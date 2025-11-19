@@ -180,9 +180,9 @@ declare global {
       ensureCorrectSetPiecePlacement: typeof ensureCorrectSetPiecePlacement;
       configureSetPieceRoutines: typeof configureSetPieceRoutines;
       executeSetPiece_Router: typeof executeSetPiece_Router;
-      [key: string]: any;
+      [key: string]: unknown;
     };
-    SetPieceEnforcement: any;
+    SetPieceEnforcement: unknown;
     // Phase 11: Core Game Functions
     updatePlayerAI_V2: typeof updatePlayerAI_V2;
     // Physics Functions

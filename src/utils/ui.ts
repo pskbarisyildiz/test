@@ -139,12 +139,12 @@ export function pointToLineDistance(point: { x: number; y: number }, lineStart: 
     return Math.sqrt(dx * dx + dy * dy);
 }
 
-export function getValidStat(statValue: any, defaultValue = 0): number {
-    const num = parseFloat(statValue);
+export function getValidStat(statValue: unknown, defaultValue = 0): number {
+    const num = parseFloat(statValue as string);
     return isNaN(num) ? defaultValue : num;
 }
 
-export function resolveSide(value: any): 'home' | 'away' | null {
+export function resolveSide(value: unknown): 'home' | 'away' | null {
     try {
         if (value === true || value === 'home') return 'home';
         if (value === false || value === 'away') return 'away';

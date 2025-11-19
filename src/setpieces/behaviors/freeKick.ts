@@ -90,13 +90,13 @@ export interface SortedLists {
 // HELPER FUNCTIONS (Internal - Not Exported from utils.ts)
 // ============================================================================
 
-function getSafeStat(stats: any, key: string, defaultValue: number = 0): number {
+function getSafeStat(stats: Record<string, unknown>, key: string, defaultValue: number = 0): number {
   if (!stats || typeof stats !== 'object') return defaultValue;
   const val = stats[key];
   return typeof val === 'number' && isFinite(val) ? val : defaultValue;
 }
 
-function getRoleBasedFallbackPosition(role: string | undefined, context: any = {}): any {
+function getRoleBasedFallbackPosition(role: string | undefined, context: { player?: Player; gameState?: GameState } = {}): { x: number; y: number; movement: string; role: string } {
   const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
   const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 

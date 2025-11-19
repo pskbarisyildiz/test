@@ -24,7 +24,7 @@ export const BehaviorResult = {
         };
     },
     isValid(result) {
-        return result && typeof result === 'object' && result.available === true;
+        return result !== null && typeof result === 'object' && 'available' in result && result.available === true;
     }
 };
 export const PHASES = {
