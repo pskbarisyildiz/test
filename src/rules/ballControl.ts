@@ -144,7 +144,7 @@ export function action_attemptTackle(player: Player, allPlayers: Player[]): bool
         if (Math.random() < 0.6) {
             gameState.ballHolder = player;
             player.hasBallControl = true;
-            (player as any).ballReceivedTime = Date.now();
+            player.ballReceivedTime = Date.now();
             gameState.commentary.push({ text: `${Math.floor(gameState.timeElapsed)}' ${player.name} wins the ball!`, type: 'attack' });
         } else {
             gameState.ballHolder = null;
