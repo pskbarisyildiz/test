@@ -18,8 +18,8 @@ declare global {
         validateBallState: typeof validateBallState;
         updateParticles?: (dt: number) => void;
         handleBallInterception?: (progress: number) => void;
-        handleBallOutOfBounds?: () => void;
-        handleThrowIn?: () => void;
+        handleBallOutOfBounds: () => void;
+        handleThrowIn: () => void;
         resolveBallControl?: (allPlayers: Player[]) => void;
         getPlayerFacingDirection?: (player: Player) => number;
         passBall?: (passingPlayer: Player, fromX: number, fromY: number, toX: number, toY: number, passQuality: number, speed: number, isShot: boolean) => void;

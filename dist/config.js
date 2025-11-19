@@ -18,14 +18,14 @@ export const GAME_LOOP = {
 // PHYSICS CONFIGURATION
 // ============================================================================
 export const PHYSICS = {
-    // ✅ Speeds doubled to compensate for removed GAME_SPEED multiplier in physics
-    MAX_SPEED: 152, // pixels/second
-    SPRINT_MULTIPLIER: 1.3, // Sprint = 198 px/s
-    ACCELERATION: 700, // pixels/s² (doubled from 350)
+    // ✅ IMPROVED: Increased speeds for better gameplay feel
+    MAX_SPEED: 250, // pixels/second (was 152) - faster player movement
+    SPRINT_MULTIPLIER: 1.5, // Sprint = 375 px/s (was 1.3) - more realistic sprint
+    ACCELERATION: 1200, // pixels/s² (was 700) - quicker acceleration
     FRICTION: 0.88, // Per second decay
     DRIBBLE_SPEED_PENALTY: 0.75, // 25% slower when dribbling
-    COLLISION_RADIUS: 18,
-    BALL_CONTROL_DISTANCE: 28,
+    COLLISION_RADIUS: 25, // Increased from 18 - prevent player overlap
+    BALL_CONTROL_DISTANCE: 40, // Increased from 28 - easier ball control
     PASS_INTERCEPT_DISTANCE: 40,
     MOVEMENT_THRESHOLD: 5.0,
     POSITIONING_SMOOTHNESS: 0.04,
@@ -36,7 +36,7 @@ export const PHYSICS = {
 };
 export const BALL_PHYSICS = {
     MAX_SPEED: 650, // pixels/second
-    FRICTION: 0.44, // Rolls to stop realistically
+    FRICTION: 0.88, // IMPROVED: Slower deceleration (was 0.44) - passes travel further
     GRAVITY: 600, // Unchanged - feels right
     BOUNCE: 0.6,
     SPIN_EFFECT: 0.05
@@ -49,8 +49,8 @@ export const GAME_CONFIG = {
     SHOOTING_CHANCE_BASE: 0.3,
     PASSING_CHANCE: 0.70,
     EVENT_PROBABILITY: 0.5,
-    DECISION_COOLDOWN: 600,
-    GK_HOLD_TIME: 1800,
+    DECISION_COOLDOWN: 250, // IMPROVED: Faster decisions (was 600ms)
+    GK_HOLD_TIME: 800, // IMPROVED: Faster GK distribution (was 1800ms)
     HIGH_DPI_SCALE_FACTOR: 1,
     GOAL_Y_TOP: 240,
     GOAL_Y_BOTTOM: 360,

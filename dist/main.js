@@ -254,7 +254,7 @@ export function handleThrowIn() {
         type: 'THROW_IN',
         team: throwInTeam,
         position: { x: throwInX, y: throwInY },
-        executionTime: Date.now() + 1000,
+        executionTime: Date.now() + 400, // IMPROVED: Much faster (was 1000ms)
         executed: false
     };
     gameState.ballPosition.x = throwInX;
@@ -302,7 +302,7 @@ export function handleBallOutOfBounds() {
             type: 'CORNER_KICK',
             team: !defendingTeamIsHome,
             position: SetPieceIntegration.getCornerKickPosition(isLeftCorner, isTopCorner),
-            executionTime: Date.now() + 1200,
+            executionTime: Date.now() + 800, // IMPROVED: Faster execution (was 1200ms)
             executed: false
         };
         gameState.ballPosition.x = gameState.setPiece.position.x;
@@ -324,7 +324,7 @@ export function handleBallOutOfBounds() {
             type: 'GOAL_KICK',
             team: defendingTeamIsHome,
             position: SetPieceIntegration.getGoalKickPosition(gkX, 'center'),
-            executionTime: Date.now() + 1200,
+            executionTime: Date.now() + 1000, // IMPROVED: Faster execution (was 1200ms)
             executed: false
         };
         gameState.ballPosition.x = gameState.setPiece.position.x;

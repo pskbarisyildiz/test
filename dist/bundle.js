@@ -412,19 +412,21 @@ var FootballSim = (() => {
     // 1.0 = 1 game minute = 1 real second
   };
   var PHYSICS = {
-    // ✅ Speeds doubled to compensate for removed GAME_SPEED multiplier in physics
-    MAX_SPEED: 152,
-    // pixels/second
-    SPRINT_MULTIPLIER: 1.3,
-    // Sprint = 198 px/s
-    ACCELERATION: 700,
-    // pixels/s² (doubled from 350)
+    // ✅ IMPROVED: Increased speeds for better gameplay feel
+    MAX_SPEED: 250,
+    // pixels/second (was 152) - faster player movement
+    SPRINT_MULTIPLIER: 1.5,
+    // Sprint = 375 px/s (was 1.3) - more realistic sprint
+    ACCELERATION: 1200,
+    // pixels/s² (was 700) - quicker acceleration
     FRICTION: 0.88,
     // Per second decay
     DRIBBLE_SPEED_PENALTY: 0.75,
     // 25% slower when dribbling
-    COLLISION_RADIUS: 18,
-    BALL_CONTROL_DISTANCE: 28,
+    COLLISION_RADIUS: 25,
+    // Increased from 18 - prevent player overlap
+    BALL_CONTROL_DISTANCE: 40,
+    // Increased from 28 - easier ball control
     PASS_INTERCEPT_DISTANCE: 40,
     MOVEMENT_THRESHOLD: 5,
     POSITIONING_SMOOTHNESS: 0.04,
@@ -437,8 +439,8 @@ var FootballSim = (() => {
   var BALL_PHYSICS = {
     MAX_SPEED: 650,
     // pixels/second
-    FRICTION: 0.44,
-    // Rolls to stop realistically
+    FRICTION: 0.88,
+    // IMPROVED: Slower deceleration (was 0.44) - passes travel further
     GRAVITY: 600,
     // Unchanged - feels right
     BOUNCE: 0.6,
@@ -449,8 +451,10 @@ var FootballSim = (() => {
     SHOOTING_CHANCE_BASE: 0.3,
     PASSING_CHANCE: 0.7,
     EVENT_PROBABILITY: 0.5,
-    DECISION_COOLDOWN: 600,
-    GK_HOLD_TIME: 1800,
+    DECISION_COOLDOWN: 250,
+    // IMPROVED: Faster decisions (was 600ms)
+    GK_HOLD_TIME: 800,
+    // IMPROVED: Faster GK distribution (was 1800ms)
     HIGH_DPI_SCALE_FACTOR: 1,
     GOAL_Y_TOP: 240,
     GOAL_Y_BOTTOM: 360,
@@ -2375,7 +2379,12 @@ var FootballSim = (() => {
       maxHeight = 0.6;
       passType = "shot";
     } else if (dist > LONG_PASS_THRESHOLD) {
-      maxHeight = 0.7 + dist / 300 * 0.3;
+      const passingSkill = passingPlayer ? passingPlayer.passing / 100 : 0.7;
+      const baseHeight = 0.4 + dist / 400 * 0.4;
+      const skillModifier = 1 - passingSkill * 0.3;
+      const qualityVariance = (1 - passQuality) * 0.15;
+      maxHeight = baseHeight * skillModifier + qualityVariance;
+      maxHeight = Math.max(0.3, Math.min(1, maxHeight));
       passType = "aerial";
     }
     gameState.ballTrajectory = {
@@ -4478,7 +4487,7 @@ var FootballSim = (() => {
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < personalSpace && dist > 0) {
           const strength = (personalSpace - dist) / personalSpace;
-          const force = strength * 2.5;
+          const force = strength * 1;
           forceX += dx / dist * force;
           forceY += dy / dist * force;
         }
@@ -4882,10 +4891,25 @@ var FootballSim = (() => {
       return;
     }
     const ballCarrier = gameState2.ballHolder;
-    if (distance(player, ballCarrier) < 50 && (!player.stunnedUntil || now > player.stunnedUntil)) {
-      if (distance(player, ballCarrier) < 35 && (!player.stunnedUntil || now > player.stunnedUntil)) {
-        action_attemptTackle(player, allPlayers);
-      } else {
+    if (ballCarrier && distance(player, ballCarrier) < 50 && (!player.stunnedUntil || now > player.stunnedUntil)) {
+      const distToCarrier = distance(player, ballCarrier);
+      const shouldAttemptTackle = distToCarrier < 25 && (!player.stunnedUntil || now > player.stunnedUntil);
+      if (shouldAttemptTackle) {
+        const dx = ballCarrier.x - player.x;
+        const dy = ballCarrier.y - player.y;
+        const approachAngle = Math.atan2(dy, dx);
+        const carrierVx = ballCarrier.vx || 0;
+        const carrierVy = ballCarrier.vy || 0;
+        const carrierAngle = Math.atan2(carrierVy, carrierVx);
+        let angleDiff = Math.abs(approachAngle - carrierAngle);
+        if (angleDiff > Math.PI)
+          angleDiff = 2 * Math.PI - angleDiff;
+        const isGoodAngle = angleDiff < Math.PI * 0.75;
+        const hasDefendingAdvantage = player.defending > ballCarrier.dribbling + 15;
+        if (isGoodAngle || hasDefendingAdvantage) {
+          action_attemptTackle(player, allPlayers);
+        }
+      } else if (distToCarrier < 50) {
         const markingResult = applyMarkingAndPressing(
           player,
           ball,
@@ -6890,7 +6914,8 @@ var FootballSim = (() => {
       type: "THROW_IN",
       team: throwInTeam,
       position: { x: throwInX, y: throwInY },
-      executionTime: Date.now() + 1e3,
+      executionTime: Date.now() + 400,
+      // IMPROVED: Much faster (was 1000ms)
       executed: false
     };
     gameState.ballPosition.x = throwInX;
@@ -6936,7 +6961,8 @@ var FootballSim = (() => {
         type: "CORNER_KICK",
         team: !defendingTeamIsHome,
         position: getCornerKickPosition(isLeftCorner, isTopCorner),
-        executionTime: Date.now() + 1200,
+        executionTime: Date.now() + 800,
+        // IMPROVED: Faster execution (was 1200ms)
         executed: false
       };
       gameState.ballPosition.x = gameState.setPiece.position.x;
@@ -6956,7 +6982,8 @@ var FootballSim = (() => {
         type: "GOAL_KICK",
         team: defendingTeamIsHome,
         position: getGoalKickPosition(gkX, "center"),
-        executionTime: Date.now() + 1200,
+        executionTime: Date.now() + 1e3,
+        // IMPROVED: Faster execution (was 1200ms)
         executed: false
       };
       gameState.ballPosition.x = gameState.setPiece.position.x;
@@ -11980,8 +12007,12 @@ var FootballSim = (() => {
       offsideTracker.playersOffsideWhenBallPlayed.clear();
     }, 1e3);
   }
+  var offsideDrawFrameCounter = 0;
   function drawOffsideLines(ctx) {
     if (!gameState.contexts || !gameState.contexts.game)
+      return;
+    offsideDrawFrameCounter++;
+    if (offsideDrawFrameCounter % 5 !== 0)
       return;
     const allPlayers = [...gameState.homePlayers, ...gameState.awayPlayers];
     const awayDefenders = gameState.awayPlayers.filter((p) => p.role !== "GK").sort((a, b) => a.x - b.x);
@@ -12317,8 +12348,13 @@ var FootballSim = (() => {
       }
     }
     if (!traj.isShot && progress > 0.2 && progress < 0.9) {
-      if (typeof handleBallInterception === "function") {
-        handleBallInterception(progress);
+      const now = Date.now();
+      const lastInterceptCheck = traj.lastInterceptCheck || traj.startTime;
+      if (now - lastInterceptCheck > 100) {
+        traj.lastInterceptCheck = now;
+        if (typeof handleBallInterception === "function") {
+          handleBallInterception(progress);
+        }
       }
     }
     if (progress >= 1) {
@@ -12500,11 +12536,11 @@ var FootballSim = (() => {
         player.distanceCovered = distCovered + speed * dt;
         let drainRate = 0.15;
         if (speed > 180)
-          drainRate = 1.8;
+          drainRate = 0.8;
         else if (speed > 140)
-          drainRate = 1;
+          drainRate = 0.4;
         else if (speed > 100)
-          drainRate = 0.5;
+          drainRate = 0.25;
         if (player.isChasingBall)
           drainRate *= 1.2;
         const stamina = player.stamina ?? 100;
@@ -12621,7 +12657,7 @@ var FootballSim = (() => {
     const paceFactor = 0.3 + player.pace / 100 * 0.7;
     const accel = PHYSICS2.ACCELERATION * (paceFactor + physicalityBonus) * speedMultiplier;
     const maxSpeed = PHYSICS2.MAX_SPEED * paceFactor * speedMultiplier;
-    const effectiveMaxSpeed = player.hasBallControl ? maxSpeed * PHYSICS2.DRIBBLE_SPEED_PENALTY : maxSpeed;
+    const effectiveMaxSpeed = player.hasBallControl ? maxSpeed * PHYSICS2.DRIBBLE_SPEED_PENALTY : maxSpeed * 1.15;
     let desiredSpeed = effectiveMaxSpeed;
     if (dist < SLOWING_RADIUS) {
       desiredSpeed = effectiveMaxSpeed * (dist / SLOWING_RADIUS);
@@ -13852,6 +13888,7 @@ var FootballSim = (() => {
     };
     window.resolveBallControl = resolveBallControl;
     window.handleBallInterception = handleBallInterception;
+    window.updatePlayerAI_V2 = updatePlayerAI_V2;
     window.switchSummaryTab = switchSummaryTab;
     window.switchSimulationMode = switchSimulationMode;
     window.addMatchToBatch = addMatchToBatch;
@@ -13859,6 +13896,8 @@ var FootballSim = (() => {
     window.startMatch = startMatch;
     window.resetMatch = resetMatch;
     window.handleFileUpload = handleFileUpload;
+    window.handleBallOutOfBounds = handleBallOutOfBounds;
+    window.handleThrowIn = handleThrowIn;
     if (typeof window.gameState === "undefined") {
       window.gameState = initializeGameState();
       console.log("\u2713 Game state initialized (TypeScript)");

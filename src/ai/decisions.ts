@@ -130,7 +130,20 @@ export function passBall(
     maxHeight = 0.6;
     passType = 'shot';
   } else if (dist > LONG_PASS_THRESHOLD) {
-    maxHeight = 0.7 + (dist / 300) * 0.3;
+    // IMPROVED: More realistic long pass trajectory based on player skill
+    const passingSkill = passingPlayer ? (passingPlayer.passing / 100) : 0.7;
+
+    // Base height increases with distance (physics-based arc)
+    const baseHeight = 0.4 + (dist / 400) * 0.4; // Gentler curve
+
+    // Skilled passers can keep ball lower with better accuracy
+    const skillModifier = 1.0 - (passingSkill * 0.3); // 0-70 skill reduces height up to 30%
+
+    // Add slight randomness based on pass quality
+    const qualityVariance = (1.0 - passQuality) * 0.15;
+
+    maxHeight = baseHeight * skillModifier + qualityVariance;
+    maxHeight = Math.max(0.3, Math.min(1.0, maxHeight)); // Clamp between 0.3 and 1.0
     passType = 'aerial';
   }
 

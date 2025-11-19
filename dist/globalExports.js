@@ -19,11 +19,13 @@ import { configureSetPieceRoutines, executeSetPiece_PreConfiguration } from './s
 import { executeSetPiece_Router } from './setpieces/execution';
 // Phase 10: Ball Control Rules
 import { resolveBallControl, handleBallInterception } from './rules/ballControl';
+// Phase 11: Core Game Functions
+import { updatePlayerAI_V2 } from './core';
 // Phase 10: UI Components and Main Functions (for dynamic onclick handlers)
 import { switchSummaryTab } from './ui/uiComponents';
 import { switchSimulationMode, addMatchToBatch } from './ui/uiScreens';
 import { CustomFixtureSimulator } from './batch-simulator';
-import { startMatch, resetMatch, handleFileUpload } from './main';
+import { startMatch, resetMatch, handleFileUpload, handleBallOutOfBounds, handleThrowIn } from './main';
 // ============================================================================
 // GAME STATE INITIALIZATION
 // ============================================================================
@@ -198,6 +200,8 @@ export function exportToWindow() {
     // Phase 10: Export ball control rules
     window.resolveBallControl = resolveBallControl;
     window.handleBallInterception = handleBallInterception;
+    // Phase 11: Export core game functions
+    window.updatePlayerAI_V2 = updatePlayerAI_V2;
     // Phase 10: Export UI components and main functions for dynamic onclick handlers
     window.switchSummaryTab = switchSummaryTab;
     window.switchSimulationMode = switchSimulationMode;
@@ -206,6 +210,8 @@ export function exportToWindow() {
     window.startMatch = startMatch;
     window.resetMatch = resetMatch;
     window.handleFileUpload = handleFileUpload;
+    window.handleBallOutOfBounds = handleBallOutOfBounds;
+    window.handleThrowIn = handleThrowIn;
     // Initialize game state if it doesn't exist
     if (typeof window.gameState === 'undefined') {
         window.gameState = initializeGameState();
