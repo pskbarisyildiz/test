@@ -98,9 +98,9 @@ export const ProfessionalCornerBehaviors = {
             // Defensive players based on role
             const defensivePlayers = validTeammates.filter(p => p.role === 'CB' || p.role === 'LB' || p.role === 'RB' || p.role === 'CDM');
             // Select players based on attributes AND position
-            const bestKicker = sortedLists.teammates.bestKickers[0];
-            const aerialThreats = sortedLists.teammates.bestHeaders.slice(0, 4);
-            const fastRunners = sortedLists.teammates.fastest.slice(0, 3);
+            const bestKicker = sortedLists?.teammates?.bestKickers?.[0];
+            const aerialThreats = sortedLists?.teammates?.bestHeaders?.slice(0, 4) || [];
+            const fastRunners = sortedLists?.teammates?.fastest?.slice(0, 3) || [];
             // Defenders: Only commit if desperate, otherwise stay back
             const defendersToCommit = shouldCommit ?
                 defensivePlayers.filter(p => p.role !== 'GK').slice(0, 1) :
@@ -316,8 +316,8 @@ export const ProfessionalCornerBehaviors = {
             const assigned = new Set();
             if (useManMarking) {
                 // Man-marking: Assign best defenders to dangerous attackers
-                const dangerousAttackers = sortedLists.opponents.mostDangerous.slice(0, Math.min(6, validTeammates.length));
-                const bestMarkers = sortedLists.teammates.bestDefenders;
+                const dangerousAttackers = sortedLists?.opponents?.mostDangerous?.slice(0, Math.min(6, validTeammates.length)) || [];
+                const bestMarkers = sortedLists?.teammates?.bestDefenders || [];
                 dangerousAttackers.forEach((attacker, idx) => {
                     if (bestMarkers[idx]) {
                         const markerId = String(bestMarkers[idx].id);
@@ -368,7 +368,7 @@ export const ProfessionalCornerBehaviors = {
                 });
             }
             // Short corner presser - fast player
-            const fastPlayer = sortedLists.teammates.fastest.find((p) => !assigned.has(String(p.id)));
+            const fastPlayer = sortedLists?.teammates?.fastest?.find((p) => !assigned.has(String(p.id)));
             if (fastPlayer) {
                 const finalPos = posManager.findValidPosition(ZONES.shortCornerPress);
                 playerJobs.set(String(fastPlayer.id), {

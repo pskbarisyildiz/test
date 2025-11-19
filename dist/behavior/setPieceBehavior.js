@@ -91,7 +91,7 @@ function calculateSetPiecePositionWithSafety(player, gameState, setPieceType, is
             case SET_PIECE_TYPES.CORNER_KICK:
                 return isAttacking ?
                     ProfessionalCornerBehaviors.getAttackingCornerPosition(player, setPiecePos, opponentGoalX, teammates, null, gameState.setPiece?.routine, gameState) :
-                    ProfessionalCornerBehaviors.getDefendingCornerPosition(player, setPiecePos, ownGoalX, opponents, null, gameState.setPiece?.defensiveSystem, gameState, teammates);
+                    ProfessionalCornerBehaviors.getDefendingCornerPosition(player, setPiecePos, ownGoalX, opponents, null, gameState.setPiece?.defensiveSystem || 'man_marking', gameState, teammates);
             case SET_PIECE_TYPES.THROW_IN:
                 return ThrowInBehaviors.getThrowInPosition(player, setPiecePos, ownGoalX, opponentGoalX, gameState, teammates, opponents);
             case SET_PIECE_TYPES.GOAL_KICK:

@@ -15,7 +15,7 @@ export function CFG() {
     return GAME_CONFIG;
 }
 export function ensureStatsShape(gs) {
-    gs.stats = gs.stats || {};
+    gs.stats = gs.stats || { home: {}, away: {} };
     const s = gs.stats;
     s.home = s.home || {};
     s.away = s.away || {};
@@ -36,8 +36,10 @@ export function setPossession(gs, homePct, awayPct) {
     s.home.possession = Math.max(0, Math.min(100, homePct));
     s.away.possession = Math.max(0, Math.min(100, awayPct));
     // update legacy mirror
-    s.possession.home = s.home.possession;
-    s.possession.away = s.away.possession;
+    if (s.possession) {
+        s.possession.home = s.home.possession;
+        s.possession.away = s.away.possession;
+    }
 }
 // ============================================================================
 // SET PIECE HELPERS

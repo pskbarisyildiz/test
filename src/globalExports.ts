@@ -180,9 +180,9 @@ declare global {
       ensureCorrectSetPiecePlacement: typeof ensureCorrectSetPiecePlacement;
       configureSetPieceRoutines: typeof configureSetPieceRoutines;
       executeSetPiece_Router: typeof executeSetPiece_Router;
-      [key: string]: any;
+      [key: string]: unknown;
     };
-    SetPieceEnforcement: any;
+    SetPieceEnforcement: unknown;
     // Phase 11: Core Game Functions
     updatePlayerAI_V2: typeof updatePlayerAI_V2;
     // Physics Functions
@@ -259,22 +259,30 @@ export function initializeGameState(): GameState {
         possessionTime: 0,
         passesCompleted: 0,
         passesAttempted: 0,
+        shots: 0,
         shotsOnTarget: 0,
         shotsOffTarget: 0,
         tackles: 0,
+        fouls: 0,
         interceptions: 0,
-        xGTotal: 0
+        xGTotal: 0,
+        firstTouches: 0,
+        saves: 0
       },
       away: {
         possession: 0,
         possessionTime: 0,
         passesCompleted: 0,
         passesAttempted: 0,
+        shots: 0,
         shotsOnTarget: 0,
         shotsOffTarget: 0,
         tackles: 0,
+        fouls: 0,
         interceptions: 0,
-        xGTotal: 0
+        xGTotal: 0,
+        firstTouches: 0,
+        saves: 0
       },
       possession: { home: 50, away: 50 },
       possessionTimer: { home: 0, away: 0 },

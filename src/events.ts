@@ -5,7 +5,7 @@ import type { GoalEventPayload, ShotEventPayload, FoulEventPayload, TeamStateCha
 interface LogEntry {
     timestamp: number;
     event: string;
-    data: any;
+    data: unknown;
 }
 
 export const EventLogger = {
@@ -22,7 +22,7 @@ export const EventLogger = {
         this.enabled = false;
     },
 
-    log(eventName: string, data: any) {
+    log(eventName: string, data: unknown) {
         if (!this.enabled) return;
 
         const logEntry: LogEntry = {
@@ -54,13 +54,18 @@ export const EventLogger = {
     }
 };
 
-if (!(eventBus as any)._isWrapped) {
+interface WrappedEventBus {
+    _isWrapped?: boolean;
+    publish: <T>(eventName: string, data: T) => void;
+}
+
+if (!(eventBus as WrappedEventBus)._isWrapped) {
     const originalPublish = eventBus.publish.bind(eventBus);
-    (eventBus as any).publish = function <T>(eventName: string, data: T) {
+    (eventBus as WrappedEventBus).publish = function <T>(eventName: string, data: T) {
         EventLogger.log(eventName, data);
         return originalPublish(eventName, data);
     };
-    (eventBus as any)._isWrapped = true;
+    (eventBus as WrappedEventBus)._isWrapped = true;
 }
 
 export function initCommentarySystem(): void {

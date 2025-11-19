@@ -31,16 +31,62 @@ export declare const SetPieceBehaviorSystem: {
     getSetPieceMovementType: typeof getSetPieceMovementType;
     isSetPieceActive: typeof isSetPieceActive;
     checkAndAdjustOffsidePosition: typeof checkAndAdjustOffsidePosition;
-    checkAndAdjustOffsidePositionWithAudit: (position: any, isHome: boolean, gameState: GameState | null | undefined) => import("../setpieces/utils").OffsideAudit;
+    checkAndAdjustOffsidePositionWithAudit: (position: {
+        x: number;
+        y: number;
+        [key: string]: unknown;
+    }, isHome: boolean, gameState: GameState | null | undefined) => import("../setpieces/utils").OffsideAudit;
     ProfessionalCornerBehaviors: {
-        getAttackingCornerPosition(player: Player, cornerPos: Vector2D, opponentGoalX: number, teammates: Player[], sortedLists: any, _routine: any, gameState: GameState): PositionWithMovement;
-        getDefendingCornerPosition(player: Player, cornerPos: Vector2D, ownGoalX: number, opponents: Player[], sortedLists: any, system: string, gameState: GameState, teammates: Player[]): PositionWithMovement;
+        getAttackingCornerPosition(player: Player, cornerPos: Vector2D, opponentGoalX: number, teammates: Player[], sortedLists: {
+            teammates?: {
+                bestHeaders?: Player[];
+                fastest?: Player[];
+                bestKickers?: Player[];
+                bestDefenders?: Player[];
+            };
+            opponents?: {
+                mostDangerous?: Player[];
+                bestDefenders?: Player[];
+            };
+        } | null, _routine: unknown, gameState: GameState): PositionWithMovement;
+        getDefendingCornerPosition(player: Player, cornerPos: Vector2D, ownGoalX: number, opponents: Player[], sortedLists: {
+            teammates?: {
+                bestHeaders?: Player[];
+                fastest?: Player[];
+                bestKickers?: Player[];
+                bestDefenders?: Player[];
+            };
+            opponents?: {
+                mostDangerous?: Player[];
+                bestDefenders?: Player[];
+            };
+        } | null, system: string, gameState: GameState, teammates: Player[]): PositionWithMovement;
     };
     ProfessionalFreeKickBehaviors: {
-        getAttackingFreeKickPosition(player: Player, fkPos: Vector2D, opponentGoalX: number, distToGoal: number, sortedLists: import("../setpieces/behaviors/freeKick").SortedLists | null, gameState: GameState, teammates: Player[]): any;
-        getDefendingFreeKickPosition(player: Player, fkPos: Vector2D, ownGoalX: number, distToGoal: number, sortedLists: import("../setpieces/behaviors/freeKick").SortedLists | null, opponents: Player[], gameState: GameState, teammates: Player[]): any;
-        calculateWallPosition(positionData: import("../setpieces/behaviors/freeKick").PlayerJobAssignment, wallSize: number, fkPos: Vector2D, ownGoalX: number, direction: number, player: Player, gameState: GameState): any;
-        calculateMarkingPosition(positionData: import("../setpieces/behaviors/freeKick").PlayerJobAssignment, direction: number, opponentMap: Map<string, Player> | undefined, player: Player, gameState: GameState, ownGoalX: number): any;
+        getAttackingFreeKickPosition(player: Player, fkPos: Vector2D, opponentGoalX: number, distToGoal: number, sortedLists: import("../setpieces/behaviors/freeKick").SortedLists | null, gameState: GameState, teammates: Player[]): PositionWithMovement | {
+            x: number;
+            y: number;
+            movement: string;
+            role: string;
+        };
+        getDefendingFreeKickPosition(player: Player, fkPos: Vector2D, ownGoalX: number, distToGoal: number, sortedLists: import("../setpieces/behaviors/freeKick").SortedLists | null, opponents: Player[], gameState: GameState, teammates: Player[]): PositionWithMovement | {
+            x: number;
+            y: number;
+            movement: string;
+            role: string;
+        };
+        calculateWallPosition(positionData: import("../setpieces/behaviors/freeKick").PlayerJobAssignment, wallSize: number, fkPos: Vector2D, ownGoalX: number, direction: number, player: Player, gameState: GameState): PositionWithMovement | {
+            x: number;
+            y: number;
+            movement: string;
+            role: string;
+        };
+        calculateMarkingPosition(positionData: import("../setpieces/behaviors/freeKick").PlayerJobAssignment, direction: number, opponentMap: Map<string, Player> | undefined, player: Player, gameState: GameState, ownGoalX: number): PositionWithMovement | {
+            x: number;
+            y: number;
+            movement: string;
+            role: string;
+        };
     };
     ThrowInBehaviors: {
         getThrowInPosition(player: Player, throwPos: Vector2D, ownGoalX: number, opponentGoalX: number, gameState: GameState, teammates: Player[], opponents: Player[]): PositionWithMovement;

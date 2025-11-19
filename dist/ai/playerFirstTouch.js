@@ -269,6 +269,9 @@ export function recordFirstTouchStatistic(player, outcome) {
     const teamStats = player.isHome ? gameState.stats.home : gameState.stats.away;
     if (!teamStats || !teamStats.firstTouches)
         return;
+    // Ensure firstTouches is an object, not a number
+    if (typeof teamStats.firstTouches === 'number')
+        return;
     if (outcome === 'perfect' || outcome === 'good' || outcome === 'poor' || outcome === 'failed') {
         teamStats.firstTouches[outcome]++;
     }

@@ -162,11 +162,13 @@ export function sanitizePosition(pos, context = {}) {
         console.error(`   Stack:`, new Error().stack);
         return getRoleBasedFallbackPosition(context.role, context);
     }
-    let x = Number(pos.x);
-    let y = Number(pos.y);
+    // Cast to object with x and y properties
+    const posObj = pos;
+    let x = Number(posObj.x);
+    let y = Number(posObj.y);
     if (isNaN(x) || !isFinite(x) || isNaN(y) || !isFinite(y)) {
         console.error(`❌ sanitizePosition: INVALID COORDINATES for ${context.player?.name || 'unknown player'}`);
-        console.error(`   Position: {x: ${pos.x} (${typeof pos.x}), y: ${pos.y} (${typeof pos.y})}`);
+        console.error(`   Position: {x: ${posObj.x} (${typeof posObj.x}), y: ${posObj.y} (${typeof posObj.y})}`);
         console.error(`   After Number(): {x: ${x}, y: ${y}}`);
         console.error(`   Context:`, { behavior: context.behavior, role: context.role, movement: context.movement });
         return getRoleBasedFallbackPosition(context.role, context);
@@ -177,11 +179,11 @@ export function sanitizePosition(pos, context = {}) {
     x = Math.max(minX, Math.min(maxX, x));
     y = Math.max(minY, Math.min(maxY, y));
     return {
-        ...pos,
+        ...posObj,
         x,
         y,
-        movement: pos.movement || context.movement || 'standard_position',
-        role: pos.role || context.role || 'UNKNOWN_ROLE'
+        movement: posObj['movement'] || context.movement || 'standard_position',
+        role: posObj['role'] || context.role || 'UNKNOWN_ROLE'
     };
 }
 export function getValidPlayers(playersArray) {

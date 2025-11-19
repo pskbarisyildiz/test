@@ -11,7 +11,7 @@
  * @module ai/movement
  * @migrated-from js/ai/aimovement.js
  */
-import type { Player, Vector2D } from '../types';
+import type { Player, Vector2D, Tactic } from '../types';
 interface PositionConfig {
     defensiveness: number;
     attackRange: number;
@@ -95,11 +95,11 @@ export declare function updateTacticalPosition(player: Player, ball: Vector2D, _
 /**
  * Apply marking and pressing logic
  */
-export declare function applyMarkingAndPressing(player: Player, _ball: Vector2D, opponents: Player[], activePosition: Vector2D, ownGoalX: number, tactic: any, teamState: TeamState): MarkingResult;
+export declare function applyMarkingAndPressing(player: Player, _ball: Vector2D, opponents: Player[], activePosition: Vector2D, ownGoalX: number, tactic: Partial<Tactic>, teamState: TeamState): MarkingResult;
 /**
  * Apply defensive positioning logic
  */
-export declare function applyDefensivePositioning(player: Player, ball: Vector2D, _tactic: any, activePosition: Vector2D, ownGoalX: number, teamState: TeamState): MovementResult;
+export declare function applyDefensivePositioning(player: Player, ball: Vector2D, _tactic: Partial<Tactic>, activePosition: Vector2D, ownGoalX: number, teamState: TeamState): MovementResult;
 /**
  * Apply attacking movement patterns
  */

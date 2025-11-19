@@ -22,7 +22,7 @@ export declare const BehaviorResult: {
         shouldLock: boolean;
         error: string;
     };
-    isValid(result: any): boolean;
+    isValid(result: unknown): boolean;
 };
 export declare const PHASES: {
     DEFENSIVE: string;
@@ -77,7 +77,7 @@ export declare const BehaviorSystem: {
             shouldLock: boolean;
             error: string;
         };
-        isValid(result: any): boolean;
+        isValid(result: unknown): boolean;
     };
     PHASES: {
         DEFENSIVE: string;

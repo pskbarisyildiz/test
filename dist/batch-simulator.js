@@ -266,7 +266,12 @@ export const CustomFixtureSimulator = {
                 gameState.fouls = 0;
                 gameState.yellowCards = [];
                 gameState.redCards = [];
-                gameState.stats = { home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, possessionTimer: { home: 0, away: 0 }, lastPossessionUpdate: Date.now() };
+                gameState.stats = {
+                    home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, possessionTime: 0, offsides: 0 },
+                    away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, possessionTime: 0, offsides: 0 },
+                    possessionTimer: { home: 0, away: 0 },
+                    lastPossessionUpdate: Date.now()
+                };
                 window.setupKickOff('home');
                 let lastFrameTimeSim = performance.now();
                 let physicsAccumulatorSim = 0;
@@ -305,8 +310,8 @@ export const CustomFixtureSimulator = {
                                     SetPieceIntegration.executeSetPiece_Router(gameState);
                                 }
                             }
-                            if (gameState.status === 'PENALTY' && typeof penaltySystem !== 'undefined' && typeof penaltySystem.update === 'function') {
-                                penaltySystem.update(gameState);
+                            if (gameState.status === 'PENALTY' && typeof penaltySystem !== 'undefined' && typeof penaltySystem['update'] === 'function') {
+                                penaltySystem['update'](gameState);
                             }
                         }
                         if (isGameActive || isSetPieceOrKickOff) {
@@ -542,19 +547,19 @@ export const CustomFixtureSimulator = {
         for (const event of teamEvents) {
             let playerName = '';
             let icon = '';
-            if (event.type === 'goal') {
-                playerName = event.scorer;
+            if (event['type'] === 'goal') {
+                playerName = String(event['scorer'] ?? '');
                 icon = '⚽️';
             }
-            else if (event.type === 'card') {
-                playerName = event.player;
-                icon = event.card === 'yellow' ? '🟨' : '🟥';
+            else if (event['type'] === 'card') {
+                playerName = event.player ?? '';
+                icon = String(event['card']) === 'yellow' ? '🟨' : '🟥';
             }
             if (!playerName)
                 continue;
             if (!playerMap[playerName])
                 playerMap[playerName] = [];
-            playerMap[playerName].push({ time: event.time ?? 0, icon: icon });
+            playerMap[playerName].push({ time: event['time'] ?? 0, icon: icon });
         }
         const summaryLines = [];
         const sortedPlayerNames = Object.keys(playerMap).sort();
@@ -699,22 +704,30 @@ export const CustomFixtureSimulator = {
                     possessionTime: 0,
                     passesCompleted: 0,
                     passesAttempted: 0,
+                    shots: 0,
                     shotsOnTarget: 0,
                     shotsOffTarget: 0,
                     tackles: 0,
+                    fouls: 0,
                     interceptions: 0,
-                    xGTotal: 0
+                    xGTotal: 0,
+                    firstTouches: 0,
+                    saves: 0
                 },
                 away: {
                     possession: 0,
                     possessionTime: 0,
                     passesCompleted: 0,
                     passesAttempted: 0,
+                    shots: 0,
                     shotsOnTarget: 0,
                     shotsOffTarget: 0,
                     tackles: 0,
+                    fouls: 0,
                     interceptions: 0,
-                    xGTotal: 0
+                    xGTotal: 0,
+                    firstTouches: 0,
+                    saves: 0
                 },
                 possession: { home: 50, away: 50 },
                 possessionTimer: { home: 0, away: 0 },

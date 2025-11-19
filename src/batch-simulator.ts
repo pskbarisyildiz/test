@@ -1,4 +1,5 @@
 import { gameState } from './globalExports';
+import type { GameState } from './types';
 import { GAME_CONFIG, GAME_LOOP } from './config';
 import { updatePlayerAI_V2 } from './core';
 import { updatePhysics, assignBallChasers } from './physics';
@@ -7,8 +8,18 @@ import { processPendingEvents, switchSides, updateMatchStats } from './main';
 import { selectBestTeam, selectBestTactic, initializePlayers } from './gameSetup';
 import { isSetPieceStatus } from './utils/ui';
 
-declare const spatialSystem: any;
-declare const penaltySystem: any;
+interface SpatialSystem {
+    buildGrid?: () => void;
+    update?: () => void;
+    [key: string]: unknown;
+}
+
+interface PenaltySystem {
+    [key: string]: unknown;
+}
+
+declare const spatialSystem: SpatialSystem;
+declare const penaltySystem: PenaltySystem;
 
 interface Match {
     id: number;
@@ -33,8 +44,8 @@ interface MatchResult {
     homePassAccuracy: number;
     awayPassAccuracy: number;
     winner: string;
-    goalEvents: any[];
-    cardEvents: any[];
+    goalEvents: { player?: string; scorer?: string; time: number; team: string; isHome?: boolean; [key: string]: unknown }[];
+    cardEvents: { player: string; time: number; team: string; type?: string; card?: string; isHome?: boolean; [key: string]: unknown }[];
 }
 
 export const CustomFixtureSimulator = {
@@ -316,7 +327,12 @@ export const CustomFixtureSimulator = {
                 gameState.ballTrajectory = null; gameState.ballHolder = null; gameState.commentary = []; gameState.particles = [];
                 gameState.ballChasers = new Set(); gameState.shotInProgress = false; gameState.shooter = null;
                 gameState.goalEvents = []; gameState.cardEvents = []; gameState.fouls = 0; gameState.yellowCards = []; gameState.redCards = [];
-                gameState.stats = { home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, possessionTimer: { home: 0, away: 0 }, lastPossessionUpdate: Date.now() };
+                gameState.stats = {
+                    home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, possessionTime: 0, offsides: 0 },
+                    away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, possessionTime: 0, offsides: 0 },
+                    possessionTimer: { home: 0, away: 0 },
+                    lastPossessionUpdate: Date.now()
+                };
 
                 (window as any).setupKickOff('home');
 
@@ -364,8 +380,8 @@ export const CustomFixtureSimulator = {
                                     (SetPieceIntegration as any).executeSetPiece_Router(gameState);
                                 }
                             }
-                            if (gameState.status === 'PENALTY' && typeof penaltySystem !== 'undefined' && typeof penaltySystem.update === 'function') {
-                                penaltySystem.update(gameState);
+                            if (gameState.status === 'PENALTY' && typeof penaltySystem !== 'undefined' && typeof penaltySystem['update'] === 'function') {
+                                (penaltySystem['update'] as (gs: GameState) => void)(gameState);
                             }
                         }
 
@@ -615,7 +631,7 @@ export const CustomFixtureSimulator = {
         this.updateProgressIndicator();
     },
 
-    _groupEventsByPlayer(allEvents: any[], teamName: string) {
+    _groupEventsByPlayer(allEvents: { isHome?: boolean; player?: string; [key: string]: unknown }[], teamName: string) {
         if (!Array.isArray(allEvents)) return '';
         const playerMap: { [key: string]: { time: number; icon: string }[] } = {};
 
@@ -624,13 +640,13 @@ export const CustomFixtureSimulator = {
         for (const event of teamEvents) {
             let playerName = ''; let icon = '';
 
-            if (event.type === 'goal') { playerName = event.scorer; icon = '⚽️'; }
-            else if (event.type === 'card') { playerName = event.player; icon = event.card === 'yellow' ? '🟨' : '🟥'; }
+            if (event['type'] === 'goal') { playerName = String(event['scorer'] ?? ''); icon = '⚽️'; }
+            else if (event['type'] === 'card') { playerName = event.player ?? ''; icon = String(event['card']) === 'yellow' ? '🟨' : '🟥'; }
 
             if (!playerName) continue;
 
             if (!playerMap[playerName]) playerMap[playerName] = [];
-            playerMap[playerName]!.push({ time: event.time ?? 0, icon: icon });
+            playerMap[playerName]!.push({ time: event['time'] as number ?? 0, icon: icon });
         }
 
         const summaryLines: string[] = [];
@@ -782,22 +798,30 @@ export const CustomFixtureSimulator = {
                     possessionTime: 0,
                     passesCompleted: 0,
                     passesAttempted: 0,
+                    shots: 0,
                     shotsOnTarget: 0,
                     shotsOffTarget: 0,
                     tackles: 0,
+                    fouls: 0,
                     interceptions: 0,
-                    xGTotal: 0
+                    xGTotal: 0,
+                    firstTouches: 0,
+                    saves: 0
                 },
                 away: {
                     possession: 0,
                     possessionTime: 0,
                     passesCompleted: 0,
                     passesAttempted: 0,
+                    shots: 0,
                     shotsOnTarget: 0,
                     shotsOffTarget: 0,
                     tackles: 0,
+                    fouls: 0,
                     interceptions: 0,
-                    xGTotal: 0
+                    xGTotal: 0,
+                    firstTouches: 0,
+                    saves: 0
                 },
                 possession: { home: 50, away: 50 },
                 possessionTimer: { home: 0, away: 0 },

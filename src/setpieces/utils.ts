@@ -200,7 +200,7 @@ export class PositionManager {
 //   }
 // }
 
-export function getSafeStat(stats: any, key: string, defaultValue: number = 0): number {
+export function getSafeStat(stats: Record<string, unknown>, key: string, defaultValue: number = 0): number {
   if (stats && typeof stats[key] === 'number' && !isNaN(stats[key])) {
     return stats[key];
   }
@@ -211,7 +211,7 @@ export function getSafeStat(stats: any, key: string, defaultValue: number = 0): 
   return defaultValue;
 }
 
-function getRoleBasedFallbackPosition(role: string | undefined, context: any = {}): PositionWithMovement {
+function getRoleBasedFallbackPosition(role: string | undefined, context: { player?: Player; gameState?: GameState } = {}): PositionWithMovement {
   const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
   const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
@@ -230,7 +230,7 @@ function getRoleBasedFallbackPosition(role: string | undefined, context: any = {
   return { x: fallbackX, y: fallbackY, movement: 'role_fallback', role: role || 'FALLBACK_ROLE' };
 }
 
-export function sanitizePosition(pos: any, context: any = {}): PositionWithMovement {
+export function sanitizePosition(pos: unknown, context: { player?: Player; gameState?: GameState; role?: string; behavior?: string; movement?: string; [key: string]: unknown } = {}): PositionWithMovement {
   const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
   const PITCH_HEIGHT = GAME_CONFIG.PITCH_HEIGHT;
 
@@ -243,12 +243,14 @@ export function sanitizePosition(pos: any, context: any = {}): PositionWithMovem
     return getRoleBasedFallbackPosition(context.role, context);
   }
 
-  let x = Number(pos.x);
-  let y = Number(pos.y);
+  // Cast to object with x and y properties
+  const posObj = pos as { x?: unknown; y?: unknown; [key: string]: unknown };
+  let x = Number(posObj.x);
+  let y = Number(posObj.y);
 
   if (isNaN(x) || !isFinite(x) || isNaN(y) || !isFinite(y)) {
     console.error(`❌ sanitizePosition: INVALID COORDINATES for ${context.player?.name || 'unknown player'}`);
-    console.error(`   Position: {x: ${pos.x} (${typeof pos.x}), y: ${pos.y} (${typeof pos.y})}`);
+    console.error(`   Position: {x: ${posObj.x} (${typeof posObj.x}), y: ${posObj.y} (${typeof posObj.y})}`);
     console.error(`   After Number(): {x: ${x}, y: ${y}}`);
     console.error(`   Context:`, { behavior: context.behavior, role: context.role, movement: context.movement });
     return getRoleBasedFallbackPosition(context.role, context);
@@ -262,11 +264,11 @@ export function sanitizePosition(pos: any, context: any = {}): PositionWithMovem
   y = Math.max(minY, Math.min(maxY, y));
 
   return {
-    ...pos,
+    ...posObj,
     x,
     y,
-    movement: pos.movement || context.movement || 'standard_position',
-    role: pos.role || context.role || 'UNKNOWN_ROLE'
+    movement: (posObj['movement'] as string | undefined) || context.movement || 'standard_position',
+    role: (posObj['role'] as string | undefined) || context.role || 'UNKNOWN_ROLE'
   };
 }
 
@@ -410,12 +412,12 @@ export function getFormationAwarePosition(
  * Attacking player cannot be ahead of last defender (excluding goalkeeper)
  */
 export function checkAndAdjustOffsidePosition(
-  position: any,
+  position: { x: number; y: number; [key: string]: unknown },
   _player: Player,
   opponentGoalX: number,
   opponents: Player[],
   _gameState: GameState
-): any {
+): { x: number; y: number; [key: string]: unknown } {
   if (!position || !opponents || opponents.length === 0) return position;
 
   const PITCH_WIDTH = GAME_CONFIG.PITCH_WIDTH;
@@ -463,7 +465,7 @@ export function checkAndAdjustOffsidePosition(
  * Check and adjust for offside with detailed audit trail for debugging
  */
 export const checkAndAdjustOffsidePositionWithAudit = (
-  position: any,
+  position: { x: number; y: number; [key: string]: unknown },
   isHome: boolean,
   gameState: GameState | null | undefined
 ): OffsideAudit => {

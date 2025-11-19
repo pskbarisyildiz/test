@@ -853,6 +853,7 @@ export function resolveShot_WithAdvancedGK(params: ShotResolution): void {
     gameState.goalEvents.push({
       scorer: holder.name,
       time: Math.floor(gameState.timeElapsed),
+      team: holder.isHome ? gameState.homeTeam : gameState.awayTeam,
       isHome: holder.isHome
     });
 

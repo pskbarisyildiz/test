@@ -18,7 +18,7 @@ export declare function pointToLineDistance(point: {
     x: number;
     y: number;
 }): number;
-export declare function getValidStat(statValue: any, defaultValue?: number): number;
-export declare function resolveSide(value: any): 'home' | 'away' | null;
+export declare function getValidStat(statValue: unknown, defaultValue?: number): number;
+export declare function resolveSide(value: unknown): 'home' | 'away' | null;
 export declare function invertSide(side: 'home' | 'away' | null): 'home' | 'away' | null;
 //# sourceMappingURL=ui.d.ts.map

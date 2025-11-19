@@ -68,8 +68,15 @@ export declare class PositionManager {
     isPositionOccupied(x: number, y: number, allowOverlap?: boolean): boolean;
     findValidPosition(idealPos: Vector2D, maxAttempts?: number, allowPriorityOverlap?: boolean): Vector2D;
 }
-export declare function getSafeStat(stats: any, key: string, defaultValue?: number): number;
-export declare function sanitizePosition(pos: any, context?: any): PositionWithMovement;
+export declare function getSafeStat(stats: Record<string, unknown>, key: string, defaultValue?: number): number;
+export declare function sanitizePosition(pos: unknown, context?: {
+    player?: Player;
+    gameState?: GameState;
+    role?: string;
+    behavior?: string;
+    movement?: string;
+    [key: string]: unknown;
+}): PositionWithMovement;
 export declare function getValidPlayers(playersArray: Player[] | undefined | null): Player[];
 export declare function getSortedLists(teammates: Player[], opponents: Player[]): SortedPlayerLists;
 export declare function determineSetPieceTeam(gameState: GameState | null | undefined, player?: Player): 'home' | 'away';
@@ -83,10 +90,22 @@ export declare function getFormationAwarePosition(player: Player, basePosition: 
  * Check and adjust for offside position
  * Attacking player cannot be ahead of last defender (excluding goalkeeper)
  */
-export declare function checkAndAdjustOffsidePosition(position: any, _player: Player, opponentGoalX: number, opponents: Player[], _gameState: GameState): any;
+export declare function checkAndAdjustOffsidePosition(position: {
+    x: number;
+    y: number;
+    [key: string]: unknown;
+}, _player: Player, opponentGoalX: number, opponents: Player[], _gameState: GameState): {
+    x: number;
+    y: number;
+    [key: string]: unknown;
+};
 /**
  * Check and adjust for offside with detailed audit trail for debugging
  */
-export declare const checkAndAdjustOffsidePositionWithAudit: (position: any, isHome: boolean, gameState: GameState | null | undefined) => OffsideAudit;
+export declare const checkAndAdjustOffsidePositionWithAudit: (position: {
+    x: number;
+    y: number;
+    [key: string]: unknown;
+}, isHome: boolean, gameState: GameState | null | undefined) => OffsideAudit;
 export {};
 //# sourceMappingURL=utils.d.ts.map

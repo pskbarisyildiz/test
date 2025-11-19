@@ -36,7 +36,20 @@ import { renderGame } from './rendering/gameRenderer';
 import { initializeCanvasLayers } from './rendering/canvasSetup';
 import { drawPitchBackground } from './rendering/drawPitch';
 
-declare const XLSX: any;
+interface XLSXWorkbook {
+    Sheets: { [key: string]: unknown };
+}
+
+interface XLSXUtils {
+    sheet_to_json(sheet: unknown, options: { header: number }): unknown[][];
+}
+
+interface XLSX {
+    read(data: Uint8Array, options: { type: string }): XLSXWorkbook;
+    utils: XLSXUtils;
+}
+
+declare const XLSX: XLSX;
 
 // ============================================================================
 // FILE UPLOAD AND DATA PROCESSING
@@ -59,7 +72,7 @@ export function handleFileUpload(event: Event): void {
         gameState.teamCoaches = {};
         gameState.teamLogos = gameState.teamLogos || {};
 
-        sayfa1Data.slice(1).forEach((row: any[]) => {
+        sayfa1Data.slice(1).forEach((row: unknown[]) => {
             if (row[0] && row[0].toString().trim()) {
                 const teamName = row[0].toString().trim();
                 gameState.teams.push(teamName);
@@ -75,7 +88,7 @@ export function handleFileUpload(event: Event): void {
         const oyuncularData = XLSX.utils.sheet_to_json(oyuncular, { header: 1 });
 
         gameState.players = oyuncularData.slice(1)
-            .filter((row: any[]) => {
+            .filter((row: unknown[]) => {
                 const hasName = row[0] && row[0].toString().trim();
                 const hasTeam = row[2] && row[2].toString().trim();
                 const position = row[3] ? row[3].toString().trim() : '';
@@ -94,7 +107,7 @@ export function handleFileUpload(event: Event): void {
                 return hasName && hasTeam && hasValidId &&
                        rating && !isNaN(parseFloat(rating));
             })
-            .map((row: any[], index: number) => {
+            .map((row: unknown[], index: number) => {
                 const positionString = row[3]?.toString().trim() || '';
                 const isGK = positionString.toLowerCase().includes('keeper') ||
                              positionString.toLowerCase().includes('gk');
@@ -104,49 +117,49 @@ export function handleFileUpload(event: Event): void {
 
                 return {
                     id: playerId,
-                    name: row[0].toString().trim(),
-                    team: row[2].toString().trim(),
+                    name: String(row[0] ?? '').trim(),
+                    team: String(row[2] ?? '').trim(),
                     position: positionString.split(',')[0].trim(),
                     role: playerRole,
-                    pace: parseInt(row[4]) || 60,
-                    shooting: parseInt(row[5]) || 60,
-                    passing: parseInt(row[6]) || 60,
-                    dribbling: parseInt(row[7]) || 60,
-                    defending: parseInt(row[8]) || 60,
-                    physicality: parseInt(row[9]) || 60,
-                    goalkeeping: parseInt(row[10]) || 60,
-                    rating: parseFloat(row[12]) || 6.5,
+                    pace: parseInt(String(row[4] ?? '60')) || 60,
+                    shooting: parseInt(String(row[5] ?? '60')) || 60,
+                    passing: parseInt(String(row[6] ?? '60')) || 60,
+                    dribbling: parseInt(String(row[7] ?? '60')) || 60,
+                    defending: parseInt(String(row[8] ?? '60')) || 60,
+                    physicality: parseInt(String(row[9] ?? '60')) || 60,
+                    goalkeeping: parseInt(String(row[10] ?? '60')) || 60,
+                    rating: parseFloat(String(row[12] ?? '6.5')) || 6.5,
                     realStats: {
-                        chancesCreated: parseFloat(row[13]) || 0,
-                        crossesAccuracy: parseFloat(row[14]) || 0,
-                        dribblesSucceeded: parseFloat(row[15]) || 0,
-                        dispossessed: parseFloat(row[16]) || 0,
-                        penaltyWon: parseFloat(row[17]) || 0,
-                        foulsWon: parseFloat(row[18]) || 0,
-                        aerialsWonPercent: parseFloat(row[19]) || 50,
-                        duelWonPercent: parseFloat(row[20]) || 50,
-                        interceptions: parseFloat(row[21]) || 0,
-                        fouls: parseFloat(row[22]) || 0,
-                        recoveries: parseFloat(row[23]) || 0,
-                        goals: parseFloat(row[24]) || 0,
-                        assists: parseFloat(row[25]) || 0,
-                        xG: parseFloat(row[26]) || 0,
-                        xGOT: parseFloat(row[27]) || 0,
-                        shots: parseFloat(row[28]) || 0,
-                        shotsOnTarget: parseFloat(row[29]) || 0,
-                        xA: parseFloat(row[30]) || 0,
-                        passAccuracy: parseFloat(row[31]) || 70,
-                        longBallAccuracy: parseFloat(row[32]) || 50,
-                        wonContest: parseFloat(row[33]) || 0,
-                        touchesOppBox: parseFloat(row[34]) || 0,
-                        gkSaves: isGK ? parseFloat(row[35]) || 0 : 0,
-                        gkSavePercent: isGK ? parseFloat(row[36]) || 50 : 0,
-                        gkGoalsConceded: isGK ? parseFloat(row[37]) || 0 : 0,
-                        gkGoalsPrevented: isGK ? parseFloat(row[38]) || 0 : 0,
-                        gkKeeperSweeper: isGK ? parseFloat(row[39]) || 0 : 0,
-                        gkErrorLedToGoal: isGK ? parseFloat(row[40]) || 0 : 0,
-                        yellowCards: parseFloat(row[41]) || 0,
-                        redCards: parseFloat(row[42]) || 0
+                        chancesCreated: parseFloat(String(row[13] ?? '0')) || 0,
+                        crossesAccuracy: parseFloat(String(row[14] ?? '0')) || 0,
+                        dribblesSucceeded: parseFloat(String(row[15] ?? '0')) || 0,
+                        dispossessed: parseFloat(String(row[16] ?? '0')) || 0,
+                        penaltyWon: parseFloat(String(row[17] ?? '0')) || 0,
+                        foulsWon: parseFloat(String(row[18] ?? '0')) || 0,
+                        aerialsWonPercent: parseFloat(String(row[19] ?? '50')) || 50,
+                        duelWonPercent: parseFloat(String(row[20] ?? '50')) || 50,
+                        interceptions: parseFloat(String(row[21] ?? '0')) || 0,
+                        fouls: parseFloat(String(row[22] ?? '0')) || 0,
+                        recoveries: parseFloat(String(row[23] ?? '0')) || 0,
+                        goals: parseFloat(String(row[24] ?? '0')) || 0,
+                        assists: parseFloat(String(row[25] ?? '0')) || 0,
+                        xG: parseFloat(String(row[26] ?? '0')) || 0,
+                        xGOT: parseFloat(String(row[27] ?? '0')) || 0,
+                        shots: parseFloat(String(row[28] ?? '0')) || 0,
+                        shotsOnTarget: parseFloat(String(row[29] ?? '0')) || 0,
+                        xA: parseFloat(String(row[30] ?? '0')) || 0,
+                        passAccuracy: parseFloat(String(row[31] ?? '70')) || 70,
+                        longBallAccuracy: parseFloat(String(row[32] ?? '50')) || 50,
+                        wonContest: parseFloat(String(row[33] ?? '0')) || 0,
+                        touchesOppBox: parseFloat(String(row[34] ?? '0')) || 0,
+                        gkSaves: isGK ? parseFloat(String(row[35] ?? '0')) || 0 : 0,
+                        gkSavePercent: isGK ? parseFloat(String(row[36] ?? '50')) || 50 : 0,
+                        gkGoalsConceded: isGK ? parseFloat(String(row[37] ?? '0')) || 0 : 0,
+                        gkGoalsPrevented: isGK ? parseFloat(String(row[38] ?? '0')) || 0 : 0,
+                        gkKeeperSweeper: isGK ? parseFloat(String(row[39] ?? '0')) || 0 : 0,
+                        gkErrorLedToGoal: isGK ? parseFloat(String(row[40] ?? '0')) || 0 : 0,
+                        yellowCards: parseFloat(String(row[41] ?? '0')) || 0,
+                        redCards: parseFloat(String(row[42] ?? '0')) || 0
                     }
                 };
             });
@@ -213,7 +226,19 @@ export let physicsAccumulator = 0;
 export let animationFrameId: number | null = null;
 export let gameIntervalId: number | null = null;
 
-export let pendingGameEvents: any[] = [];
+interface PendingGameEvent {
+    type: string;
+    resolveTime: number;
+    data: {
+        holder?: Player;
+        xG?: number;
+        goalkeeper?: Player;
+        goalX?: number;
+        shotTargetY?: number;
+    };
+}
+
+export let pendingGameEvents: PendingGameEvent[] = [];
 
 // ============================================================================
 // SET PIECE HANDLERS
@@ -645,8 +670,8 @@ export function handleShotAttempt(holder: Player, goalX: number, allPlayers: Pla
     passBall(holder, holder.x, holder.y, goalX, shotTargetY, 1.0, shotPower, true);
 
     if (gameState.ballTrajectory) {
-        gameState.ballTrajectory.shotTargetY = shotTargetY;
-        gameState.ballTrajectory.effectiveAccuracy = effectiveAccuracy;
+        gameState.ballTrajectory['shotTargetY'] = shotTargetY;
+        gameState.ballTrajectory['effectiveAccuracy'] = effectiveAccuracy;
     }
 
     gameState.shotInProgress = true;
@@ -1053,22 +1078,30 @@ export function startMatch(): void {
                 possessionTime: 0,
                 passesCompleted: 0,
                 passesAttempted: 0,
+                shots: 0,
                 shotsOnTarget: 0,
                 shotsOffTarget: 0,
                 tackles: 0,
+                fouls: 0,
                 interceptions: 0,
-                xGTotal: 0
+                xGTotal: 0,
+                firstTouches: 0,
+                saves: 0
             },
             away: {
                 possession: 0,
                 possessionTime: 0,
                 passesCompleted: 0,
                 passesAttempted: 0,
+                shots: 0,
                 shotsOnTarget: 0,
                 shotsOffTarget: 0,
                 tackles: 0,
+                fouls: 0,
                 interceptions: 0,
-                xGTotal: 0
+                xGTotal: 0,
+                firstTouches: 0,
+                saves: 0
             },
             possession: { home: 50, away: 50 },
             possessionTimer: { home: 0, away: 0 },
@@ -1322,24 +1355,30 @@ export function resetMatch(): void {
             possessionTime: 0,
             passesCompleted: 0,
             passesAttempted: 0,
+            shots: 0,
             shotsOnTarget: 0,
             shotsOffTarget: 0,
             tackles: 0,
+            fouls: 0,
             interceptions: 0,
             saves: 0,
-            xGTotal: 0
+            xGTotal: 0,
+            firstTouches: 0
         },
         away: {
             possession: 0,
             possessionTime: 0,
             passesCompleted: 0,
             passesAttempted: 0,
+            shots: 0,
             shotsOnTarget: 0,
             shotsOffTarget: 0,
             tackles: 0,
+            fouls: 0,
             interceptions: 0,
             saves: 0,
-            xGTotal: 0
+            xGTotal: 0,
+            firstTouches: 0
         },
         possession: { home: 50, away: 50 },
         possessionTimer: { home: 0, away: 0 },
