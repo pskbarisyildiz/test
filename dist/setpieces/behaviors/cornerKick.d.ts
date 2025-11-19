@@ -17,18 +17,22 @@ export declare const ProfessionalCornerBehaviors: {
         teammates?: {
             bestHeaders?: Player[];
             fastest?: Player[];
+            bestKickers?: Player[];
         };
         opponents?: {
             mostDangerous?: Player[];
+            bestDefenders?: Player[];
         };
     } | null, _routine: unknown, gameState: GameState): import("../utils").PositionWithMovement;
     getDefendingCornerPosition(player: Player, cornerPos: Vector2D, ownGoalX: number, opponents: Player[], sortedLists: {
         teammates?: {
             bestHeaders?: Player[];
             fastest?: Player[];
+            bestKickers?: Player[];
         };
         opponents?: {
             mostDangerous?: Player[];
+            bestDefenders?: Player[];
         };
     } | null, system: string, gameState: GameState, teammates: Player[]): import("../utils").PositionWithMovement;
 };
