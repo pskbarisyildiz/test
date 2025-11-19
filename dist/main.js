@@ -861,6 +861,36 @@ export function startMatch() {
         gameState.redCards = [];
         gameState.lastGoalScorer = null;
         gameState.lastTouchedBy = null;
+        gameState.goalEvents = [];
+        gameState.cardEvents = [];
+        // Reset stats
+        gameState.stats = {
+            home: {
+                possession: 0,
+                possessionTime: 0,
+                passesCompleted: 0,
+                passesAttempted: 0,
+                shotsOnTarget: 0,
+                shotsOffTarget: 0,
+                tackles: 0,
+                interceptions: 0,
+                xGTotal: 0
+            },
+            away: {
+                possession: 0,
+                possessionTime: 0,
+                passesCompleted: 0,
+                passesAttempted: 0,
+                shotsOnTarget: 0,
+                shotsOffTarget: 0,
+                tackles: 0,
+                interceptions: 0,
+                xGTotal: 0
+            },
+            possession: { home: 50, away: 50 },
+            possessionTimer: { home: 0, away: 0 },
+            lastPossessionUpdate: Date.now()
+        };
         gameState.setPieceExecuting = false;
         gameState.lastControlAttempt = 0;
         gameState.homeTeamState = 'BALANCED';

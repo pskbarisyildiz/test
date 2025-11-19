@@ -7551,6 +7551,35 @@ var FootballSim = (() => {
       gameState.redCards = [];
       gameState.lastGoalScorer = null;
       gameState.lastTouchedBy = null;
+      gameState.goalEvents = [];
+      gameState.cardEvents = [];
+      gameState.stats = {
+        home: {
+          possession: 0,
+          possessionTime: 0,
+          passesCompleted: 0,
+          passesAttempted: 0,
+          shotsOnTarget: 0,
+          shotsOffTarget: 0,
+          tackles: 0,
+          interceptions: 0,
+          xGTotal: 0
+        },
+        away: {
+          possession: 0,
+          possessionTime: 0,
+          passesCompleted: 0,
+          passesAttempted: 0,
+          shotsOnTarget: 0,
+          shotsOffTarget: 0,
+          tackles: 0,
+          interceptions: 0,
+          xGTotal: 0
+        },
+        possession: { home: 50, away: 50 },
+        possessionTimer: { home: 0, away: 0 },
+        lastPossessionUpdate: Date.now()
+      };
       gameState.setPieceExecuting = false;
       gameState.lastControlAttempt = 0;
       gameState.homeTeamState = "BALANCED";
@@ -13783,6 +13812,44 @@ var FootballSim = (() => {
         window.batchGameIntervalId = null;
       }
       if (typeof gameState !== "undefined") {
+        gameState.goalEvents = [];
+        gameState.cardEvents = [];
+        gameState.homeScore = 0;
+        gameState.awayScore = 0;
+        gameState.timeElapsed = 0;
+        gameState.currentHalf = 1;
+        gameState.commentary = [];
+        gameState.fouls = 0;
+        gameState.yellowCards = [];
+        gameState.redCards = [];
+        gameState.lastGoalScorer = null;
+        gameState.stats = {
+          home: {
+            possession: 0,
+            possessionTime: 0,
+            passesCompleted: 0,
+            passesAttempted: 0,
+            shotsOnTarget: 0,
+            shotsOffTarget: 0,
+            tackles: 0,
+            interceptions: 0,
+            xGTotal: 0
+          },
+          away: {
+            possession: 0,
+            possessionTime: 0,
+            passesCompleted: 0,
+            passesAttempted: 0,
+            shotsOnTarget: 0,
+            shotsOffTarget: 0,
+            tackles: 0,
+            interceptions: 0,
+            xGTotal: 0
+          },
+          possession: { home: 50, away: 50 },
+          possessionTimer: { home: 0, away: 0 },
+          lastPossessionUpdate: Date.now()
+        };
         gameState.status = "setup";
         if (typeof window.render === "function") {
           window.render();
