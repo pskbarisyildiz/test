@@ -176,9 +176,9 @@ export const ProfessionalCornerBehaviors = {
       );
 
       // Select players based on attributes AND position
-      const bestKicker = sortedLists.teammates.bestKickers[0];
-      const aerialThreats = sortedLists.teammates.bestHeaders.slice(0, 4);
-      const fastRunners = sortedLists.teammates.fastest.slice(0, 3);
+      const bestKicker = sortedLists?.teammates?.bestKickers?.[0];
+      const aerialThreats = sortedLists?.teammates?.bestHeaders?.slice(0, 4) || [];
+      const fastRunners = sortedLists?.teammates?.fastest?.slice(0, 3) || [];
 
       // Defenders: Only commit if desperate, otherwise stay back
       const defendersToCommit = shouldCommit ?
@@ -438,8 +438,8 @@ export const ProfessionalCornerBehaviors = {
 
       if (useManMarking) {
         // Man-marking: Assign best defenders to dangerous attackers
-        const dangerousAttackers = sortedLists.opponents.mostDangerous.slice(0, Math.min(6, validTeammates.length));
-        const bestMarkers = sortedLists.teammates.bestDefenders;
+        const dangerousAttackers = sortedLists?.opponents?.mostDangerous?.slice(0, Math.min(6, validTeammates.length)) || [];
+        const bestMarkers = sortedLists?.teammates?.bestDefenders || [];
 
         dangerousAttackers.forEach((attacker: Player, idx: number) => {
           if (bestMarkers[idx]) {

@@ -12,7 +12,7 @@
  * @migrated-from js/ai/aidecisions.js
  */
 
-import type { Player, Vector2D, PlayerRealStats } from '../types';
+import type { Player, Vector2D } from '../types';
 import { distance } from '../utils/math';
 import { canPlayerActOnBall } from './playerFirstTouch';
 import { getAttackingGoalX, getValidStat, isSetPieceStatus, calculateXG } from '../utils/ui';

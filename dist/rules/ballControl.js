@@ -218,10 +218,10 @@ export function handleBallInterception(progress) {
     }
 }
 function calculateInterceptionChance(player, ballDistance, trajectory) {
-    const realStats = player.realStats || {};
+    const realStats = player.realStats;
     const baseDefending = player.defending / 100;
-    const interceptionModifier = realStats.interceptions > 0 ? Math.min(realStats.interceptions / 15, 0.3) : 0;
-    const recoveryBonus = realStats.recoveries > 0 ? Math.min(realStats.recoveries / 20, 0.15) : 0;
+    const interceptionModifier = (realStats.interceptions ?? 0) > 0 ? Math.min((realStats.interceptions ?? 0) / 15, 0.3) : 0;
+    const recoveryBonus = (realStats.recoveries ?? 0) > 0 ? Math.min((realStats.recoveries ?? 0) / 20, 0.15) : 0;
     const ratingBonus = (player.rating - 6.5) / 10;
     const distancePenalty = Math.min(ballDistance / 100, 0.3);
     const passQualityBonus = trajectory.passQuality ? (1.0 - trajectory.passQuality) * 0.4 : 0;

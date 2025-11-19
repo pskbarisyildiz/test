@@ -314,6 +314,8 @@ export interface GameState {
         startTime: number;
         duration: number;
         isShot?: boolean;
+        maxHeight?: number;
+        speed?: number;
         [key: string]: unknown
     } | null;
     ballPosition: Vector2D;

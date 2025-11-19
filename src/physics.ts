@@ -75,7 +75,7 @@ export function updateBallTrajectory(_dt: number): void {
   gameState.ballHeight = heightProgress * traj.maxHeight;
 
   // Check for out of bounds during aerial passes
-  if (traj.passType === 'aerial' && gameState.ballHeight > 0.5) {
+  if (traj['passType'] === 'aerial' && gameState.ballHeight > 0.5) {
     if (gameState.ballPosition.y < 20 || gameState.ballPosition.y > 580) {
       if (DEBUG_PHYSICS) {
         console.log(`[Physics] Ball out of bounds during aerial pass (y=${gameState.ballPosition.y}), resetting to center`);

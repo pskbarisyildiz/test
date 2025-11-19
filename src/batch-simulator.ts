@@ -1,4 +1,5 @@
 import { gameState } from './globalExports';
+import type { GameState } from './types';
 import { GAME_CONFIG, GAME_LOOP } from './config';
 import { updatePlayerAI_V2 } from './core';
 import { updatePhysics, assignBallChasers } from './physics';
@@ -379,8 +380,8 @@ export const CustomFixtureSimulator = {
                                     (SetPieceIntegration as any).executeSetPiece_Router(gameState);
                                 }
                             }
-                            if (gameState.status === 'PENALTY' && typeof penaltySystem !== 'undefined' && typeof penaltySystem.update === 'function') {
-                                penaltySystem.update(gameState);
+                            if (gameState.status === 'PENALTY' && typeof penaltySystem !== 'undefined' && typeof penaltySystem['update'] === 'function') {
+                                (penaltySystem['update'] as (gs: GameState) => void)(gameState);
                             }
                         }
 
@@ -639,13 +640,13 @@ export const CustomFixtureSimulator = {
         for (const event of teamEvents) {
             let playerName = ''; let icon = '';
 
-            if (event.type === 'goal') { playerName = event.scorer; icon = '⚽️'; }
-            else if (event.type === 'card') { playerName = event.player; icon = event.card === 'yellow' ? '🟨' : '🟥'; }
+            if (event['type'] === 'goal') { playerName = String(event['scorer'] ?? ''); icon = '⚽️'; }
+            else if (event['type'] === 'card') { playerName = event.player ?? ''; icon = String(event['card']) === 'yellow' ? '🟨' : '🟥'; }
 
             if (!playerName) continue;
 
             if (!playerMap[playerName]) playerMap[playerName] = [];
-            playerMap[playerName]!.push({ time: event.time ?? 0, icon: icon });
+            playerMap[playerName]!.push({ time: event['time'] as number ?? 0, icon: icon });
         }
 
         const summaryLines: string[] = [];

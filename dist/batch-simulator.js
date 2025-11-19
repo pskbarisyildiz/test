@@ -310,8 +310,8 @@ export const CustomFixtureSimulator = {
                                     SetPieceIntegration.executeSetPiece_Router(gameState);
                                 }
                             }
-                            if (gameState.status === 'PENALTY' && typeof penaltySystem !== 'undefined' && typeof penaltySystem.update === 'function') {
-                                penaltySystem.update(gameState);
+                            if (gameState.status === 'PENALTY' && typeof penaltySystem !== 'undefined' && typeof penaltySystem['update'] === 'function') {
+                                penaltySystem['update'](gameState);
                             }
                         }
                         if (isGameActive || isSetPieceOrKickOff) {
@@ -547,19 +547,19 @@ export const CustomFixtureSimulator = {
         for (const event of teamEvents) {
             let playerName = '';
             let icon = '';
-            if (event.type === 'goal') {
-                playerName = event.scorer;
+            if (event['type'] === 'goal') {
+                playerName = String(event['scorer'] ?? '');
                 icon = '⚽️';
             }
-            else if (event.type === 'card') {
-                playerName = event.player;
-                icon = event.card === 'yellow' ? '🟨' : '🟥';
+            else if (event['type'] === 'card') {
+                playerName = event.player ?? '';
+                icon = String(event['card']) === 'yellow' ? '🟨' : '🟥';
             }
             if (!playerName)
                 continue;
             if (!playerMap[playerName])
                 playerMap[playerName] = [];
-            playerMap[playerName].push({ time: event.time ?? 0, icon: icon });
+            playerMap[playerName].push({ time: event['time'] ?? 0, icon: icon });
         }
         const summaryLines = [];
         const sortedPlayerNames = Object.keys(playerMap).sort();
