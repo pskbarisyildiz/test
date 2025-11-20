@@ -380,26 +380,14 @@ function selectBestTeam(teamName) {
 }
 
 function getFormationPositions(isHome, isSecondHalf, formationName) {
-    console.log('--- getFormationPositions İÇİNDE ---');
-    console.log('Doğrudan global FORMATIONS kontrolü, typeof:', typeof FORMATIONS); // <<< GÜNCELLENMİŞ LOG
-    // console.log('FORMATIONS Değeri:', FORMATIONS);
-    console.log('formationName:', formationName);
 
-    // DÜZELTME: typeof kontrolünü kaldırıp doğrudan global FORMATIONS'ı kullanmayı dene
-    // const FORMATIONS_DEFAULT = { '4-3-3': [] }; // Bu artık gereksiz olabilir
-    // const effectiveFormations = (typeof FORMATIONS !== 'undefined' && FORMATIONS) ? FORMATIONS : FORMATIONS_DEFAULT; // <<< BU SATIRI YORUMA AL veya SİL
 
     const GAME_CONFIG_DEFAULT = { PITCH_WIDTH: 800, PITCH_HEIGHT: 600 };
     const activeConfig = (typeof GAME_CONFIG !== 'undefined') ? GAME_CONFIG : GAME_CONFIG_DEFAULT;
 
-    // Doğrudan global FORMATIONS kullan
-    // Eğer FORMATIONS gerçekten globalde yoksa burada "FORMATIONS is not defined" hatası alırsın.
-    // Eğer TDZ hatası devam ediyorsa, sorun kapsam gölgelemesidir.
-    const formation = FORMATIONS[formationName] || FORMATIONS['4-3-3']; // <<< DOĞRUDAN FORMATIONS KULLAN
-    console.log('Seçilen formation:', formation);
+    const formation = FORMATIONS[formationName] || FORMATIONS['4-3-3'];
     if (!formation) {
-        console.error(`Formasyon bulunamadı: ${formationName}. Varsayılan kullanılıyor.`);
-        // FORMATIONS['4-3-3']'ü kullanmayı dene
+        console.error(`Formation not found: ${formationName}. Defaulting to 4-3-3.`);
         formation = FORMATIONS['4-3-3'];
     }
 

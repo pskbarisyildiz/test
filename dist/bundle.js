@@ -1310,6 +1310,23 @@ var FootballSim = (() => {
     if (obj[key] === void 0)
       obj[key] = value;
   }
+  function createEmptyTeamStats() {
+    return {
+      possession: 0,
+      passesCompleted: 0,
+      passesAttempted: 0,
+      shots: 0,
+      shotsOnTarget: 0,
+      shotsOffTarget: 0,
+      tackles: 0,
+      fouls: 0,
+      xGTotal: 0,
+      interceptions: 0,
+      firstTouches: 0,
+      possessionTime: 0,
+      saves: 0
+    };
+  }
   var FORMATION_STRUCTURES = {
     "4-3-3": {
       "GK": 1,
@@ -1592,29 +1609,25 @@ var FootballSim = (() => {
     return { players: selected.slice(0, 11), formation };
   }
   function initializeGameSetup(gameState2) {
-    initIfUndef(gameState2, "stats", {});
-    const s = gameState2.stats;
-    if (!s.home || typeof s.home !== "object")
-      s.home = {};
-    if (!s.away || typeof s.away !== "object")
-      s.away = {};
-    if (typeof s.home.possession !== "number")
-      s.home.possession = 0;
-    if (typeof s.away.possession !== "number")
-      s.away.possession = 0;
-    if (typeof s.home.passesCompleted !== "number")
-      s.home.passesCompleted = 0;
-    if (typeof s.home.passesAttempted !== "number")
-      s.home.passesAttempted = 0;
-    if (typeof s.away.passesCompleted !== "number")
-      s.away.passesCompleted = 0;
-    if (typeof s.away.passesAttempted !== "number")
-      s.away.passesAttempted = 0;
-    if (!s.possessionTimer || typeof s.possessionTimer !== "object") {
-      s.possessionTimer = { home: 0, away: 0 };
+    if (!gameState2.stats) {
+      gameState2.stats = {
+        home: createEmptyTeamStats(),
+        away: createEmptyTeamStats(),
+        possession: { home: 50, away: 50 },
+        possessionTimer: { home: 0, away: 0 },
+        lastPossessionUpdate: Date.now()
+      };
     }
-    if (typeof s.lastPossessionUpdate !== "number")
-      s.lastPossessionUpdate = Date.now();
+    if (!gameState2.stats.home)
+      gameState2.stats.home = createEmptyTeamStats();
+    if (!gameState2.stats.away)
+      gameState2.stats.away = createEmptyTeamStats();
+    if (!gameState2.stats.possession)
+      gameState2.stats.possession = { home: 50, away: 50 };
+    if (!gameState2.stats.possessionTimer)
+      gameState2.stats.possessionTimer = { home: 0, away: 0 };
+    if (!gameState2.stats.lastPossessionUpdate)
+      gameState2.stats.lastPossessionUpdate = Date.now();
     initIfUndef(gameState2, "status", "upload");
     initIfUndef(gameState2, "homeTeam", "");
     initIfUndef(gameState2, "awayTeam", "");
@@ -2402,7 +2415,7 @@ var FootballSim = (() => {
     }
   }
   function calculateDribbleSuccess(player, opponents) {
-    const realStats = player.realStats || {};
+    const realStats = player.realStats;
     const baseDribbling = Math.pow(player.dribbling / 100, 0.8);
     const paceBonus = player.pace / 100 * 0.15;
     const physicalityBonus = player.physicality / 100 * 0.1;
@@ -2417,7 +2430,7 @@ var FootballSim = (() => {
     return Math.max(0.1, Math.min(0.95, successChance));
   }
   function calculatePassSuccess(passer, _receiver, distance2, isUnderPressure) {
-    const realStats = passer.realStats || {};
+    const realStats = passer.realStats;
     const basePassing = Math.pow(passer.passing / 100, 0.7);
     const passAccuracyStat = getValidStat(realStats.passAccuracy, 0);
     let effectiveAccuracy;
@@ -2700,7 +2713,7 @@ var FootballSim = (() => {
       };
     },
     isValid(result) {
-      return result && typeof result === "object" && result.available === true;
+      return result !== null && typeof result === "object" && "available" in result && result.available === true;
     }
   };
   var PHASES = {
@@ -4848,6 +4861,7 @@ var FootballSim = (() => {
         gameState2.goalEvents.push({
           time: Math.floor(gameState2.timeElapsed),
           scorer: state.shooter.name,
+          team: state.shooter.isHome ? gameState2.homeTeam : gameState2.awayTeam,
           isHome: state.shooter.isHome,
           xG: PENALTY_XG
         });
@@ -4975,7 +4989,7 @@ var FootballSim = (() => {
           opponents,
           getPlayerActivePosition(player, gameState2.currentHalf),
           getAttackingGoalX(!player.isHome, gameState2.currentHalf),
-          TACTICS[player.isHome ? gameState2.homeTactic : gameState2.awayTactic],
+          TACTICS[player.isHome ? gameState2.homeTactic : gameState2.awayTactic] || {},
           player.isHome ? gameState2.homeTeamState : gameState2.awayTeamState
         );
         player.targetX = markingResult.x + spacingForce.x;
@@ -5034,11 +5048,13 @@ var FootballSim = (() => {
       gameState.redCards.push({
         player: fouler.name,
         time: Math.floor(gameState.timeElapsed),
+        team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam,
         type: "second_yellow"
       });
       gameState.cardEvents.push({
         player: fouler.name,
         time: Math.floor(gameState.timeElapsed),
+        team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam,
         type: "second_yellow",
         isHome: fouler.isHome,
         card: "red"
@@ -5050,11 +5066,13 @@ var FootballSim = (() => {
         gameState.redCards.push({
           player: fouler.name,
           time: Math.floor(gameState.timeElapsed),
+          team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam,
           type: "direct_red"
         });
         gameState.cardEvents.push({
           player: fouler.name,
           time: Math.floor(gameState.timeElapsed),
+          team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam,
           type: "direct_red",
           isHome: fouler.isHome,
           card: "red"
@@ -5063,11 +5081,13 @@ var FootballSim = (() => {
         console.log(`\u{1F7E8} SARI KART! ${fouler.name}`);
         gameState.yellowCards.push({
           player: fouler.name,
-          time: Math.floor(gameState.timeElapsed)
+          time: Math.floor(gameState.timeElapsed),
+          team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam
         });
         gameState.cardEvents.push({
           player: fouler.name,
           time: Math.floor(gameState.timeElapsed),
+          team: fouler.isHome ? gameState.homeTeam : gameState.awayTeam,
           type: "yellow",
           isHome: fouler.isHome,
           card: "yellow"
@@ -5320,7 +5340,7 @@ var FootballSim = (() => {
     return GAME_CONFIG;
   }
   function ensureStatsShape2(gs) {
-    gs.stats = gs.stats || {};
+    gs.stats = gs.stats || { home: {}, away: {} };
     const s = gs.stats;
     s.home = s.home || {};
     s.away = s.away || {};
@@ -5339,8 +5359,10 @@ var FootballSim = (() => {
     const s = gs.stats;
     s.home.possession = Math.max(0, Math.min(100, homePct));
     s.away.possession = Math.max(0, Math.min(100, awayPct));
-    s.possession.home = s.home.possession;
-    s.possession.away = s.away.possession;
+    if (s.possession) {
+      s.possession.home = s.home.possession;
+      s.possession.away = s.away.possession;
+    }
   }
   var SET_PIECE_STATUSES2 = Object.freeze([
     "GOAL_KICK",
@@ -5863,13 +5885,14 @@ var FootballSim = (() => {
     const commentaryHTML = recentComments.map((c) => {
       let accentColor = "#6366f1";
       let emoji = "\u26BD";
-      if (c.type === "goal") {
+      const commentObj = typeof c === "string" ? { text: c, type: "default" } : c;
+      if (commentObj.type === "goal") {
         accentColor = "#00ff88";
         emoji = "\u26BD";
-      } else if (c.type === "save") {
+      } else if (commentObj.type === "save") {
         accentColor = "#00d4ff";
         emoji = "\u{1F9E4}";
-      } else if (c.type === "attack") {
+      } else if (commentObj.type === "attack") {
         accentColor = "#ffd700";
         emoji = "\u26A1";
       }
@@ -5900,7 +5923,7 @@ var FootballSim = (() => {
                     margin-right: 8px;
                     filter: drop-shadow(0 0 4px ${accentColor});
                 ">${emoji}</span>
-                ${c.text}
+                ${commentObj.text}
 
                 <!-- Subtle glow effect -->
                 <div style="
@@ -6027,14 +6050,14 @@ var FootballSim = (() => {
     const groupEvents = (events) => {
       const grouped = {};
       events.forEach((e) => {
-        const key = e.type === "goal" ? e.scorer : e.player;
+        const key = e.type === "goal" ? e.scorer || "Unknown" : e.player || "Unknown";
         if (!grouped[key]) {
           grouped[key] = { name: key, goals: [], cards: [] };
         }
         if (e.type === "goal") {
-          grouped[key].goals.push(e.time);
+          grouped[key].goals.push(e.time || 0);
         } else {
-          grouped[key].cards.push({ time: e.time, card: e.card });
+          grouped[key].cards.push({ time: e.time || 0, card: e.card || "yellow" });
         }
       });
       return Object.values(grouped);
@@ -6832,13 +6855,15 @@ var FootballSim = (() => {
         const fotmobId = row[11];
         const rating = row[12];
         if (position.toLowerCase() === "coach") {
-          const teamName = row[2].toString().trim();
-          const coachName = row[0].toString().trim();
-          gameState.teamCoaches[teamName] = coachName;
+          const teamName = row[2] ? row[2].toString().trim() : "";
+          const coachName = row[0] ? row[0].toString().trim() : "";
+          if (teamName) {
+            gameState.teamCoaches[teamName] = coachName;
+          }
           return false;
         }
         const hasValidId = fotmobId && fotmobId.toString().trim() && fotmobId.toString().trim().toLowerCase() !== "n/a";
-        return hasName && hasTeam && hasValidId && rating && !isNaN(parseFloat(rating));
+        return hasName && hasTeam && hasValidId && rating && !isNaN(parseFloat(String(rating)));
       }).map((row, index) => {
         const positionString = row[3]?.toString().trim() || "";
         const isGK = positionString.toLowerCase().includes("keeper") || positionString.toLowerCase().includes("gk");
@@ -6846,49 +6871,49 @@ var FootballSim = (() => {
         const playerRole = typeof getRoleFromPosition === "function" ? getRoleFromPosition(positionString) : "CM";
         return {
           id: playerId,
-          name: row[0].toString().trim(),
-          team: row[2].toString().trim(),
-          position: positionString.split(",")[0].trim(),
+          name: String(row[0] ?? "").trim(),
+          team: String(row[2] ?? "").trim(),
+          position: positionString ? (positionString.split(",")[0] || "").trim() : "",
           role: playerRole,
-          pace: parseInt(row[4]) || 60,
-          shooting: parseInt(row[5]) || 60,
-          passing: parseInt(row[6]) || 60,
-          dribbling: parseInt(row[7]) || 60,
-          defending: parseInt(row[8]) || 60,
-          physicality: parseInt(row[9]) || 60,
-          goalkeeping: parseInt(row[10]) || 60,
-          rating: parseFloat(row[12]) || 6.5,
+          pace: parseInt(String(row[4] ?? "60")) || 60,
+          shooting: parseInt(String(row[5] ?? "60")) || 60,
+          passing: parseInt(String(row[6] ?? "60")) || 60,
+          dribbling: parseInt(String(row[7] ?? "60")) || 60,
+          defending: parseInt(String(row[8] ?? "60")) || 60,
+          physicality: parseInt(String(row[9] ?? "60")) || 60,
+          goalkeeping: parseInt(String(row[10] ?? "60")) || 60,
+          rating: parseFloat(String(row[12] ?? "6.5")) || 6.5,
           realStats: {
-            chancesCreated: parseFloat(row[13]) || 0,
-            crossesAccuracy: parseFloat(row[14]) || 0,
-            dribblesSucceeded: parseFloat(row[15]) || 0,
-            dispossessed: parseFloat(row[16]) || 0,
-            penaltyWon: parseFloat(row[17]) || 0,
-            foulsWon: parseFloat(row[18]) || 0,
-            aerialsWonPercent: parseFloat(row[19]) || 50,
-            duelWonPercent: parseFloat(row[20]) || 50,
-            interceptions: parseFloat(row[21]) || 0,
-            fouls: parseFloat(row[22]) || 0,
-            recoveries: parseFloat(row[23]) || 0,
-            goals: parseFloat(row[24]) || 0,
-            assists: parseFloat(row[25]) || 0,
-            xG: parseFloat(row[26]) || 0,
-            xGOT: parseFloat(row[27]) || 0,
-            shots: parseFloat(row[28]) || 0,
-            shotsOnTarget: parseFloat(row[29]) || 0,
-            xA: parseFloat(row[30]) || 0,
-            passAccuracy: parseFloat(row[31]) || 70,
-            longBallAccuracy: parseFloat(row[32]) || 50,
-            wonContest: parseFloat(row[33]) || 0,
-            touchesOppBox: parseFloat(row[34]) || 0,
-            gkSaves: isGK ? parseFloat(row[35]) || 0 : 0,
-            gkSavePercent: isGK ? parseFloat(row[36]) || 50 : 0,
-            gkGoalsConceded: isGK ? parseFloat(row[37]) || 0 : 0,
-            gkGoalsPrevented: isGK ? parseFloat(row[38]) || 0 : 0,
-            gkKeeperSweeper: isGK ? parseFloat(row[39]) || 0 : 0,
-            gkErrorLedToGoal: isGK ? parseFloat(row[40]) || 0 : 0,
-            yellowCards: parseFloat(row[41]) || 0,
-            redCards: parseFloat(row[42]) || 0
+            chancesCreated: parseFloat(String(row[13] ?? "0")) || 0,
+            crossesAccuracy: parseFloat(String(row[14] ?? "0")) || 0,
+            dribblesSucceeded: parseFloat(String(row[15] ?? "0")) || 0,
+            dispossessed: parseFloat(String(row[16] ?? "0")) || 0,
+            penaltyWon: parseFloat(String(row[17] ?? "0")) || 0,
+            foulsWon: parseFloat(String(row[18] ?? "0")) || 0,
+            aerialsWonPercent: parseFloat(String(row[19] ?? "50")) || 50,
+            duelWonPercent: parseFloat(String(row[20] ?? "50")) || 50,
+            interceptions: parseFloat(String(row[21] ?? "0")) || 0,
+            fouls: parseFloat(String(row[22] ?? "0")) || 0,
+            recoveries: parseFloat(String(row[23] ?? "0")) || 0,
+            goals: parseFloat(String(row[24] ?? "0")) || 0,
+            assists: parseFloat(String(row[25] ?? "0")) || 0,
+            xG: parseFloat(String(row[26] ?? "0")) || 0,
+            xGOT: parseFloat(String(row[27] ?? "0")) || 0,
+            shots: parseFloat(String(row[28] ?? "0")) || 0,
+            shotsOnTarget: parseFloat(String(row[29] ?? "0")) || 0,
+            xA: parseFloat(String(row[30] ?? "0")) || 0,
+            passAccuracy: parseFloat(String(row[31] ?? "70")) || 70,
+            longBallAccuracy: parseFloat(String(row[32] ?? "50")) || 50,
+            wonContest: parseFloat(String(row[33] ?? "0")) || 0,
+            touchesOppBox: parseFloat(String(row[34] ?? "0")) || 0,
+            gkSaves: isGK ? parseFloat(String(row[35] ?? "0")) || 0 : 0,
+            gkSavePercent: isGK ? parseFloat(String(row[36] ?? "50")) || 50 : 0,
+            gkGoalsConceded: isGK ? parseFloat(String(row[37] ?? "0")) || 0 : 0,
+            gkGoalsPrevented: isGK ? parseFloat(String(row[38] ?? "0")) || 0 : 0,
+            gkKeeperSweeper: isGK ? parseFloat(String(row[39] ?? "0")) || 0 : 0,
+            gkErrorLedToGoal: isGK ? parseFloat(String(row[40] ?? "0")) || 0 : 0,
+            yellowCards: parseFloat(String(row[41] ?? "0")) || 0,
+            redCards: parseFloat(String(row[42] ?? "0")) || 0
           }
         };
       });
@@ -7242,6 +7267,10 @@ var FootballSim = (() => {
   function handleShotAttempt(holder, goalX, allPlayers) {
     const goalkeeper = allPlayers.find((p) => p.role === "GK" && p.isHome !== holder.isHome);
     const opponents = allPlayers.filter((p) => p.isHome !== holder.isHome);
+    if (!goalkeeper) {
+      console.warn("No goalkeeper found for shot attempt");
+      return;
+    }
     const xG = calculateXG(holder, goalX, holder.y, opponents);
     const teamStats = holder.isHome ? gameState.stats.home : gameState.stats.away;
     teamStats.xGTotal += xG;
@@ -7267,8 +7296,8 @@ var FootballSim = (() => {
     const shotPower = 800 + holder.shooting * 4;
     passBall(holder, holder.x, holder.y, goalX, shotTargetY, 1, shotPower, true);
     if (gameState.ballTrajectory) {
-      gameState.ballTrajectory.shotTargetY = shotTargetY;
-      gameState.ballTrajectory.effectiveAccuracy = effectiveAccuracy;
+      gameState.ballTrajectory["shotTargetY"] = shotTargetY;
+      gameState.ballTrajectory["effectiveAccuracy"] = effectiveAccuracy;
     }
     gameState.shotInProgress = true;
     gameState.shooter = holder;
@@ -7591,22 +7620,30 @@ var FootballSim = (() => {
           possessionTime: 0,
           passesCompleted: 0,
           passesAttempted: 0,
+          shots: 0,
           shotsOnTarget: 0,
           shotsOffTarget: 0,
           tackles: 0,
+          fouls: 0,
           interceptions: 0,
-          xGTotal: 0
+          xGTotal: 0,
+          firstTouches: 0,
+          saves: 0
         },
         away: {
           possession: 0,
           possessionTime: 0,
           passesCompleted: 0,
           passesAttempted: 0,
+          shots: 0,
           shotsOnTarget: 0,
           shotsOffTarget: 0,
           tackles: 0,
+          fouls: 0,
           interceptions: 0,
-          xGTotal: 0
+          xGTotal: 0,
+          firstTouches: 0,
+          saves: 0
         },
         possession: { home: 50, away: 50 },
         possessionTimer: { home: 0, away: 0 },
@@ -7811,24 +7848,30 @@ var FootballSim = (() => {
         possessionTime: 0,
         passesCompleted: 0,
         passesAttempted: 0,
+        shots: 0,
         shotsOnTarget: 0,
         shotsOffTarget: 0,
         tackles: 0,
+        fouls: 0,
         interceptions: 0,
         saves: 0,
-        xGTotal: 0
+        xGTotal: 0,
+        firstTouches: 0
       },
       away: {
         possession: 0,
         possessionTime: 0,
         passesCompleted: 0,
         passesAttempted: 0,
+        shots: 0,
         shotsOnTarget: 0,
         shotsOffTarget: 0,
         tackles: 0,
+        fouls: 0,
         interceptions: 0,
         saves: 0,
-        xGTotal: 0
+        xGTotal: 0,
+        firstTouches: 0
       },
       possession: { home: 50, away: 50 },
       possessionTimer: { home: 0, away: 0 },
@@ -8304,6 +8347,7 @@ var FootballSim = (() => {
       gameState.goalEvents.push({
         scorer: holder.name,
         time: Math.floor(gameState.timeElapsed),
+        team: holder.isHome ? gameState.homeTeam : gameState.awayTeam,
         isHome: holder.isHome
       });
       createGoalExplosion(
@@ -9025,11 +9069,12 @@ var FootballSim = (() => {
       console.error(`   Stack:`, new Error().stack);
       return getRoleBasedFallbackPosition(context.role, context);
     }
-    let x = Number(pos.x);
-    let y = Number(pos.y);
+    const posObj = pos;
+    let x = Number(posObj.x);
+    let y = Number(posObj.y);
     if (isNaN(x) || !isFinite(x) || isNaN(y) || !isFinite(y)) {
       console.error(`\u274C sanitizePosition: INVALID COORDINATES for ${context.player?.name || "unknown player"}`);
-      console.error(`   Position: {x: ${pos.x} (${typeof pos.x}), y: ${pos.y} (${typeof pos.y})}`);
+      console.error(`   Position: {x: ${posObj.x} (${typeof posObj.x}), y: ${posObj.y} (${typeof posObj.y})}`);
       console.error(`   After Number(): {x: ${x}, y: ${y}}`);
       console.error(`   Context:`, { behavior: context.behavior, role: context.role, movement: context.movement });
       return getRoleBasedFallbackPosition(context.role, context);
@@ -9039,11 +9084,11 @@ var FootballSim = (() => {
     x = Math.max(minX, Math.min(maxX, x));
     y = Math.max(minY, Math.min(maxY, y));
     return {
-      ...pos,
+      ...posObj,
       x,
       y,
-      movement: pos.movement || context.movement || "standard_position",
-      role: pos.role || context.role || "UNKNOWN_ROLE"
+      movement: posObj["movement"] || context.movement || "standard_position",
+      role: posObj["role"] || context.role || "UNKNOWN_ROLE"
     };
   }
   function getValidPlayers(playersArray) {
@@ -9747,9 +9792,9 @@ var FootballSim = (() => {
         const defensivePlayers = validTeammates.filter(
           (p) => p.role === "CB" || p.role === "LB" || p.role === "RB" || p.role === "CDM"
         );
-        const bestKicker = sortedLists.teammates.bestKickers[0];
-        const aerialThreats = sortedLists.teammates.bestHeaders.slice(0, 4);
-        const fastRunners = sortedLists.teammates.fastest.slice(0, 3);
+        const bestKicker = sortedLists?.teammates?.bestKickers?.[0];
+        const aerialThreats = sortedLists?.teammates?.bestHeaders?.slice(0, 4) || [];
+        const fastRunners = sortedLists?.teammates?.fastest?.slice(0, 3) || [];
         const defendersToCommit = shouldCommit ? defensivePlayers.filter((p) => p.role !== "GK").slice(0, 1) : [];
         const defendersToStayBack = shouldCommit ? defensivePlayers.filter((p) => !defendersToCommit.includes(p) && p.role !== "GK").slice(0, 2) : defensivePlayers.filter((p) => p.role !== "GK").slice(0, 3);
         const assigned = /* @__PURE__ */ new Set();
@@ -9949,8 +9994,8 @@ var FootballSim = (() => {
         gameState2._cornerOpponentMap = opponentMap;
         const assigned = /* @__PURE__ */ new Set();
         if (useManMarking) {
-          const dangerousAttackers = sortedLists.opponents.mostDangerous.slice(0, Math.min(6, validTeammates.length));
-          const bestMarkers = sortedLists.teammates.bestDefenders;
+          const dangerousAttackers = sortedLists?.opponents?.mostDangerous?.slice(0, Math.min(6, validTeammates.length)) || [];
+          const bestMarkers = sortedLists?.teammates?.bestDefenders || [];
           dangerousAttackers.forEach((attacker, idx) => {
             if (bestMarkers[idx]) {
               const markerId = String(bestMarkers[idx].id);
@@ -10000,7 +10045,7 @@ var FootballSim = (() => {
             }
           });
         }
-        const fastPlayer = sortedLists.teammates.fastest.find((p) => !assigned.has(String(p.id)));
+        const fastPlayer = sortedLists?.teammates?.fastest?.find((p) => !assigned.has(String(p.id)));
         if (fastPlayer) {
           const finalPos = posManager.findValidPosition(ZONES.shortCornerPress);
           playerJobs.set(String(fastPlayer.id), {
@@ -11056,7 +11101,7 @@ var FootballSim = (() => {
           const distToGoal = distance(setPiecePos, { x: isAttacking ? opponentGoalX : ownGoalX, y: 300 });
           return isAttacking ? ProfessionalFreeKickBehaviors.getAttackingFreeKickPosition(player, setPiecePos, opponentGoalX, distToGoal, null, gameState2, teammates) : ProfessionalFreeKickBehaviors.getDefendingFreeKickPosition(player, setPiecePos, ownGoalX, distToGoal, null, opponents, gameState2, teammates);
         case SET_PIECE_TYPES.CORNER_KICK:
-          return isAttacking ? ProfessionalCornerBehaviors.getAttackingCornerPosition(player, setPiecePos, opponentGoalX, teammates, null, gameState2.setPiece?.routine, gameState2) : ProfessionalCornerBehaviors.getDefendingCornerPosition(player, setPiecePos, ownGoalX, opponents, null, gameState2.setPiece?.defensiveSystem, gameState2, teammates);
+          return isAttacking ? ProfessionalCornerBehaviors.getAttackingCornerPosition(player, setPiecePos, opponentGoalX, teammates, null, gameState2.setPiece?.routine, gameState2) : ProfessionalCornerBehaviors.getDefendingCornerPosition(player, setPiecePos, ownGoalX, opponents, null, gameState2.setPiece?.defensiveSystem || "man_marking", gameState2, teammates);
         case SET_PIECE_TYPES.THROW_IN:
           return ThrowInBehaviors.getThrowInPosition(player, setPiecePos, ownGoalX, opponentGoalX, gameState2, teammates, opponents);
         case SET_PIECE_TYPES.GOAL_KICK:
@@ -11718,7 +11763,7 @@ var FootballSim = (() => {
     if (typeof gameState === "undefined" || !gameState || !gameState.setPiece) {
       return;
     }
-    gameState.setPiece.kicker = player || null;
+    gameState.setPiece.kicker = player || void 0;
   }
   function getCornerKickPosition(isLeftCorner, isTopCorner) {
     const CORNER_MARGIN = 5;
@@ -11953,8 +11998,8 @@ var FootballSim = (() => {
       allPlayers.forEach((player) => {
         if (player) {
           player.setPieceLocked = false;
-          player.setPieceMovement = null;
-          player.setPieceRole = null;
+          player.setPieceMovement = void 0;
+          player.setPieceRole = void 0;
           player.setPieceRunTarget = null;
           player.setPieceTarget = null;
           player._setPieceWasClose = false;
@@ -12354,7 +12399,7 @@ var FootballSim = (() => {
       return;
     const HEADER_HEIGHT_THRESHOLD = PHYSICS?.HEADER_HEIGHT_THRESHOLD ?? 0.6;
     const PASS_INTERCEPT_DISTANCE = PHYSICS?.PASS_INTERCEPT_DISTANCE ?? 25;
-    const isAerial = trajectory.passType === "aerial";
+    const isAerial = trajectory["passType"] === "aerial";
     const isHeaderOpportunity = isAerial && gameState.ballHeight > HEADER_HEIGHT_THRESHOLD;
     if (progress >= 1 || progress < 0.2)
       return;
@@ -12404,10 +12449,10 @@ var FootballSim = (() => {
     }
   }
   function calculateInterceptionChance(player, ballDistance, trajectory) {
-    const realStats = player.realStats || {};
+    const realStats = player.realStats;
     const baseDefending = player.defending / 100;
-    const interceptionModifier = realStats.interceptions > 0 ? Math.min(realStats.interceptions / 15, 0.3) : 0;
-    const recoveryBonus = realStats.recoveries > 0 ? Math.min(realStats.recoveries / 20, 0.15) : 0;
+    const interceptionModifier = (realStats.interceptions ?? 0) > 0 ? Math.min((realStats.interceptions ?? 0) / 15, 0.3) : 0;
+    const recoveryBonus = (realStats.recoveries ?? 0) > 0 ? Math.min((realStats.recoveries ?? 0) / 20, 0.15) : 0;
     const ratingBonus = (player.rating - 6.5) / 10;
     const distancePenalty = Math.min(ballDistance / 100, 0.3);
     const passQualityBonus = trajectory.passQuality ? (1 - trajectory.passQuality) * 0.4 : 0;
@@ -12462,8 +12507,8 @@ var FootballSim = (() => {
     gameState.ballPosition.x = traj.startX + (traj.endX - traj.startX) * progress;
     gameState.ballPosition.y = traj.startY + (traj.endY - traj.startY) * progress;
     const heightProgress = Math.sin(progress * Math.PI);
-    gameState.ballHeight = heightProgress * traj.maxHeight;
-    if (traj.passType === "aerial" && gameState.ballHeight > 0.5) {
+    gameState.ballHeight = heightProgress * (traj.maxHeight ?? 0);
+    if (traj["passType"] === "aerial" && gameState.ballHeight > 0.5) {
       if (gameState.ballPosition.y < 20 || gameState.ballPosition.y > 580) {
         if (DEBUG_PHYSICS) {
           console.log(`[Physics] Ball out of bounds during aerial pass (y=${gameState.ballPosition.y}), resetting to center`);
@@ -12489,11 +12534,11 @@ var FootballSim = (() => {
     }
     if (progress >= 1) {
       const direction = Math.atan2(traj.endY - traj.startY, traj.endX - traj.startX);
-      const landingSpeed = traj.speed * 0.3;
+      const landingSpeed = (traj.speed ?? 0) * 0.3;
       gameState.ballVelocity.x = Math.cos(direction) * landingSpeed;
       gameState.ballVelocity.y = Math.sin(direction) * landingSpeed;
       if (DEBUG_PHYSICS) {
-        console.log(`[Physics] Ball trajectory complete (${traj.passType}): landed at (${gameState.ballPosition.x.toFixed(1)}, ${gameState.ballPosition.y.toFixed(1)}), velocity=(${gameState.ballVelocity.x.toFixed(1)}, ${gameState.ballVelocity.y.toFixed(1)})`);
+        console.log(`[Physics] Ball trajectory complete (${traj["passType"]}): landed at (${gameState.ballPosition.x.toFixed(1)}, ${gameState.ballPosition.y.toFixed(1)}), velocity=(${gameState.ballVelocity.x.toFixed(1)}, ${gameState.ballVelocity.y.toFixed(1)})`);
       }
       gameState.ballTrajectory = null;
       gameState.ballHeight = 0;
@@ -13102,6 +13147,8 @@ var FootballSim = (() => {
     const teamStats = player.isHome ? gameState.stats.home : gameState.stats.away;
     if (!teamStats || !teamStats.firstTouches)
       return;
+    if (typeof teamStats.firstTouches === "number")
+      return;
     if (outcome === "perfect" || outcome === "good" || outcome === "poor" || outcome === "failed") {
       teamStats.firstTouches[outcome]++;
     }
@@ -13422,7 +13469,12 @@ var FootballSim = (() => {
           gameState.fouls = 0;
           gameState.yellowCards = [];
           gameState.redCards = [];
-          gameState.stats = { home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shotsOnTarget: 0, shotsOffTarget: 0, xGTotal: 0, offsides: 0 }, possessionTimer: { home: 0, away: 0 }, lastPossessionUpdate: Date.now() };
+          gameState.stats = {
+            home: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, possessionTime: 0, offsides: 0 },
+            away: { possession: 0, passesCompleted: 0, passesAttempted: 0, shots: 0, shotsOnTarget: 0, shotsOffTarget: 0, tackles: 0, fouls: 0, interceptions: 0, xGTotal: 0, firstTouches: 0, saves: 0, possessionTime: 0, offsides: 0 },
+            possessionTimer: { home: 0, away: 0 },
+            lastPossessionUpdate: Date.now()
+          };
           window.setupKickOff("home");
           let lastFrameTimeSim = performance.now();
           let physicsAccumulatorSim = 0;
@@ -13459,8 +13511,8 @@ var FootballSim = (() => {
                     executeSetPiece_Router(gameState);
                   }
                 }
-                if (gameState.status === "PENALTY" && typeof penaltySystem !== "undefined" && typeof penaltySystem.update === "function") {
-                  penaltySystem.update(gameState);
+                if (gameState.status === "PENALTY" && typeof penaltySystem !== "undefined" && typeof penaltySystem["update"] === "function") {
+                  penaltySystem["update"](gameState);
                 }
               }
               if (isGameActive || isSetPieceOrKickOff) {
@@ -13707,18 +13759,18 @@ var FootballSim = (() => {
       for (const event of teamEvents) {
         let playerName = "";
         let icon = "";
-        if (event.type === "goal") {
-          playerName = event.scorer;
+        if (event["type"] === "goal") {
+          playerName = String(event["scorer"] ?? "");
           icon = "\u26BD\uFE0F";
-        } else if (event.type === "card") {
-          playerName = event.player;
-          icon = event.card === "yellow" ? "\u{1F7E8}" : "\u{1F7E5}";
+        } else if (event["type"] === "card") {
+          playerName = event.player ?? "";
+          icon = String(event["card"]) === "yellow" ? "\u{1F7E8}" : "\u{1F7E5}";
         }
         if (!playerName)
           continue;
         if (!playerMap[playerName])
           playerMap[playerName] = [];
-        playerMap[playerName].push({ time: event.time ?? 0, icon });
+        playerMap[playerName].push({ time: event["time"] ?? 0, icon });
       }
       const summaryLines = [];
       const sortedPlayerNames = Object.keys(playerMap).sort();
@@ -13861,22 +13913,30 @@ var FootballSim = (() => {
             possessionTime: 0,
             passesCompleted: 0,
             passesAttempted: 0,
+            shots: 0,
             shotsOnTarget: 0,
             shotsOffTarget: 0,
             tackles: 0,
+            fouls: 0,
             interceptions: 0,
-            xGTotal: 0
+            xGTotal: 0,
+            firstTouches: 0,
+            saves: 0
           },
           away: {
             possession: 0,
             possessionTime: 0,
             passesCompleted: 0,
             passesAttempted: 0,
+            shots: 0,
             shotsOnTarget: 0,
             shotsOffTarget: 0,
             tackles: 0,
+            fouls: 0,
             interceptions: 0,
-            xGTotal: 0
+            xGTotal: 0,
+            firstTouches: 0,
+            saves: 0
           },
           possession: { home: 50, away: 50 },
           possessionTimer: { home: 0, away: 0 },
@@ -13945,22 +14005,30 @@ var FootballSim = (() => {
           possessionTime: 0,
           passesCompleted: 0,
           passesAttempted: 0,
+          shots: 0,
           shotsOnTarget: 0,
           shotsOffTarget: 0,
           tackles: 0,
+          fouls: 0,
           interceptions: 0,
-          xGTotal: 0
+          xGTotal: 0,
+          firstTouches: 0,
+          saves: 0
         },
         away: {
           possession: 0,
           possessionTime: 0,
           passesCompleted: 0,
           passesAttempted: 0,
+          shots: 0,
           shotsOnTarget: 0,
           shotsOffTarget: 0,
           tackles: 0,
+          fouls: 0,
           interceptions: 0,
-          xGTotal: 0
+          xGTotal: 0,
+          firstTouches: 0,
+          saves: 0
         },
         possession: { home: 50, away: 50 },
         possessionTimer: { home: 0, away: 0 },
@@ -14156,7 +14224,7 @@ var FootballSim = (() => {
           const distToGoal = distance(setPiecePos, { x: isAttacking ? opponentGoalX : ownGoalX, y: 300 });
           return isAttacking ? ProfessionalFreeKickBehaviors.getAttackingFreeKickPosition(player, setPiecePos, opponentGoalX, distToGoal, null, gameState2, teammates) : ProfessionalFreeKickBehaviors.getDefendingFreeKickPosition(player, setPiecePos, ownGoalX, distToGoal, null, opponents, gameState2, teammates);
         case SET_PIECE_TYPES2.CORNER_KICK:
-          return isAttacking ? ProfessionalCornerBehaviors.getAttackingCornerPosition(player, setPiecePos, opponentGoalX, teammates, null, gameState2.setPiece?.routine, gameState2) : ProfessionalCornerBehaviors.getDefendingCornerPosition(player, setPiecePos, ownGoalX, opponents, null, gameState2.setPiece?.defensiveSystem, gameState2, teammates);
+          return isAttacking ? ProfessionalCornerBehaviors.getAttackingCornerPosition(player, setPiecePos, opponentGoalX, teammates, null, gameState2.setPiece?.routine, gameState2) : ProfessionalCornerBehaviors.getDefendingCornerPosition(player, setPiecePos, ownGoalX, opponents, null, gameState2.setPiece?.defensiveSystem || "man_marking", gameState2, teammates);
         case SET_PIECE_TYPES2.THROW_IN:
           return ThrowInBehaviors.getThrowInPosition(player, setPiecePos, ownGoalX, opponentGoalX, gameState2, teammates, opponents);
         case SET_PIECE_TYPES2.GOAL_KICK:

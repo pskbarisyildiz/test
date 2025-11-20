@@ -130,19 +130,15 @@ interface FormationPosition {
 export function getFormationPositions(
   isHome: boolean,
   isSecondHalf: boolean,
-  formationName: string
+  formationName: string,
+  formations: typeof FORMATIONS
 ): FormationPosition[] {
-  console.log('--- getFormationPositions İÇİNDE ---');
-  console.log('Doğrudan global FORMATIONS kontrolü, typeof:', typeof FORMATIONS);
-  console.log('formationName:', formationName);
-
   const activeConfig = GAME_CONFIG;
-  const effectiveFormation = FORMATIONS[formationName] || FORMATIONS['4-3-3'];
+  const effectiveFormation = formations[formationName] || formations['4-3-3'];
 
-  console.log('Seçilen formation:', effectiveFormation);
   if (!effectiveFormation) {
-    console.error(`Formasyon bulunamadı: ${formationName}. Varsayılan kullanılıyor.`);
-    return FORMATIONS['4-3-3']!.map(pos => ({
+    console.error(`Formation not found: ${formationName}. Defaulting to 4-3-3.`);
+    return (formations['4-3-3'] || []).map(pos => ({
       x: pos.x * activeConfig.PITCH_WIDTH,
       y: pos.y * activeConfig.PITCH_HEIGHT,
       role: pos.role
@@ -168,8 +164,8 @@ export function initializePlayers(
   homeFormation: string,
   awayFormation: string
 ): { home: Player[]; away: Player[] } {
-  const homePositions = getFormationPositions(true, false, homeFormation);
-  const awayPositions = getFormationPositions(false, false, awayFormation);
+  const homePositions = getFormationPositions(true, false, homeFormation, FORMATIONS);
+  const awayPositions = getFormationPositions(false, false, awayFormation, FORMATIONS);
 
   const initPlayer = (player: Player, pos: FormationPosition, isHome: boolean, index: number): Player => ({
     ...player,
@@ -364,7 +360,7 @@ export function selectBestTeam(teamName: string): { players: Player[]; formation
   const formation = selectBestFormation(teamPlayers);
 
   const selected: Player[] = [];
-  const positions = getFormationPositions(true, false, formation);
+  const positions = getFormationPositions(true, false, formation, FORMATIONS);
 
   // Select best goalkeeper first
   const gkPosition = positions.find(pos => pos.role === 'GK');

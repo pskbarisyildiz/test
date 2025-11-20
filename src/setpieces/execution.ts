@@ -55,7 +55,7 @@ export function executeCornerKick_Enhanced(gameState: GameState): boolean {
 
    if (!taker) {
        assignSetPieceKicker(null);
-       console.warn("Korner: Atıcı bulunamadı.");
+       console.warn("Corner: Kicker not found.");
        return false;
    }
 
@@ -140,7 +140,7 @@ export function executeFreeKick_Enhanced(gameState: GameState): boolean {
 
    if (!taker) {
        assignSetPieceKicker(null);
-       console.warn("Serbest Vuruş: Atıcı bulunamadı.");
+       console.warn("Free Kick: Kicker not found.");
        return false;
    }
 
@@ -231,7 +231,7 @@ export function executeFreeKick_Enhanced(gameState: GameState): boolean {
                 target.x, target.y, passAccuracy, passSpeed, false); // `false` = pas
         console.log(`⚽ Free Kick PASS by ${taker.name} to ${target.name}`);
         return true;
-    } else { console.warn("Serbest Vuruş: Pas hedefi bulunamadı."); }
+    } else { console.warn("Free Kick: Pass target not found."); }
 
     return false;
 }
@@ -285,7 +285,7 @@ export function executeThrowIn_Enhanced(gameState: GameState): boolean {
 
    if (!thrower) {
        assignSetPieceKicker(null);
-       console.warn("Taç: Atıcı bulunamadı.");
+       console.warn("Throw-in: Thrower not found.");
        return false;
    }
 
@@ -323,7 +323,7 @@ export function executeThrowIn_Enhanced(gameState: GameState): boolean {
                 target.x, target.y, accuracy, Math.min(throwPower, 600), false); // Max hız 600
         console.log(`⚽ Throw-in by ${thrower.name} to ${target.name}`);
         return true;
-    } else { console.warn("Taç: Uygun alıcı bulunamadı."); }
+    } else { console.warn("Throw-in: Suitable receiver not found."); }
 
     return false;
 }

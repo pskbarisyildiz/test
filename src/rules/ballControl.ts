@@ -243,7 +243,7 @@ export function handleBallInterception(progress: number): void {
 }
 
 function calculateInterceptionChance(player: Player, ballDistance: number, trajectory: BallTrajectory): number {
-    const realStats = player.realStats;
+    const realStats = player.realStats ?? {};
     const baseDefending = player.defending / 100;
     const interceptionModifier = (realStats.interceptions ?? 0) > 0 ? Math.min((realStats.interceptions ?? 0) / 15, 0.3) : 0;
     const recoveryBonus = (realStats.recoveries ?? 0) > 0 ? Math.min((realStats.recoveries ?? 0) / 20, 0.15) : 0;
